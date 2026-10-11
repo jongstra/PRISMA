@@ -7,11 +7,11 @@ afterEach(() => vi.restoreAllMocks());
 describe('downloadFile', () => {
   it('offers the text as a file with the given name and type', async () => {
     let blob: Blob | undefined;
-    let link: HTMLAnchorElement | undefined;
     URL.createObjectURL = (object: Blob | MediaSource) => { blob = object as Blob; return 'blob:test'; };
-    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { link = this; });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     downloadFile('a: 1', 'data.yaml', 'text/yaml');
+    const link = click.mock.contexts[0] as HTMLAnchorElement | undefined; // the link that was clicked
 
     expect(link?.download).toBe('data.yaml');
     expect(link?.href).toBe('blob:test');

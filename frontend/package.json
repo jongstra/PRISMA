@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test-unit": "vitest",
-    "type-check": "vue-tsc --build --force"
+    "type-check": "vue-tsc --build --force",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@vueform/slider": "^2.1.10",
@@ -25,8 +26,11 @@
     "@types/jsdom": "^21.1.6",
     "@types/node": "^20.12.5",
     "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/eslint-config-typescript": "^14.9.0",
     "@vue/test-utils": "^2.4.5",
     "@vue/tsconfig": "^0.5.1",
+    "eslint": "^10.11.0",
+    "eslint-plugin-vue": "^10.11.1",
     "jsdom": "^24.0.0",
     "typescript": "~5.9.3",
     "vite": "^7.3.7",

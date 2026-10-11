@@ -78,16 +78,16 @@ const showButton = computed(() => {
   const currentValue = value.value ?? 0;
 
   // Compute whether the button should be shown based on its current value (based on the heatmap style checkmarks) and the heatmapFilterValue.
-  let valueFilterResult = (currentValue >= magma.heatmapFilterValue)
+  const valueFilterResult = (currentValue >= magma.heatmapFilterValue)
 
-  let searchQueryFilterResult = (
+  const searchQueryFilterResult = (
     !magma.heatmapSearchQuery ||  // There is no search query.
     props.technique.name.toLowerCase().includes(magma.heatmapSearchQuery.toLowerCase()) ||  // The search query matches on the technique name.
     props.technique.external_id.toLowerCase().includes(magma.heatmapSearchQuery.toLowerCase())  // The search query matches on the technique ID.
   )
 
   // When the group tool mask toggle (domain.only_show_selected_groups_magma_heatmap) is switch to 'true', we want to hide all techniques that are not covered by the selected groups.
-  let groupMaskFilterResult = (
+  const groupMaskFilterResult = (
     !(domain.only_show_selected_groups_magma_heatmap && !store.selectedGroupsTechniquesSetMagmaHeatmap.has(props.technique.name))
   );
 

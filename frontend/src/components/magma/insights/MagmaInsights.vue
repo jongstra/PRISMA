@@ -26,7 +26,7 @@ const magma = magmaStore();
   <InsightDataSourceMeanEffectiveness/>
   <InsightMostFrequentlyLinkedAttackTechniques/>
   <InsightImprovementPotentialForL3UseCases/>
-  <div v-for="L1UseCase in magma.L1UseCases(store.domain)"> 
+  <div v-for="L1UseCase in magma.L1UseCases(store.domain)" :key="L1UseCase.uid"> 
     <InsightImprovementPotentialL3UseCasesForL1UseCase :L1UseCase=L1UseCase :relatedL3UseCases=magma.getGrandChildUseCases(L1UseCase) />
   </div>
 </div>

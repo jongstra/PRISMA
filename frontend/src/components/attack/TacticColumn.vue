@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import TechniqueButton from './TechniqueButton.vue';
 import { tacticsStore } from '@/stores/tactics';
 import { averageVisibilityPercentage } from '@/domain/attack/visibility';

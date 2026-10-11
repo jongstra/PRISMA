@@ -58,13 +58,6 @@ export interface Domain {
   only_show_selected_groups_magma_heatmap: boolean;
 }
 
-interface TacticStats {
-  name: string;
-  totalTechniques: number;
-  visibleTechniques: number;
-  visibilityPercentage: number;
-}
-
 
 
 /** The store key of each ATT&CK domain ('enterprise-attack' → 'enterprise'). */
@@ -104,7 +97,7 @@ export const tacticsStore = defineStore('tactics', {
     allTechniquesIdsAndNames: (state) => {
       const tactics = domainOf(state, state.domain)?.tactics || [];
 
-      let allTechniquesIdsAndNames = tactics.flatMap(tactic => {
+      const allTechniquesIdsAndNames = tactics.flatMap(tactic => {
         return tactic.techniques.map(technique => ({
           id: technique.external_id,
           name: technique.name
@@ -124,9 +117,9 @@ export const tacticsStore = defineStore('tactics', {
     allTechniquesAndSubtechniquesIdsAndNames: (state) => {
       const tactics = domainOf(state, state.domain)?.tactics || [];
 
-      let allTechniquesAndSubtechniquesIdsAndNames = tactics.flatMap(tactic => {
+      const allTechniquesAndSubtechniquesIdsAndNames = tactics.flatMap(tactic => {
         return tactic.techniques.flatMap(technique => {
-          let techniqueData = [
+          const techniqueData = [
             {
               id: technique.external_id,
               name: technique.name
@@ -188,7 +181,7 @@ export const tacticsStore = defineStore('tactics', {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of hovered groups to a list.
-      let groupsTechniques: string[] = [];
+      const groupsTechniques: string[] = [];
       groups.forEach(group => {
         if (group?.hovered) {
           groupsTechniques.push(...group.techniques)
@@ -205,7 +198,7 @@ export const tacticsStore = defineStore('tactics', {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of selected groups to a list.
-      let groupsTechniques: string[] = [];
+      const groupsTechniques: string[] = [];
       groups.forEach(group => {
         if (group?.selected) {
           groupsTechniques.push(...group.techniques)
@@ -222,7 +215,7 @@ export const tacticsStore = defineStore('tactics', {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of selected groups to a list.
-      let groupsTechniques: string[] = [];
+      const groupsTechniques: string[] = [];
       groups.forEach(group => {
         if (group?.selectedInMagmaHeatmap) {
           groupsTechniques.push(...group.techniques)
@@ -240,7 +233,7 @@ export const tacticsStore = defineStore('tactics', {
       const components = domainOf(state, state.domain)?.data_components ?? [];
 
       // Add all techniques of hovered data_components to a list.
-      let componentsTechniques: string[] = [];
+      const componentsTechniques: string[] = [];
       components.forEach(component => {
         if (component?.hovered) {
           componentsTechniques.push(...component.techniques)
@@ -256,7 +249,7 @@ export const tacticsStore = defineStore('tactics', {
       const components = domainOf(state, state.domain)?.data_components ?? [];
 
       // Add all techniques of selected data_components to a list.
-      let componentsTechniques: string[] = [];
+      const componentsTechniques: string[] = [];
       components.forEach(component => {
         if (component?.selected) {
           componentsTechniques.push(...component.techniques)

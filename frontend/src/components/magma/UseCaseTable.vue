@@ -206,7 +206,7 @@ const formatPercentage = (number: any) => {
 // Validation method to limit input to numbers with up to two decimal places, and rangebound between 0 and 100.
 const validateAndFormat = (event: Event) => {
   const inputElement = event.target as HTMLInputElement;
-  let value = inputElement.value;
+  const value = inputElement.value;
 
   // Parse the value to a float
   const parsedValue = parseFloat(value);

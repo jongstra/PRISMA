@@ -143,7 +143,7 @@ export const magmaStore = defineStore('magma', {
         return childUseCases;
       };
     },
-    getGrandChildUseCases(state) {
+    getGrandChildUseCases() {
       return (useCase: UseCase) => {
         const childUseCases = this.getChildUseCases(useCase);
         const grandChildUseCases = childUseCases.map(childUseCase => this.getChildUseCases(childUseCase)).flat();

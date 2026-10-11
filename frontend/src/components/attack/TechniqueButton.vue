@@ -102,17 +102,17 @@ function getButtonStyles(visibility_ratio: number, detectable = true) {
 const showButton = computed(() => {
   const platforms = props.technique?.platforms || [];
 
-  let platformFilterResult = (
+  const platformFilterResult = (
     platforms.some(platform => store.activeAttributes('platforms').includes(platform))
   );
     
-  let searchQueryFilterResult = (
+  const searchQueryFilterResult = (
     !store.searchQuery ||  // There is no search query.
     props.technique.name.toLowerCase().includes(store.searchQuery.toLowerCase()) ||  // The search query matches on the technique name.
     props.technique.external_id.toLowerCase().includes(store.searchQuery.toLowerCase())  // The search query matches on the technique ID.
   );
 
-  let techniqueVisibilityPercentageFilterResult = (
+  const techniqueVisibilityPercentageFilterResult = (
     (props.technique.visibility_ratio >= store.minVisibilityRatio) &&
     (props.technique.visibility_ratio <= store.maxVisibilityRatio)
   );
@@ -138,12 +138,12 @@ const showButton = computed(() => {
 
   
   // When the group tool mask toggle (domain.only_show_selected_groups) is switch to 'true', we want to hide all techniques that are not covered by the selected groups.
-  let groupMaskFilterResult = (
+  const groupMaskFilterResult = (
     !(domain.only_show_selected_groups && !store.selectedGroupsTechniquesSet.has(props.technique.name))
   );
 
   // When the component tool mask toggle (domain.only_show_selected_components) is switch to 'true', we want to hide all techniques that are not covered by the selected components.
-    let componentMaskFilterResult = (
+    const componentMaskFilterResult = (
     !(domain.only_show_selected_components && !store.selectedComponentsTechniquesSet.has(props.technique.name))
   );
 

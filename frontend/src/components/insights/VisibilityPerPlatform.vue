@@ -11,7 +11,7 @@ function getDomain(): Partial<Domain> {
 
 function getPlatforms(): string[] {
   const platformsSet = new Set<string>();
-  let domain = getDomain();
+  const domain = getDomain();
 
   if (domain.platforms) {
     domain.platforms.forEach(platform => {
