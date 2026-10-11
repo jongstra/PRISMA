@@ -1,4 +1,15 @@
 {
+  "meta": {
+    "attack_version": "17.1",
+    "format_version": 1,
+    "generated_by": "tools/build_attack_catalog.ipynb",
+    "sources": {
+      "enterprise-attack-17.1.json": "sha256:0d1c347a4d584cf7e11ef46556c33b7689341443bf86299188d46c307274323b",
+      "ics-attack-17.1.json": "sha256:cb207f963ca270994d9dabefe52237d46cf25056f154057f4b961f1c0803a8f3",
+      "mobile-attack-17.1.json": "sha256:33968697b94a5ff5568016a28bbcc93f7869dc2f2b2653ead833758867ab5bc9",
+      "dettect_data_sources.json": "sha256:2561343156915c4e5ba8a27cf043bd92e6e4d82340c794122a4f0326c18b174c"
+    }
+  },
   "enterprise": {
     "tactics": [
       {
