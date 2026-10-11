@@ -1,0 +1,32 @@
+# Dependabot checks once a month for new versions of the dependencies and opens pull requests for them:
+# one combined pull request for the minor and patch updates per folder, and one per major update.
+# A new version is only proposed once it has been out for 14 days, as protection against a hijacked release.
+# Security alerts are separate, and not delayed.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 14
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Raised by hand, together with the Node.js versions PRISMA supports ("engines" in package.json).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # TypeScript 7 waits until vue-tsc and typescript-eslint support it.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: pip
+    directory: /tools
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 14
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]

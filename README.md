@@ -12,11 +12,13 @@ The figure below shows the overview of how MaGMa 2.0 and DeTT&CT are combined to
 
 | Name | Description |
 |---|---|
+| [`.github/`](.github/) | Dependabot settings: monthly pull requests for new versions of the dependencies |
 | [`docs/`](docs/) | MaGMa 2.0 functional documentation, and guides to PRISMA's calculations, structure and files |
 | [`examples/`](examples/) | Example DeTT&CT and MaGMa files to try the app |
 | [`frontend/`](frontend/) | The PRISMA web application |
 | [`templates/`](templates/) | MaGMa Excel template, for preparing many use cases |
 | [`tools/`](tools/) | A notebook that builds the ATT&CK catalog, and scripts that convert Excel files |
+| [`.git-blame-ignore-revs`](.git-blame-ignore-revs) | Formatting-only commits, which git blame skips |
 | [`LICENCE`](LICENCE) | Licence of this project |
 | [`LICENCE-ATTACK.txt`](LICENCE-ATTACK.txt) | MITRE's licence for the ATT&CK data in the catalog and the MaGMa template |
 
