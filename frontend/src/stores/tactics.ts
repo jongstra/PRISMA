@@ -89,6 +89,14 @@ function domainOf(state: { enterprise: unknown; mobile: unknown; ics: unknown },
   return key ? (state[key] as Domain) : undefined;
 }
 
+/** The techniques of the groups or data components that have a mark, such as hovered or selected (each technique once). */
+function techniquesOfMarked(
+  items: TechniqueAttribute[] | undefined,
+  mark: 'hovered' | 'selected' | 'selectedInMagmaHeatmap',
+) {
+  return new Set((items ?? []).filter((item) => item[mark]).flatMap((item) => item.techniques));
+}
+
 export const tacticsStore = defineStore('tactics', {
   state: () => ({
     domain: 'enterprise-attack', // Alternative initial value: 'none'.
@@ -191,85 +199,15 @@ export const tacticsStore = defineStore('tactics', {
       };
     },
 
-    hoveredGroupsTechniquesSet: (state) => {
-      const groups = domainOf(state, state.domain)?.groups ?? [];
-
-      // Add all techniques of hovered groups to a list.
-      const groupsTechniques: string[] = [];
-      groups.forEach((group) => {
-        if (group?.hovered) {
-          groupsTechniques.push(...group.techniques);
-        }
-      });
-
-      // Remove duplicates in the techniques list, and return it.
-      const groupsTechniquesSet = new Set(groupsTechniques);
-      return groupsTechniquesSet;
-    },
-
-    selectedGroupsTechniquesSet: (state) => {
-      const groups = domainOf(state, state.domain)?.groups ?? [];
-
-      // Add all techniques of selected groups to a list.
-      const groupsTechniques: string[] = [];
-      groups.forEach((group) => {
-        if (group?.selected) {
-          groupsTechniques.push(...group.techniques);
-        }
-      });
-
-      // Remove duplicates in the techniques list, and return it.
-      const groupsTechniquesSet = new Set(groupsTechniques);
-      return groupsTechniquesSet;
-    },
-
-    selectedGroupsTechniquesSetMagmaHeatmap: (state) => {
-      const groups = domainOf(state, state.domain)?.groups ?? [];
-
-      // Add all techniques of selected groups to a list.
-      const groupsTechniques: string[] = [];
-      groups.forEach((group) => {
-        if (group?.selectedInMagmaHeatmap) {
-          groupsTechniques.push(...group.techniques);
-        }
-      });
-
-      // Remove duplicates in the techniques list, and return it.
-      const groupsTechniquesSet = new Set(groupsTechniques);
-      return groupsTechniquesSet;
-    },
-
-    hoveredComponentsTechniquesSet: (state) => {
-      const components = domainOf(state, state.domain)?.data_components ?? [];
-
-      // Add all techniques of hovered data_components to a list.
-      const componentsTechniques: string[] = [];
-      components.forEach((component) => {
-        if (component?.hovered) {
-          componentsTechniques.push(...component.techniques);
-        }
-      });
-
-      // Remove duplicates in the techniques list, and return it.
-      const componentsTechniquesSet = new Set(componentsTechniques);
-      return componentsTechniquesSet;
-    },
-
-    selectedComponentsTechniquesSet: (state) => {
-      const components = domainOf(state, state.domain)?.data_components ?? [];
-
-      // Add all techniques of selected data_components to a list.
-      const componentsTechniques: string[] = [];
-      components.forEach((component) => {
-        if (component?.selected) {
-          componentsTechniques.push(...component.techniques);
-        }
-      });
-
-      // Remove duplicates in the techniques list, and return it.
-      const componentsTechniquesSet = new Set(componentsTechniques);
-      return componentsTechniquesSet;
-    },
+    // The techniques of the hovered or selected groups and data components, to highlight (or only show) them.
+    hoveredGroupsTechniquesSet: (state) => techniquesOfMarked(domainOf(state, state.domain)?.groups, 'hovered'),
+    selectedGroupsTechniquesSet: (state) => techniquesOfMarked(domainOf(state, state.domain)?.groups, 'selected'),
+    selectedGroupsTechniquesSetMagmaHeatmap: (state) =>
+      techniquesOfMarked(domainOf(state, state.domain)?.groups, 'selectedInMagmaHeatmap'),
+    hoveredComponentsTechniquesSet: (state) =>
+      techniquesOfMarked(domainOf(state, state.domain)?.data_components, 'hovered'),
+    selectedComponentsTechniquesSet: (state) =>
+      techniquesOfMarked(domainOf(state, state.domain)?.data_components, 'selected'),
 
     techniquesOccurrences: (state) => {
       const tactics = domainOf(state, state.domain)?.tactics;

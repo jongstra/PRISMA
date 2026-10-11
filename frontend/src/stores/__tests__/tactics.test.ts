@@ -118,3 +118,34 @@ describe('tactics store: loading a DeTT&CT file safely', () => {
     expect(store.dataLoaded).toBe(true);
   });
 });
+
+describe('tactics store: techniques of the hovered and selected groups and data components', () => {
+  it('collects the techniques of the marked items, each technique once', () => {
+    setActivePinia(createPinia());
+    const store = tacticsStore();
+    store.enterprise = structuredClone(catalog).enterprise;
+    const [group1, group2] = store.enterprise!.groups;
+    const [component] = store.enterprise!.data_components;
+    group1.hovered = true;
+    group1.selected = true;
+    group2.selected = true;
+    group2.selectedInMagmaHeatmap = true;
+    component.hovered = true;
+    component.selected = true;
+
+    const techniquesOf = (...items: { techniques: string[] }[]) => [
+      ...new Set(items.flatMap((item) => item.techniques)),
+    ];
+    expect([...store.hoveredGroupsTechniquesSet]).toEqual(techniquesOf(group1));
+    expect([...store.selectedGroupsTechniquesSet]).toEqual(techniquesOf(group1, group2));
+    expect([...store.selectedGroupsTechniquesSetMagmaHeatmap]).toEqual(techniquesOf(group2));
+    expect([...store.hoveredComponentsTechniquesSet]).toEqual(techniquesOf(component));
+    expect([...store.selectedComponentsTechniquesSet]).toEqual(techniquesOf(component));
+    expect(store.selectedGroupsTechniquesSet.size).toBeGreaterThan(0);
+
+    // A domain without catalog data has none.
+    store.setDomain('ics-attack');
+    store.ics = undefined;
+    expect(store.hoveredGroupsTechniquesSet.size).toBe(0);
+  });
+});
