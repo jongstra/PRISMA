@@ -1,6 +1,6 @@
 # PRISMA: Prioritized Risk Indicator for Security Monitoring & Analysis
 
-This is the repository for the PRISMA tool. The PRISMA tool supports organisations in implementing the MaGMa use case framework 2.0, and automates its calculations. Additionally, the tool acts as a visualisation and summarization layer on top of DeTT&CT. Functional documentation of the MaGMa use case framework 2.0 can be found in the folder [docs](docs/). How PRISMA calculates its numbers is explained in [docs/calculations.md](docs/calculations.md).
+This is the repository for the PRISMA tool. The PRISMA tool supports organisations in implementing the MaGMa use case framework 2.0, and automates its calculations. Additionally, the tool acts as a visualisation and summarization layer on top of DeTT&CT. Functional documentation of the MaGMa use case framework 2.0 can be found in the folder [docs](docs/). How PRISMA calculates its numbers is explained in [docs/calculations.md](docs/calculations.md), how it is built in [docs/architecture.md](docs/architecture.md), and its files in [docs/data-formats.md](docs/data-formats.md).
 
 The tool provides insight and guidance to detection engineers and management. The PRISMA tool currently supports MITRE ATT&CK v17.1.
 
@@ -12,7 +12,7 @@ The figure below shows the overview of how MaGMa 2.0 and DeTT&CT are combined to
 
 | Name | Description |
 |---|---|
-| [`docs/`](docs/) | MaGMa 2.0 functional documentation, and how PRISMA calculates |
+| [`docs/`](docs/) | MaGMa 2.0 functional documentation, and guides to PRISMA's calculations, structure and files |
 | [`examples/`](examples/) | Example DeTT&CT and MaGMa files to try the app |
 | [`frontend/`](frontend/) | The PRISMA web application |
 | [`templates/`](templates/) | MaGMa Excel template, for preparing many use cases |

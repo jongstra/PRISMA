@@ -24,4 +24,5 @@ npm ci              # install the dependencies
 npm run dev         # run the app at http://localhost:5173
 npx vitest run      # run the tests
 npm run build       # build the app into dist/
+npm run type-check  # check the types
 ```
