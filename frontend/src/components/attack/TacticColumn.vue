@@ -13,7 +13,8 @@ const tacticVisibility = (tactic: any) => {
   return percentage === null ? 'n/a' : `${Math.round(percentage)}%`;
 };
 
-const domain: any = store.currentDomain;
+// The matrix only shows tactic columns once the catalog is loaded, so the domain exists here.
+const domain = store.currentDomain!;
 
 // Method to handle movements outside of tooltip group buttons, to remove group.hovered properties.
 const handleMoveOutsideToDisableGroupHover = (event: MouseEvent) => {

@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { tacticsStore } from '@/stores/tactics';
+import { tacticsStore, type Technique } from '@/stores/tactics';
 import { hasDataComponents, isDetectable } from '@/domain/attack/visibility';
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '../common/notDetectableStyle';
 import TechniqueTooltip from '../common/TechniqueTooltip.vue';
 import { useTechniqueTooltip } from '../common/useTechniqueTooltip';
 
 const store = tacticsStore();
-const props = defineProps(['technique']);
+const props = defineProps<{ technique: Technique }>();
 
-const domain: any = store.currentDomain;
+// The matrix only shows technique buttons once the catalog is loaded, so the domain exists here.
+const domain = store.currentDomain!;
 
 const buttonRef = ref<HTMLElement | null>(null);
 const { open: tooltipOpen, pinned, show: showTooltip, hide: hideTooltip, togglePin, unpin } = useTechniqueTooltip();
@@ -263,7 +264,7 @@ const occursInSelectedComponents = () => {
           }"
           @mouseover="hoverComponent(component)"
           @click="toggleComponentSelected(component)">
-          {{ component }} {{ domain.data_components.find(c => c.name === component).visibility ? '[VISIBLE]' : ''}}
+          {{ component }} {{ domain.data_components.find(c => c.name === component)?.visibility ? '[VISIBLE]' : ''}}
         </span>
       </label>
     </div>

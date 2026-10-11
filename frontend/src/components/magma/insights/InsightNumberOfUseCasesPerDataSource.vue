@@ -13,11 +13,11 @@ function getMostFrequentDataSources() {
 
   const frequencyDict: Record<string, number> = {};
   useCases.forEach(useCase => {
+    if (useCase.dataSource === undefined) {  // Use cases without a data source are not counted.
+      return;
+    }
     frequencyDict[useCase.dataSource] = (frequencyDict[useCase.dataSource] || 0) + 1;
   })
-
-  // Remove the 'undefined' entry.
-  delete frequencyDict.undefined;
 
   // Sort the frequencyDict by values from high to low and convert back to an object.
   const sortedFrequencyDict = Object.fromEntries(Object.entries(frequencyDict).sort(([, a], [, b]) => b - a));

@@ -13,6 +13,9 @@ function getMostFrequentlyLinkedAttackTechniques() {
 
   const frequencyDict: Record<string, number> = {};
   useCases.forEach(useCase => {
+    if (useCase.attackTechniqueId === undefined) {
+      return;
+    }
     frequencyDict[useCase.attackTechniqueId] = (frequencyDict[useCase.attackTechniqueId] || 0) + 1;
   })
 

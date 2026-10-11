@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { tacticsStore } from '@/stores/tactics';
+import { tacticsStore, type Attribute, type Domain } from '@/stores/tactics';
 
 // Define props
 const props = defineProps({
@@ -26,14 +26,12 @@ function capitalizeFirstLetter(string: string) {
 }
 
 // Toggle selection functionality
-function toggleAttribute(attribute: any) {
+function toggleAttribute(attribute: Attribute) {
   attribute.active_in_filter = !attribute.active_in_filter;
 }
 
 // Compute attributes based on the current domain and attribute type
-const attributes = computed(() => {
-  return store.currentDomain ? (store.currentDomain as any)[props.attribute_type] : [];
-});
+const attributes = computed(() => (store.currentDomain?.[props.attribute_type as keyof Domain] as Attribute[] | undefined) ?? []);
 
 // Compute the state of the main checkbox
 const allSelected = computed(() => {
@@ -85,7 +83,7 @@ onBeforeUnmount(() => {
               type="checkbox"
               :indeterminate="isIndeterminate"
               :checked="allSelected"
-              @change="toggleAllAttributes($event.target.checked)"
+              @change="toggleAllAttributes(($event.target as HTMLInputElement).checked)"
             />
             All
           </label>

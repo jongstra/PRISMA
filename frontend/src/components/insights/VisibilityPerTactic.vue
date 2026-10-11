@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BarChart from '@/components/common/BarChart.vue';
 import { computed } from 'vue';
-import { tacticsStore } from '@/stores/tactics';
+import { tacticsStore, type Tactic } from '@/stores/tactics';
 import { averageVisibilityPercentage, isDetectable } from '@/domain/attack/visibility';
 const store = tacticsStore();
 
@@ -16,7 +16,7 @@ function getTactics(): any {
 }
 
 // Visibility of a tactic: the average over its techniques that can be detected via data sources.
-function getVisibilityPercentage(tactic) {
+function getVisibilityPercentage(tactic: Tactic) {
   return Math.round(averageVisibilityPercentage(tactic.techniques) ?? 0);
 }
 
@@ -25,7 +25,7 @@ const notDetectableCount = computed(() => new Set(
   (getTactics()).flatMap((tactic: any) => tactic.techniques).filter((technique: any) => !isDetectable(technique)).map((technique: any) => technique.external_id)
 ).size);
 
-function getBarColor(percentage) {
+function getBarColor(percentage: number) {
   const red = Math.max(0, 255 - (255 * percentage) / 100);
   const green = Math.min(255, (255 * percentage) / 100);
   return `rgb(${red}, ${green}, 0)`;

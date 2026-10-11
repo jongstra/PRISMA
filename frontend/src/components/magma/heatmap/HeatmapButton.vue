@@ -12,7 +12,8 @@ const store = tacticsStore();
 const props = defineProps(['technique']);
 const magma = magmaStore();
 
-const domain: any = store.currentDomain;
+// The heatmap only shows technique buttons once the catalog is loaded, so the domain exists here.
+const domain = store.currentDomain!;
 
 const buttonRef = ref<HTMLElement | null>(null);
 const { open: tooltipOpen, pinned, show: showTooltip, hide: hideTooltip, togglePin, unpin } = useTechniqueTooltip();

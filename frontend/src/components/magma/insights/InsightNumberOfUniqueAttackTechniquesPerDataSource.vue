@@ -12,17 +12,17 @@ function getAttackTechniquesPerDataSource() {
   const useCases = magma.L3UseCases(store.domain);
 
   // Initialize frequencyDict as an object where each key is a dataSource and the value is a Set of attackTechniqueIds.
-  const frequencyDict: Record<string, Set<string>> = {};
+  const frequencyDict: Record<string, Set<string | undefined>> = {};
   useCases.forEach(useCase => {
     const dataSource = useCase.dataSource;
+    if (dataSource === undefined) {  // Use cases without a data source are not counted.
+      return;
+    }
     if (!frequencyDict[dataSource]) {
       frequencyDict[dataSource] = new Set(); // Initialize as a set if not already present.
     }
     frequencyDict[dataSource].add(useCase.attackTechniqueId); // Add techniqueId to the set.
   });
-
-  // Remove any 'undefined' entry from frequencyDict, if present.
-  delete frequencyDict.undefined;
 
   // Sort the frequencyDict by the size of each Set (number of items) in descending order.
   const sortedFrequencyDict = Object.fromEntries(

@@ -106,7 +106,7 @@ export const magmaStore = defineStore('magma', {
       };
     },
     domainSortedUseCases(state) {
-      const domainOrder = {
+      const domainOrder: Record<string, number> = {
         'enterprise-attack': 1,
         'mobile-attack': 2,
         'ics-attack': 3,
@@ -129,7 +129,8 @@ export const magmaStore = defineStore('magma', {
     getParentUseCases(state) {
       return (useCase: UseCase) => {
         if (useCase && Array.isArray(useCase.parentIds)) {
-          const parentUseCases = state.useCases.filter(parentUseCase => useCase.parentIds.includes(parentUseCase['id']) && (parentUseCase.domain === useCase.domain));
+          const parentIds = useCase.parentIds;
+          const parentUseCases = state.useCases.filter(parentUseCase => parentIds.includes(parentUseCase['id']) && (parentUseCase.domain === useCase.domain));
           return parentUseCases;
         } else {
           return [];
@@ -411,7 +412,7 @@ export const magmaStore = defineStore('magma', {
           } else {
             if (!useCase.visibilityFromAttackTechniqueOverride) {
               const attackTechniqueId = updatedFields.attackTechniqueId;
-              useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(attackTechniqueId, domain))??0;
+              useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(attackTechniqueId, domain ?? useCase.domain))??0;
             }
             useCase.visibilityFromAttackTechnique = true;
           }
@@ -433,7 +434,7 @@ export const magmaStore = defineStore('magma', {
     updateAllL3UseCasesBasedOnDettectVisibility() {
       const tactics = tacticsStore();
       this.L3UseCases().forEach((useCase) => {
-        if (useCase.visibilityFromAttackTechnique === true && useCase.visibilityFromAttackTechniqueOverride === false) {
+        if (useCase.visibilityFromAttackTechnique === true && useCase.visibilityFromAttackTechniqueOverride === false && useCase.attackTechniqueId) {
           useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain))??0;
         }
       });

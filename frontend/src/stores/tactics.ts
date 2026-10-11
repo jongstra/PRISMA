@@ -4,41 +4,31 @@ import { ownVisibility, techniqueVisibility } from '@/domain/attack/visibility';
 import { readDettectFile } from '@/domain/attack/dettect';
 
 
-// Define interfaces
-interface SubTechnique {
+// The catalog's data, as tools/build_attack_catalog.ipynb writes it. The visibility fields and active_in_filter change
+// while the app is used (for example when a DeTT&CT file is loaded).
+export interface SubTechnique {
   name: string;
-  technique: string;
   external_id: string;
   platforms: string[];
   groups: string[];
   occurrence_groups: number;
   software: string[];
   occurrence_software: number;
-  occurrence_total: number,
+  occurrence_total: number;
   data_sources: string[];
   data_components: string[];
-  available_datasources: string[];
-  visibility?: boolean;
+  visibility: boolean;
+  visibility_ratio: number;
 }
 
-interface Technique {
-  name: string;
-  external_id: string;
-  platforms: string[];
-  groups: string[];
-  occurrence_groups: number;
-  software: string[];
-  occurrence_software: number;
-  occurrence_total: number,
-  data_sources: string[];
-  data_components: string[];
-  available_datasources: string[];
-  visibility?: boolean;
-  visibility_ratio?: number;
+export interface Technique extends SubTechnique {
   sub_techniques?: SubTechnique[];
+  occurrence_total_order_normalized: number;
+  occurrence_groups_order_normalized: number;
+  occurrence_software_order_normalized: number;
 }
 
-interface Tactic {
+export interface Tactic {
   name: string;
   external_id: string;
   techniques: Technique[];
@@ -48,7 +38,7 @@ interface Tactic {
 }
 
 /** A platform, data source, data component, group or software of a domain; the fields differ per kind. */
-interface Attribute {
+export interface Attribute {
   name: string;
   active_in_filter?: boolean;
   [field: string]: any;
@@ -56,7 +46,7 @@ interface Attribute {
 
 type Attributes = Attribute[];
 
-interface Domain {
+export interface Domain {
   tactics: Tactic[];
   platforms: Attributes;
   data_sources: Attributes;
@@ -95,9 +85,9 @@ export const tacticsStore = defineStore('tactics', {
     domain: 'enterprise-attack',  // Alternative initial value: 'none'.
     dataLoaded: false,
     attackVersion: '' as string, // the ATT&CK version of the catalog (from its meta block), shown next to the domain buttons
-    enterprise: [] as Domain[],
-    ics: [] as Domain[],
-    mobile: [] as Domain[],
+    enterprise: undefined as Domain | undefined, // the catalog data per domain, once it is loaded
+    ics: undefined as Domain | undefined,
+    mobile: undefined as Domain | undefined,
     searchQuery: '' as string,
     minVisibilityRatio: 0 as number,
     maxVisibilityRatio: 1 as number,
@@ -164,7 +154,7 @@ export const tacticsStore = defineStore('tactics', {
     },
 
 
-    domainTechniqueByIdMap: (state) => (domain) => {
+    domainTechniqueByIdMap: (state) => (domain: string) => {
       const tactics = domainOf(state, domain)?.tactics;
 
       const domainTechniqueByIdMap: Record<string, Technique | SubTechnique> = {};
@@ -186,14 +176,11 @@ export const tacticsStore = defineStore('tactics', {
     },
 
 
-    getDomainTechniqueVisibilityPercentageById: (state) => (id: string, domain: string) => {
-      let technique = state.domainTechniqueByIdMap(domain)[id];
-
-      if (technique) {
-        return technique.visibility_ratio * 100;
-      }
-
-      return null;
+    getDomainTechniqueVisibilityPercentageById(): (id: string, domain: string) => number | null {
+      return (id: string, domain: string) => {
+        const technique = this.domainTechniqueByIdMap(domain)[id];
+        return technique ? technique.visibility_ratio * 100 : null;
+      };
     },
 
 
@@ -201,7 +188,7 @@ export const tacticsStore = defineStore('tactics', {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of hovered groups to a list.
-      let groupsTechniques = [];
+      let groupsTechniques: string[] = [];
       groups.forEach(group => {
         if (group?.hovered) {
           groupsTechniques.push(...group.techniques)
@@ -218,7 +205,7 @@ export const tacticsStore = defineStore('tactics', {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of selected groups to a list.
-      let groupsTechniques = [];
+      let groupsTechniques: string[] = [];
       groups.forEach(group => {
         if (group?.selected) {
           groupsTechniques.push(...group.techniques)
@@ -235,7 +222,7 @@ export const tacticsStore = defineStore('tactics', {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of selected groups to a list.
-      let groupsTechniques = [];
+      let groupsTechniques: string[] = [];
       groups.forEach(group => {
         if (group?.selectedInMagmaHeatmap) {
           groupsTechniques.push(...group.techniques)
@@ -253,7 +240,7 @@ export const tacticsStore = defineStore('tactics', {
       const components = domainOf(state, state.domain)?.data_components ?? [];
 
       // Add all techniques of hovered data_components to a list.
-      let componentsTechniques = [];
+      let componentsTechniques: string[] = [];
       components.forEach(component => {
         if (component?.hovered) {
           componentsTechniques.push(...component.techniques)
@@ -269,7 +256,7 @@ export const tacticsStore = defineStore('tactics', {
       const components = domainOf(state, state.domain)?.data_components ?? [];
 
       // Add all techniques of selected data_components to a list.
-      let componentsTechniques = [];
+      let componentsTechniques: string[] = [];
       components.forEach(component => {
         if (component?.selected) {
           componentsTechniques.push(...component.techniques)
@@ -397,12 +384,12 @@ export const tacticsStore = defineStore('tactics', {
 
 
     resetDomainVisibility(domain: string) {
-      const domainEntry: any = domainOf(this, domain);
+      const domainEntry = domainOf(this, domain);
       if (!domainEntry) {
         return;
       }
       const tactics = domainEntry.tactics;
-      const data_components: Attributes[] = domainEntry.data_components;
+      const data_components = domainEntry.data_components;
 
       // Reset all components to visibility = false
       data_components.forEach(component => {
@@ -410,13 +397,13 @@ export const tacticsStore = defineStore('tactics', {
       });
 
       // Reset all techniques and subtechniques to visibility_ratio = 0
-      tactics.forEach((tactic: any) => {
-        tactic.techniques.forEach((technique: any) => {
+      tactics.forEach((tactic) => {
+        tactic.techniques.forEach((technique) => {
           technique.visibility = false;
           technique.visibility_ratio = 0;
 
           if (typeof technique.sub_techniques !== "undefined") {
-            technique.sub_techniques.forEach((subtechnique: any) => {
+            technique.sub_techniques.forEach((subtechnique) => {
               subtechnique.visibility = false;
               subtechnique.visibility_ratio = 0;
             });

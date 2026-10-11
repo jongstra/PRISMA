@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import BarChart from '@/components/common/BarChart.vue';
 import { computed } from 'vue';
-import { tacticsStore } from '@/stores/tactics';
+import { tacticsStore, type Domain } from '@/stores/tactics';
 import { isDetectable, platformVisibility } from '@/domain/attack/visibility';
 const store = tacticsStore();
 
-function getDomain(): any {
+function getDomain(): Partial<Domain> {
   return store.currentDomain || {};
 }
 
