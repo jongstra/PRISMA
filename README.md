@@ -16,7 +16,7 @@ The figure below shows the overview of how MaGMa 2.0 and DeTT&CT are combined to
 | [`examples/`](examples/) | Example DeTT&CT and MaGMa files to try the app |
 | [`frontend/`](frontend/) | The PRISMA web application |
 | [`templates/`](templates/) | MaGMa Excel template, for preparing many use cases |
-| [`tools/`](tools/) | Notebooks that build the ATT&CK catalog and convert Excel files |
+| [`tools/`](tools/) | A notebook that builds the ATT&CK catalog, and scripts that convert Excel files |
 | [`LICENCE`](LICENCE) | Licence of this project |
 
 ## Installation Instructions
@@ -79,7 +79,7 @@ This project is currently in development. You may run into unusual behavior and/
 
 ## Technical Setup
 - Web app: Vue 3 and TypeScript (Pinia, Vite). All processing happens in the browser; there is no backend server.
-- Tools: Python notebooks that build the ATT&CK catalog and convert Excel files to MaGMa YAML.
+- Tools: a Python notebook that builds the ATT&CK catalog, and Python scripts that convert Excel files to MaGMa YAML.
 
 ## Future
 - This project has a strong focus on pragmatism and simplicity for the benefit of the end user. Its design is sometimes strongly opinionated and limited with this goal in mind. New features may be added based on common user needs, but should not undermine this philosophy.

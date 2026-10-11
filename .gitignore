@@ -33,5 +33,5 @@ coverage
 
 # Python stuff
 tools/venv/
-tools/__pycache__/
-tools/.ipynb_checkpoints/
+__pycache__/
+.ipynb_checkpoints/

@@ -8,7 +8,7 @@ Run this after a new tactics_and_techniques_by_domain.json has been generated (s
 It rewrites the 'Mitre Techniques' sheet: every enterprise technique and sub-technique, with its tactics in Unified
 Kill Chain order (the order of the 'ATTACK and Kill Chain mapping' sheet). The L3 sheet uses the first of these tactics
 to suggest an L2 use case. When LibreOffice is installed, the workbook is recalculated, so the values that the
-converter notebook reads are up to date; otherwise, open and save the file once in Excel or LibreOffice.
+converter (tools/convert_magma_excel.py) reads are up to date; otherwise, open and save the file once in Excel or LibreOffice.
 """
 import json, shutil, subprocess, sys, tempfile
 from pathlib import Path

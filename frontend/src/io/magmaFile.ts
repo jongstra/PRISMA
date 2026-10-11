@@ -1,5 +1,5 @@
 // The MaGMa file format: a YAML list of use cases, saved with "Save MaGMa YAML" on the MaGMa page, or made from the MaGMa
-// Excel template with tools/convert_magma_excel.ipynb.
+// Excel template with tools/convert_magma_excel.py.
 import * as yaml from 'yaml';
 import type { ImportResult, UseCase } from '@/stores/magma';
 
