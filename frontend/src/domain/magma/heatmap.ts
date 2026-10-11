@@ -28,7 +28,10 @@ export function heatmapValue(useCases: UseCaseLike[], metrics: HeatmapMetrics): 
   if (useCases.length === 0 || selected.length === 0) {
     return null;
   }
-  const total = useCases.reduce((sum, useCase) => sum + selected.reduce((product, metric) => product * fraction(useCase[metric]), 1), 0);
+  const total = useCases.reduce(
+    (sum, useCase) => sum + selected.reduce((product, metric) => product * fraction(useCase[metric]), 1),
+    0,
+  );
   return (total / useCases.length) * 100;
 }
 

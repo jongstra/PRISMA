@@ -15,11 +15,17 @@ export const exportNumber = (value: unknown) => {
 // Check the YAML read from a MaGMa file: a list of use cases, for at least one supported domain. Throws an error with an
 // explanation otherwise, so the file can be refused before anything changes.
 export function readMagmaFile(data: unknown): UseCaseFromFile[] {
-  const isUseCase = (value: unknown): value is UseCaseFromFile => typeof value === 'object' && value !== null && !Array.isArray(value);
+  const isUseCase = (value: unknown): value is UseCaseFromFile =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
   if (!Array.isArray(data) || !data.every(isUseCase)) {
     throw new Error('The file does not contain a list of MaGMa use cases.');
   }
-  if (!data.some((useCase) => !useCase.permanent && typeof useCase.domain === 'string' && SUPPORTED_DOMAINS.includes(useCase.domain))) {
+  if (
+    !data.some(
+      (useCase) =>
+        !useCase.permanent && typeof useCase.domain === 'string' && SUPPORTED_DOMAINS.includes(useCase.domain),
+    )
+  ) {
     throw new Error(`The file contains no use cases for a supported domain (${SUPPORTED_DOMAINS.join(', ')}).`);
   }
   return data;
@@ -34,7 +40,7 @@ export function magmaFileDomains(useCases: UseCaseFromFile[]): string[] {
 
 // The use cases as a MaGMa file.
 export function writeMagmaFile(useCases: UseCase[]): string {
-  const exportedUseCases = useCases.map(useCase => {
+  const exportedUseCases = useCases.map((useCase) => {
     const baseAttributes = {
       domain: useCase.domain,
       level: useCase.level,
@@ -49,7 +55,7 @@ export function writeMagmaFile(useCases: UseCase[]): string {
       weight: exportNumber(useCase.weight),
       impact: exportNumber(useCase.weight),
     };
-    
+
     // For the non-permanent level 1 use cases with inImpact/thrImpact/outImpact, add these attributes.
     if (useCase.level === 1 && !useCase.permanent) {
       return {
@@ -70,9 +76,8 @@ export function writeMagmaFile(useCases: UseCase[]): string {
       };
     }
 
-    // All other use cases 
+    // All other use cases
     return baseAttributes;
-
   });
 
   return yaml.stringify(exportedUseCases);
@@ -82,10 +87,14 @@ export function writeMagmaFile(useCases: UseCase[]): string {
 export function importSummary(result: ImportResult) {
   let text = `Successful imports: ${result.imported}. Failed imports: ${result.failed.length}.`;
   if (result.failed.length > 0) {
-    text += " _________________________________________________ FAILED USE CASES _________________________________________________ " + result.failed.join("• ");
+    text +=
+      ' _________________________________________________ FAILED USE CASES _________________________________________________ ' +
+      result.failed.join('• ');
   }
   if (result.warnings.length > 0) {
-    text += " _________________________________________________ WARNINGS _________________________________________________ " + result.warnings.join("• ");
+    text +=
+      ' _________________________________________________ WARNINGS _________________________________________________ ' +
+      result.warnings.join('• ');
   }
   return { text, problems: result.failed.length > 0 || result.warnings.length > 0 };
 }

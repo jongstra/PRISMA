@@ -39,9 +39,18 @@ describe('tactics store: processDettectYaml', () => {
 
 describe('tactics store: loading a DeTT&CT file safely', () => {
   let store: ReturnType<typeof tacticsStore>;
-  const ratio = (id: string) => store.enterprise!.tactics.flatMap((t) => t.techniques).find((t) => t.external_id === id)?.visibility_ratio;
-  const dettect = (dataSources: unknown[]) => ({ version: 1.1, file_type: 'data-source-administration', domain: 'enterprise-attack', data_sources: dataSources });
-  const dataSource = (name: string, deviceCompleteness: unknown) => ({ data_source_name: name, data_source: [{ applicable_to: ['all'], data_quality: { device_completeness: deviceCompleteness } }] });
+  const ratio = (id: string) =>
+    store.enterprise!.tactics.flatMap((t) => t.techniques).find((t) => t.external_id === id)?.visibility_ratio;
+  const dettect = (dataSources: unknown[]) => ({
+    version: 1.1,
+    file_type: 'data-source-administration',
+    domain: 'enterprise-attack',
+    data_sources: dataSources,
+  });
+  const dataSource = (name: string, deviceCompleteness: unknown) => ({
+    data_source_name: name,
+    data_source: [{ applicable_to: ['all'], data_quality: { device_completeness: deviceCompleteness } }],
+  });
 
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -56,28 +65,40 @@ describe('tactics store: loading a DeTT&CT file safely', () => {
   it('changes nothing when a file has a problem', () => {
     const before = ratio('T1595');
     expect(before).toBeGreaterThan(0);
-    expect(() => store.processDettectYaml(dettect([dataSource('Process Creation', 50)]))).toThrow('device_completeness "50" is not valid');
-    expect(() => store.processDettectYaml(readExample('magma/example.yaml'))).toThrow('not a DeTT&CT data source administration file');
+    expect(() => store.processDettectYaml(dettect([dataSource('Process Creation', 50)]))).toThrow(
+      'device_completeness "50" is not valid',
+    );
+    expect(() => store.processDettectYaml(readExample('magma/example.yaml'))).toThrow(
+      'not a DeTT&CT data source administration file',
+    );
     expect(() => store.processDettectYaml(null)).toThrow('not a DeTT&CT data source administration file');
     expect(ratio('T1595')).toBe(before);
     expect(store.domain).toBe('enterprise-attack');
   });
 
   it('ignores data sources that ATT&CK does not know, and reports them', () => {
-    const result = store.processDettectYaml(dettect([dataSource('Network Traffic Content', 5), dataSource('Typo Source', 5)]));
+    const result = store.processDettectYaml(
+      dettect([dataSource('Network Traffic Content', 5), dataSource('Typo Source', 5)]),
+    );
     expect(result.unknownDataSources).toEqual(['Typo Source']);
     expect(ratio('T1595')).toBeGreaterThan(0); // Active Scanning is visible through Network Traffic Content.
   });
 
   it('remembers the ATT&CK version of the catalog', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve(catalog) })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve(catalog) })),
+    );
     await store.fetchTactics();
     vi.unstubAllGlobals();
     expect(store.attackVersion).toBe('17.1');
   });
 
   it('passes the error on when the ATT&CK data cannot be loaded (App.vue shows the message)', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false, status: 404, statusText: 'Not Found' })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: false, status: 404, statusText: 'Not Found' })),
+    );
     await expect(store.fetchTactics()).rejects.toThrow('HTTP 404 Not Found');
     vi.unstubAllGlobals();
     expect(store.dataLoaded).toBe(true);

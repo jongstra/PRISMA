@@ -27,20 +27,25 @@ function getTechniqueCountPerPlatform(): Platform[] {
 }
 
 // The longest bar in this chart fills the box.
-const maxCount = computed(() => Math.max(0, ...getTechniqueCountPerPlatform().map((x) => x.technique_count + x.subtechnique_count)));
+const maxCount = computed(() =>
+  Math.max(0, ...getTechniqueCountPerPlatform().map((x) => x.technique_count + x.subtechnique_count)),
+);
 
 // Blue: techniques; light blue: sub-techniques.
-const rows = computed(() => getTechniqueCountPerPlatform().map((platform) => ({
-  name: platform.name,
-  segments: [{ value: platform.technique_count, color: 'SteelBlue' }, { value: platform.subtechnique_count, color: '#89AFCF' }],
-  label: platform.technique_count + platform.subtechnique_count,
-})));
+const rows = computed(() =>
+  getTechniqueCountPerPlatform().map((platform) => ({
+    name: platform.name,
+    segments: [
+      { value: platform.technique_count, color: 'SteelBlue' },
+      { value: platform.subtechnique_count, color: '#89AFCF' },
+    ],
+    label: platform.technique_count + platform.subtechnique_count,
+  })),
+);
 </script>
 
 <template>
   <BarChart :rows="rows" :max="maxCount">
-    <template #title>
-      Platforms - Number of (Sub)Techniques
-    </template>
+    <template #title> Platforms - Number of (Sub)Techniques </template>
   </BarChart>
 </template>

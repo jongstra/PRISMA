@@ -9,13 +9,32 @@ const cumulative = (domain = DOMAIN): MagmaUseCase[] => [
   { domain, level: 1, id: 'THR', uid: 'THR', permanent: true },
 ];
 
-const l3 = (id: string, parentIds: string[], visibility: unknown, implementation: unknown, effectiveness: unknown, domain = DOMAIN): MagmaUseCase =>
-  ({ domain, level: 3, id, uid: id, parentIds, visibility, implementation, effectiveness } as MagmaUseCase);
-const l2 = (id: string, parentIds: string[], domain = DOMAIN): MagmaUseCase => ({ domain, level: 2, id, uid: id, parentIds });
-const business = (id: string, inImpact: number, thrImpact: number, outImpact: number, domain = DOMAIN): MagmaUseCase =>
-  ({ domain, level: 1, id, uid: id, inImpact, thrImpact, outImpact });
+const l3 = (
+  id: string,
+  parentIds: string[],
+  visibility: unknown,
+  implementation: unknown,
+  effectiveness: unknown,
+  domain = DOMAIN,
+): MagmaUseCase =>
+  ({ domain, level: 3, id, uid: id, parentIds, visibility, implementation, effectiveness }) as MagmaUseCase;
+const l2 = (id: string, parentIds: string[], domain = DOMAIN): MagmaUseCase => ({
+  domain,
+  level: 2,
+  id,
+  uid: id,
+  parentIds,
+});
+const business = (
+  id: string,
+  inImpact: number,
+  thrImpact: number,
+  outImpact: number,
+  domain = DOMAIN,
+): MagmaUseCase => ({ domain, level: 1, id, uid: id, inImpact, thrImpact, outImpact });
 
-const find = (useCases: MagmaUseCase[], id: string, domain = DOMAIN) => useCases.find((u) => u.id === id && u.domain === domain)!;
+const find = (useCases: MagmaUseCase[], id: string, domain = DOMAIN) =>
+  useCases.find((u) => u.id === id && u.domain === domain)!;
 
 describe('L3 detection rules', () => {
   it('weight = visibility × implementation × effectiveness, potential = 100 − weight', () => {
@@ -36,7 +55,12 @@ describe('L3 detection rules', () => {
 
 describe('L2 and L1 averages', () => {
   it('averages the child use cases, including their weights', () => {
-    const useCases = [business('BIZ', 0, 0, 100), l2('BIZ-1', ['BIZ']), l3('A', ['BIZ-1'], 100, 40, 50), l3('B', ['BIZ-1'], 60, 100, 100)];
+    const useCases = [
+      business('BIZ', 0, 0, 100),
+      l2('BIZ-1', ['BIZ']),
+      l3('A', ['BIZ-1'], 100, 40, 50),
+      l3('B', ['BIZ-1'], 60, 100, 100),
+    ];
     recalculateUseCases(useCases);
     const parent = find(useCases, 'BIZ-1');
     expect(parent.visibility).toBeCloseTo(80);
@@ -50,7 +74,13 @@ describe('L2 and L1 averages', () => {
   it('gives use cases without children zeros and a potential of 100', () => {
     const useCases = [l2('EMPTY', [])];
     recalculateUseCases(useCases);
-    expect(useCases[0]).toMatchObject({ visibility: 0, implementation: 0, effectiveness: 0, weight: 0, potential: 100 });
+    expect(useCases[0]).toMatchObject({
+      visibility: 0,
+      implementation: 0,
+      effectiveness: 0,
+      weight: 0,
+      potential: 100,
+    });
   });
 
   it('counts an L3 with two parents in both', () => {
@@ -65,9 +95,13 @@ describe('risk (documentation section 3.1.2)', () => {
   // Builds cumulative IN and THROUGH with the given weights, and a business risk whose own detection has the given weight.
   const scenario = (inWeight: number, thrWeight: number, ownWeight: number, impacts: [number, number, number]) => [
     ...cumulative(),
-    l2('IN-1', ['IN']), l3('IN-1-1', ['IN-1'], 100, 100, inWeight),
-    l2('THR-1', ['THR']), l3('THR-1-1', ['THR-1'], 100, 100, thrWeight),
-    business('RISK', ...impacts), l2('RISK-1', ['RISK']), l3('RISK-1-1', ['RISK-1'], 100, 100, ownWeight),
+    l2('IN-1', ['IN']),
+    l3('IN-1-1', ['IN-1'], 100, 100, inWeight),
+    l2('THR-1', ['THR']),
+    l3('THR-1-1', ['THR-1'], 100, 100, thrWeight),
+    business('RISK', ...impacts),
+    l2('RISK-1', ['RISK']),
+    l3('RISK-1-1', ['RISK-1'], 100, 100, ownWeight),
   ];
 
   it('DDoS example: cumulative IN 40%, THROUGH 35%, own 85%, impacts 5/0/95 → risk 17%', () => {
@@ -84,8 +118,11 @@ describe('risk (documentation section 3.1.2)', () => {
 
   it('updates every business risk when something under cumulative IN changes', () => {
     const useCases = [
-      ...cumulative(), l2('IN-1', ['IN']), l3('IN-1-1', ['IN-1'], 100, 100, 0),
-      business('A', 100, 0, 0), business('B', 50, 0, 50),
+      ...cumulative(),
+      l2('IN-1', ['IN']),
+      l3('IN-1-1', ['IN-1'], 100, 100, 0),
+      business('A', 100, 0, 0),
+      business('B', 50, 0, 50),
     ];
     recalculateUseCases(useCases);
     expect(find(useCases, 'A').risk).toBeCloseTo(100);
@@ -100,7 +137,10 @@ describe('risk (documentation section 3.1.2)', () => {
 describe('robustness', () => {
   it('keeps domains apart, also when they use the same IDs', () => {
     const domainUseCases = (domain: string, implementation: number) => [
-      ...cumulative(domain), business('D', 0, 0, 100, domain), l2('D-1', ['D'], domain), l3('D-1-1', ['D-1'], 50, implementation, 50, domain),
+      ...cumulative(domain),
+      business('D', 0, 0, 100, domain),
+      l2('D-1', ['D'], domain),
+      l3('D-1-1', ['D-1'], 50, implementation, 50, domain),
     ];
     const useCases = [...domainUseCases('enterprise-attack', 100), ...domainUseCases('mobile-attack', 50)];
     recalculateUseCases(useCases);
@@ -110,8 +150,14 @@ describe('robustness', () => {
 
   it('gives the same result whatever the order of the use cases', () => {
     const build = () => [
-      ...cumulative(), business('BIZ', 30, 30, 40), l2('BIZ-1', ['BIZ']), l2('IN-1', ['IN']), l2('THR-1', ['THR']),
-      l3('A', ['BIZ-1'], 80, 60, 40), l3('B', ['IN-1'], 50, 50, 50), l3('C', ['THR-1', 'BIZ-1'], 90, 70, 30),
+      ...cumulative(),
+      business('BIZ', 30, 30, 40),
+      l2('BIZ-1', ['BIZ']),
+      l2('IN-1', ['IN']),
+      l2('THR-1', ['THR']),
+      l3('A', ['BIZ-1'], 80, 60, 40),
+      l3('B', ['IN-1'], 50, 50, 50),
+      l3('C', ['THR-1', 'BIZ-1'], 90, 70, 30),
     ];
     const expected = build();
     recalculateUseCases(expected);
@@ -149,7 +195,9 @@ describe('after random edits, every value equals an independent calculation from
         const target = l3s[Math.floor(random() * l3s.length)];
         const action = random();
         if (action < 0.5) {
-          target[(['visibility', 'implementation', 'effectiveness'] as const)[Math.floor(random() * 3)]] = Math.round(random() * 100);
+          target[(['visibility', 'implementation', 'effectiveness'] as const)[Math.floor(random() * 3)]] = Math.round(
+            random() * 100,
+          );
         } else if (action < 0.7) {
           target.parentIds = [parents[Math.floor(random() * parents.length)].id];
         } else if (action < 0.8) {
@@ -158,7 +206,9 @@ describe('after random edits, every value equals an independent calculation from
         } else if (action < 0.9) {
           useCases.splice(useCases.indexOf(target), 1);
         } else {
-          useCases.push(l3(`NEW-${edit}`, [parents[Math.floor(random() * parents.length)].id], 50, 50, 50, target.domain));
+          useCases.push(
+            l3(`NEW-${edit}`, [parents[Math.floor(random() * parents.length)].id], 50, 50, 50, target.domain),
+          );
         }
         recalculateUseCases(useCases);
       }
@@ -215,7 +265,16 @@ function randomHierarchy(seed: number, l1Count: number, l2Count: number, l3Count
     }
     for (let i = 0; i < l3Count; i++) {
       const parentIds = random() < 0.2 ? [pick(l2Ids), pick(l2Ids)] : [pick(l2Ids)];
-      useCases.push(l3(`L3-${i}`, [...new Set(parentIds)], Math.round(random() * 100), Math.round(random() * 100), Math.round(random() * 100), domain));
+      useCases.push(
+        l3(
+          `L3-${i}`,
+          [...new Set(parentIds)],
+          Math.round(random() * 100),
+          Math.round(random() * 100),
+          Math.round(random() * 100),
+          domain,
+        ),
+      );
     }
   }
   return useCases;
@@ -226,26 +285,54 @@ function randomHierarchy(seed: number, l1Count: number, l2Count: number, l3Count
  * children" until nothing changes (no ordering needed), then calculate the risks. Works on copies.
  */
 function referenceCalculation(useCases: MagmaUseCase[]) {
-  type Values = { visibility: number; implementation: number; effectiveness: number; weight: number; potential?: number; risk?: number };
+  type Values = {
+    visibility: number;
+    implementation: number;
+    effectiveness: number;
+    weight: number;
+    potential?: number;
+    risk?: number;
+  };
   const values = new Map<MagmaUseCase, Values>();
   for (const u of useCases) {
-    const weight = u.level === 3 ? (Number(u.visibility) / 100) * (Number(u.implementation) / 100) * (Number(u.effectiveness) / 100) * 100 : 0;
-    values.set(u, { visibility: Number(u.visibility) || 0, implementation: Number(u.implementation) || 0, effectiveness: Number(u.effectiveness) || 0, weight });
+    const weight =
+      u.level === 3
+        ? (Number(u.visibility) / 100) * (Number(u.implementation) / 100) * (Number(u.effectiveness) / 100) * 100
+        : 0;
+    values.set(u, {
+      visibility: Number(u.visibility) || 0,
+      implementation: Number(u.implementation) || 0,
+      effectiveness: Number(u.effectiveness) || 0,
+      weight,
+    });
   }
   for (let round = 0; round < 10; round++) {
     for (const u of useCases) {
       if (u.level === 3) continue;
-      const children = useCases.filter((c) => c.domain === u.domain && Array.isArray(c.parentIds) && (c.parentIds as string[]).includes(u.id));
-      const avg = (f: keyof Values) => (children.length ? children.reduce((s, c) => s + (values.get(c)![f] ?? 0), 0) / children.length : 0);
-      values.set(u, { visibility: avg('visibility'), implementation: avg('implementation'), effectiveness: avg('effectiveness'), weight: avg('weight') });
+      const children = useCases.filter(
+        (c) => c.domain === u.domain && Array.isArray(c.parentIds) && (c.parentIds as string[]).includes(u.id),
+      );
+      const avg = (f: keyof Values) =>
+        children.length ? children.reduce((s, c) => s + (values.get(c)![f] ?? 0), 0) / children.length : 0;
+      values.set(u, {
+        visibility: avg('visibility'),
+        implementation: avg('implementation'),
+        effectiveness: avg('effectiveness'),
+        weight: avg('weight'),
+      });
     }
   }
   for (const u of useCases) {
     const v = values.get(u)!;
     v.potential = 100 - v.weight;
     if (u.level === 1 && !u.permanent) {
-      const weightOf = (uid: string) => values.get(useCases.find((c) => c.domain === u.domain && c.uid === uid)!)!.weight;
-      const risk = 1 - ((Number(u.inImpact) / 100) * (weightOf('IN') / 100) + (Number(u.thrImpact) / 100) * (weightOf('THR') / 100) + (Number(u.outImpact) / 100) * (v.weight / 100));
+      const weightOf = (uid: string) =>
+        values.get(useCases.find((c) => c.domain === u.domain && c.uid === uid)!)!.weight;
+      const risk =
+        1 -
+        ((Number(u.inImpact) / 100) * (weightOf('IN') / 100) +
+          (Number(u.thrImpact) / 100) * (weightOf('THR') / 100) +
+          (Number(u.outImpact) / 100) * (v.weight / 100));
       v.risk = Math.max(0, risk) * 100;
     }
   }

@@ -11,11 +11,17 @@ import {
   type TechniqueLike,
 } from '../visibility';
 
-const technique = (data_components: string[], sub_techniques?: TechniqueLike[]): TechniqueLike => ({ data_components, sub_techniques });
+const technique = (data_components: string[], sub_techniques?: TechniqueLike[]): TechniqueLike => ({
+  data_components,
+  sub_techniques,
+});
 
 describe('ownVisibility', () => {
   it('averages the device completeness over the unique data components', () => {
-    const completeness: Completeness = new Map([['A', 1], ['B', 0.4]]);
+    const completeness: Completeness = new Map([
+      ['A', 1],
+      ['B', 0.4],
+    ]);
     expect(ownVisibility(technique(['A', 'B', 'C']), completeness)).toBeCloseTo(1.4 / 3);
     expect(ownVisibility(technique(['A', 'A', 'B']), completeness)).toBeCloseTo(0.7);
   });
@@ -62,8 +68,12 @@ describe('with the real ATT&CK catalog and the maximum-quality DeTT&CT example',
   const catalog = JSON.parse(fs.readFileSync('public/tactics_and_techniques_by_domain.json', 'utf8')).enterprise;
   const dettect = parse(fs.readFileSync('../examples/dettect/enterprise_max_quality.yaml', 'utf8'));
   const completeness: Completeness = new Map(
-    dettect.data_sources.map((ds: { data_source_name: string; data_source: { data_quality: { device_completeness: number } }[] }) =>
-      [ds.data_source_name, ds.data_source[0].data_quality.device_completeness / 5]),
+    dettect.data_sources.map(
+      (ds: { data_source_name: string; data_source: { data_quality: { device_completeness: number } }[] }) => [
+        ds.data_source_name,
+        ds.data_source[0].data_quality.device_completeness / 5,
+      ],
+    ),
   );
 
   it('gives every detectable technique exactly 100%, never more (rounding errors hid some techniques)', () => {
@@ -78,7 +88,10 @@ describe('with the real ATT&CK catalog and the maximum-quality DeTT&CT example',
 
   it('gives every tactic 100%, including Reconnaissance and Resource Development', () => {
     for (const tactic of catalog.tactics) {
-      const techniques = tactic.techniques.map((t: TechniqueLike) => ({ ...t, visibility_ratio: techniqueVisibility(t, completeness) ?? 0 }));
+      const techniques = tactic.techniques.map((t: TechniqueLike) => ({
+        ...t,
+        visibility_ratio: techniqueVisibility(t, completeness) ?? 0,
+      }));
       expect(averageVisibilityPercentage(techniques), tactic.name).toBe(100);
     }
   });
@@ -95,8 +108,12 @@ describe('with the real ATT&CK catalog and the maximum-quality DeTT&CT example',
 });
 
 describe('platformVisibility', () => {
-  const technique = (id: string, visibility: number, platforms = ['Windows']) =>
-    ({ external_id: id, platforms, data_components: ['Process Creation'], visibility_ratio: visibility });
+  const technique = (id: string, visibility: number, platforms = ['Windows']) => ({
+    external_id: id,
+    platforms,
+    data_components: ['Process Creation'],
+    visibility_ratio: visibility,
+  });
 
   it('counts a technique that belongs to several tactics once', () => {
     const shared = technique('T1', 0.2);

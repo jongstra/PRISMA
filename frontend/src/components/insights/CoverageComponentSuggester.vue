@@ -20,7 +20,7 @@ function getTopCoverageComponents(): Component[] {
     return [];
   }
 
-  // Return the top 15 components (that are not used yet), which increase (sub)technique visibility the most. 
+  // Return the top 15 components (that are not used yet), which increase (sub)technique visibility the most.
   return components
     .filter((component) => component.visibility == true)
     .filter((component) => (component.quality.device_completeness ?? 0) < 5) // an empty score counts as 0
@@ -34,16 +34,22 @@ function getTopCoverageComponents(): Component[] {
     }));
 }
 
-
 // The longest bar in this chart fills the box.
-const maxCount = computed(() => Math.max(0, ...getTopCoverageComponents().map((x) => x.technique_count + x.subtechnique_count)));
+const maxCount = computed(() =>
+  Math.max(0, ...getTopCoverageComponents().map((x) => x.technique_count + x.subtechnique_count)),
+);
 
 // Blue: techniques; light blue: sub-techniques.
-const rows = computed(() => getTopCoverageComponents().map((component) => ({
-  name: component.name,
-  segments: [{ value: component.technique_count, color: 'SteelBlue' }, { value: component.subtechnique_count, color: '#89AFCF' }],
-  label: component.technique_count + component.subtechnique_count,
-})));
+const rows = computed(() =>
+  getTopCoverageComponents().map((component) => ({
+    name: component.name,
+    segments: [
+      { value: component.technique_count, color: 'SteelBlue' },
+      { value: component.subtechnique_count, color: '#89AFCF' },
+    ],
+    label: component.technique_count + component.subtechnique_count,
+  })),
+);
 </script>
 
 <template>
@@ -52,6 +58,9 @@ const rows = computed(() => getTopCoverageComponents().map((component) => ({
       Suggestion: Improve Coverage of Exisiting Components
       <span v-if="getTopCoverageComponents().length >= 15"> (Top 15)</span>
     </template>
-    <template #name="{ row, index }">{{ row.name }} <br/> [Current Coverage: {{ getTopCoverageComponents()[index].coverage }}%]</template>
+    <template #name="{ row, index }"
+      >{{ row.name }} <br />
+      [Current Coverage: {{ getTopCoverageComponents()[index].coverage }}%]</template
+    >
   </BarChart>
 </template>

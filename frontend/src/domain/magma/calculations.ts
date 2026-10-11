@@ -72,7 +72,8 @@ function recalculateDomain(useCases: MagmaUseCase[]): void {
     visited.add(useCase);
 
     if (useCase.level === 3) {
-      useCase.weight = fraction(useCase.visibility) * fraction(useCase.implementation) * fraction(useCase.effectiveness) * 100;
+      useCase.weight =
+        fraction(useCase.visibility) * fraction(useCase.implementation) * fraction(useCase.effectiveness) * 100;
     } else {
       const children = childrenByParentId.get(useCase.id) ?? [];
       children.forEach(calculate);

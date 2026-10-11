@@ -6,17 +6,24 @@ import { potentialSegments } from './potentialSegments';
 const props = defineProps(['L1UseCase', 'relatedL3UseCases']);
 
 // The 15 L3 use cases below this L1 use case with the most improvement potential.
-const rows = computed(() => [...props.relatedL3UseCases].sort((a, b) => (b.potential ?? 100) - (a.potential ?? 100)).slice(0, 15).map((useCase) => (
-  { name: useCase.id, segments: potentialSegments(useCase), label: `${(useCase.potential ?? 100).toFixed(2)}%` }
-)));
+const rows = computed(() =>
+  [...props.relatedL3UseCases]
+    .sort((a, b) => (b.potential ?? 100) - (a.potential ?? 100))
+    .slice(0, 15)
+    .map((useCase) => ({
+      name: useCase.id,
+      segments: potentialSegments(useCase),
+      label: `${(useCase.potential ?? 100).toFixed(2)}%`,
+    })),
+);
 </script>
 
 <template>
   <BarChart class="full-height" :rows="rows" :max="100" label-space="0px" :name-width="100" label="end">
     <template #title>
       Improvement Potential for L3 Use Cases relating to:
-      <br>
-      <span style="color: red;">[L1] {{ L1UseCase.id }}: {{ L1UseCase.name }}</span>
+      <br />
+      <span style="color: red">[L1] {{ L1UseCase.id }}: {{ L1UseCase.name }}</span>
       <span v-if="relatedL3UseCases.length >= 15"> (Top 15)</span>
     </template>
     <template #legend>

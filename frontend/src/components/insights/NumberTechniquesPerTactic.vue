@@ -26,20 +26,25 @@ function getTechniqueCountPerTactic(): Tactic[] {
 }
 
 // The longest bar in this chart fills the box.
-const maxCount = computed(() => Math.max(0, ...getTechniqueCountPerTactic().map((x) => x.technique_count + x.subtechnique_count)));
+const maxCount = computed(() =>
+  Math.max(0, ...getTechniqueCountPerTactic().map((x) => x.technique_count + x.subtechnique_count)),
+);
 
 // Blue: techniques; light blue: sub-techniques.
-const rows = computed(() => getTechniqueCountPerTactic().map((tactic) => ({
-  name: tactic.name,
-  segments: [{ value: tactic.technique_count, color: 'SteelBlue' }, { value: tactic.subtechnique_count, color: '#89AFCF' }],
-  label: tactic.technique_count + tactic.subtechnique_count,
-})));
+const rows = computed(() =>
+  getTechniqueCountPerTactic().map((tactic) => ({
+    name: tactic.name,
+    segments: [
+      { value: tactic.technique_count, color: 'SteelBlue' },
+      { value: tactic.subtechnique_count, color: '#89AFCF' },
+    ],
+    label: tactic.technique_count + tactic.subtechnique_count,
+  })),
+);
 </script>
 
 <template>
   <BarChart :rows="rows" :max="maxCount">
-    <template #title>
-      Tactics - Number of (Sub)Techniques
-    </template>
+    <template #title> Tactics - Number of (Sub)Techniques </template>
   </BarChart>
 </template>

@@ -2,12 +2,23 @@
 import * as yaml from 'yaml';
 
 // The types that browsers give YAML files; browsers do not always know the type, so the extension counts as well.
-const YAML_TYPES = ["text/yaml", "text/x-yaml", "text/yml", "text/x-yml", "application/yaml", "application/x-yaml", "application/yml", "application/x-yml"];
-const YAML_EXTENSIONS = [".yaml", ".yml"];
+const YAML_TYPES = [
+  'text/yaml',
+  'text/x-yaml',
+  'text/yml',
+  'text/x-yml',
+  'application/yaml',
+  'application/x-yaml',
+  'application/yml',
+  'application/x-yml',
+];
+const YAML_EXTENSIONS = ['.yaml', '.yml'];
 
 // Whether a file is a YAML file, judged by its type or its extension.
 export function isYamlFile(file: File): boolean {
-  return YAML_TYPES.includes(file.type) || YAML_EXTENSIONS.some((extension) => file.name.toLowerCase().endsWith(extension));
+  return (
+    YAML_TYPES.includes(file.type) || YAML_EXTENSIONS.some((extension) => file.name.toLowerCase().endsWith(extension))
+  );
 }
 
 // The YAML in a file. Throws an error with an explanation when it is not valid YAML.

@@ -7,32 +7,32 @@ import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 const magma = magmaStore();
 
-
 function getMostFrequentDataSources() {
   const useCases = magma.L3UseCases(store.domain);
 
   const frequencyDict: Record<string, number> = {};
-  useCases.forEach(useCase => {
-    if (useCase.dataSource === undefined) {  // Use cases without a data source are not counted.
+  useCases.forEach((useCase) => {
+    if (useCase.dataSource === undefined) {
+      // Use cases without a data source are not counted.
       return;
     }
     frequencyDict[useCase.dataSource] = (frequencyDict[useCase.dataSource] || 0) + 1;
-  })
+  });
 
   // Sort the frequencyDict by values from high to low and convert back to an object.
   const sortedFrequencyDict = Object.fromEntries(Object.entries(frequencyDict).sort(([, a], [, b]) => b - a));
-  return sortedFrequencyDict
+  return sortedFrequencyDict;
 }
-
-
 
 // The longest bar in this chart fills the box.
 const maxCount = computed(() => Math.max(0, ...Object.values(getMostFrequentDataSources())));
 
 // One red bar per item, the top 15.
-const rows = computed(() => Object.entries(getMostFrequentDataSources()).slice(0, 15).map(([name, frequency]) => (
-  { name, segments: [{ value: frequency ?? 0, color: 'red' }], label: frequency ?? 0 }
-)));
+const rows = computed(() =>
+  Object.entries(getMostFrequentDataSources())
+    .slice(0, 15)
+    .map(([name, frequency]) => ({ name, segments: [{ value: frequency ?? 0, color: 'red' }], label: frequency ?? 0 })),
+);
 </script>
 
 <template>

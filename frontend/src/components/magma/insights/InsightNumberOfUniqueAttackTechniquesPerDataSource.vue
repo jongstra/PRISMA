@@ -7,15 +7,15 @@ import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 const magma = magmaStore();
 
-
 function getAttackTechniquesPerDataSource() {
   const useCases = magma.L3UseCases(store.domain);
 
   // Initialize frequencyDict as an object where each key is a dataSource and the value is a Set of attackTechniqueIds.
   const frequencyDict: Record<string, Set<string | undefined>> = {};
-  useCases.forEach(useCase => {
+  useCases.forEach((useCase) => {
     const dataSource = useCase.dataSource;
-    if (dataSource === undefined) {  // Use cases without a data source are not counted.
+    if (dataSource === undefined) {
+      // Use cases without a data source are not counted.
       return;
     }
     if (!frequencyDict[dataSource]) {
@@ -29,22 +29,25 @@ function getAttackTechniquesPerDataSource() {
     Object.entries(frequencyDict).sort(([, a], [, b]) => {
       // Compare the sizes of the Sets in descending order.
       return b.size - a.size;
-    })
+    }),
   );
 
   return sortedFrequencyDict;
 }
 
-
-
-
 // The longest bar in this chart fills the box.
 const maxCount = computed(() => Math.max(0, ...Object.values(getAttackTechniquesPerDataSource()).map((x) => x.size)));
 
 // One red bar per item, the top 15.
-const rows = computed(() => Object.entries(getAttackTechniquesPerDataSource()).slice(0, 15).map(([name, techniques]) => (
-  { name, segments: [{ value: techniques.size ?? 0, color: 'red' }], label: techniques.size ?? 0 }
-)));
+const rows = computed(() =>
+  Object.entries(getAttackTechniquesPerDataSource())
+    .slice(0, 15)
+    .map(([name, techniques]) => ({
+      name,
+      segments: [{ value: techniques.size ?? 0, color: 'red' }],
+      label: techniques.size ?? 0,
+    })),
+);
 </script>
 
 <template>

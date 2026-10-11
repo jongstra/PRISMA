@@ -1,8 +1,7 @@
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 import { loadCatalog } from '@/io/loadCatalog';
 import { ownVisibility, techniqueVisibility } from '@/domain/attack/visibility';
 import { readDettectFile } from '@/domain/attack/dettect';
-
 
 // The catalog's data, as tools/build_attack_catalog.ipynb writes it. The visibility fields and active_in_filter change
 // while the app is used (for example when a DeTT&CT file is loaded).
@@ -77,8 +76,6 @@ export interface Domain {
   only_show_selected_groups_magma_heatmap?: boolean;
 }
 
-
-
 /** The store key of each ATT&CK domain ('enterprise-attack' → 'enterprise'). */
 const DOMAIN_KEYS: Record<string, 'enterprise' | 'mobile' | 'ics'> = {
   'enterprise-attack': 'enterprise',
@@ -94,7 +91,7 @@ function domainOf(state: { enterprise: unknown; mobile: unknown; ics: unknown },
 
 export const tacticsStore = defineStore('tactics', {
   state: () => ({
-    domain: 'enterprise-attack',  // Alternative initial value: 'none'.
+    domain: 'enterprise-attack', // Alternative initial value: 'none'.
     dataLoaded: false,
     attackVersion: '' as string, // the ATT&CK version of the catalog (from its meta block), shown next to the domain buttons
     enterprise: undefined as Domain | undefined, // the catalog data per domain, once it is loaded
@@ -107,24 +104,22 @@ export const tacticsStore = defineStore('tactics', {
     pinnedTooltipId: '' as string,
   }),
 
-
   getters: {
-
     /** The catalog data of the selected domain. */
     currentDomain: (state) => domainOf(state, state.domain),
 
     allTechniquesIdsAndNames: (state) => {
       const tactics = domainOf(state, state.domain)?.tactics || [];
 
-      const allTechniquesIdsAndNames = tactics.flatMap(tactic => {
-        return tactic.techniques.map(technique => ({
+      const allTechniquesIdsAndNames = tactics.flatMap((tactic) => {
+        return tactic.techniques.map((technique) => ({
           id: technique.external_id,
-          name: technique.name
+          name: technique.name,
         }));
       });
 
       // Remove duplicates using a Set based on the ID
-      const uniqueTechniques = Array.from(new Map(allTechniquesIdsAndNames.map(item => [item.id, item])).values());
+      const uniqueTechniques = Array.from(new Map(allTechniquesIdsAndNames.map((item) => [item.id, item])).values());
 
       // Sort the array alphabetically based on the ID
       uniqueTechniques.sort((a, b) => a.id.localeCompare(b.id));
@@ -132,24 +127,25 @@ export const tacticsStore = defineStore('tactics', {
       return uniqueTechniques;
     },
 
-
     allTechniquesAndSubtechniquesIdsAndNames: (state) => {
       const tactics = domainOf(state, state.domain)?.tactics || [];
 
-      const allTechniquesAndSubtechniquesIdsAndNames = tactics.flatMap(tactic => {
-        return tactic.techniques.flatMap(technique => {
+      const allTechniquesAndSubtechniquesIdsAndNames = tactics.flatMap((tactic) => {
+        return tactic.techniques.flatMap((technique) => {
           const techniqueData = [
             {
               id: technique.external_id,
-              name: technique.name
-            }
+              name: technique.name,
+            },
           ];
 
           if (technique.sub_techniques) {
-            techniqueData.push(...technique.sub_techniques.map(subTechnique => ({
-              id: subTechnique.external_id,
-              name: subTechnique.name
-            })));
+            techniqueData.push(
+              ...technique.sub_techniques.map((subTechnique) => ({
+                id: subTechnique.external_id,
+                name: subTechnique.name,
+              })),
+            );
           }
 
           return techniqueData;
@@ -157,7 +153,9 @@ export const tacticsStore = defineStore('tactics', {
       });
 
       // Remove duplicates using a Set based on the ID
-      const uniqueTechniques = Array.from(new Map(allTechniquesAndSubtechniquesIdsAndNames.map(item => [item.id, item])).values());
+      const uniqueTechniques = Array.from(
+        new Map(allTechniquesAndSubtechniquesIdsAndNames.map((item) => [item.id, item])).values(),
+      );
 
       // Sort the array alphabetically based on the ID
       uniqueTechniques.sort((a, b) => a.id.localeCompare(b.id));
@@ -165,18 +163,17 @@ export const tacticsStore = defineStore('tactics', {
       return uniqueTechniques;
     },
 
-
     domainTechniqueByIdMap: (state) => (domain: string) => {
       const tactics = domainOf(state, domain)?.tactics;
 
       const domainTechniqueByIdMap: Record<string, Technique | SubTechnique> = {};
 
       if (tactics) {
-        tactics.forEach(tactic => {
-          tactic.techniques.forEach(technique => {
+        tactics.forEach((tactic) => {
+          tactic.techniques.forEach((technique) => {
             domainTechniqueByIdMap[technique.external_id] = technique;
             if (technique.sub_techniques) {
-              technique.sub_techniques.forEach(subTechnique => {
+              technique.sub_techniques.forEach((subTechnique) => {
                 domainTechniqueByIdMap[subTechnique.external_id] = subTechnique;
               });
             }
@@ -187,7 +184,6 @@ export const tacticsStore = defineStore('tactics', {
       return domainTechniqueByIdMap;
     },
 
-
     getDomainTechniqueVisibilityPercentageById(): (id: string, domain: string) => number | null {
       return (id: string, domain: string) => {
         const technique = this.domainTechniqueByIdMap(domain)[id];
@@ -195,15 +191,14 @@ export const tacticsStore = defineStore('tactics', {
       };
     },
 
-
     hoveredGroupsTechniquesSet: (state) => {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of hovered groups to a list.
       const groupsTechniques: string[] = [];
-      groups.forEach(group => {
+      groups.forEach((group) => {
         if (group?.hovered) {
-          groupsTechniques.push(...group.techniques)
+          groupsTechniques.push(...group.techniques);
         }
       });
 
@@ -211,16 +206,15 @@ export const tacticsStore = defineStore('tactics', {
       const groupsTechniquesSet = new Set(groupsTechniques);
       return groupsTechniquesSet;
     },
-
 
     selectedGroupsTechniquesSet: (state) => {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of selected groups to a list.
       const groupsTechniques: string[] = [];
-      groups.forEach(group => {
+      groups.forEach((group) => {
         if (group?.selected) {
-          groupsTechniques.push(...group.techniques)
+          groupsTechniques.push(...group.techniques);
         }
       });
 
@@ -228,16 +222,15 @@ export const tacticsStore = defineStore('tactics', {
       const groupsTechniquesSet = new Set(groupsTechniques);
       return groupsTechniquesSet;
     },
-
 
     selectedGroupsTechniquesSetMagmaHeatmap: (state) => {
       const groups = domainOf(state, state.domain)?.groups ?? [];
 
       // Add all techniques of selected groups to a list.
       const groupsTechniques: string[] = [];
-      groups.forEach(group => {
+      groups.forEach((group) => {
         if (group?.selectedInMagmaHeatmap) {
-          groupsTechniques.push(...group.techniques)
+          groupsTechniques.push(...group.techniques);
         }
       });
 
@@ -246,16 +239,14 @@ export const tacticsStore = defineStore('tactics', {
       return groupsTechniquesSet;
     },
 
-
-
     hoveredComponentsTechniquesSet: (state) => {
       const components = domainOf(state, state.domain)?.data_components ?? [];
 
       // Add all techniques of hovered data_components to a list.
       const componentsTechniques: string[] = [];
-      components.forEach(component => {
+      components.forEach((component) => {
         if (component?.hovered) {
-          componentsTechniques.push(...component.techniques)
+          componentsTechniques.push(...component.techniques);
         }
       });
 
@@ -269,9 +260,9 @@ export const tacticsStore = defineStore('tactics', {
 
       // Add all techniques of selected data_components to a list.
       const componentsTechniques: string[] = [];
-      components.forEach(component => {
+      components.forEach((component) => {
         if (component?.selected) {
-          componentsTechniques.push(...component.techniques)
+          componentsTechniques.push(...component.techniques);
         }
       });
 
@@ -280,7 +271,6 @@ export const tacticsStore = defineStore('tactics', {
       return componentsTechniquesSet;
     },
 
-
     techniquesOccurrences: (state) => {
       const tactics = domainOf(state, state.domain)?.tactics;
 
@@ -288,11 +278,14 @@ export const tacticsStore = defineStore('tactics', {
         return [];
       }
 
-      const techniquesMap: Record<string, { name: string, group_occurrence: number, software_occurrence: number, total_occurrence: number }> = {};
+      const techniquesMap: Record<
+        string,
+        { name: string; group_occurrence: number; software_occurrence: number; total_occurrence: number }
+      > = {};
 
       // Aggregate occurrences
-      tactics.forEach(tactic => {
-        tactic.techniques.forEach(technique => {
+      tactics.forEach((tactic) => {
+        tactic.techniques.forEach((technique) => {
           const { name, software, groups } = technique;
           if (!techniquesMap[name]) {
             techniquesMap[name] = {
@@ -309,7 +302,6 @@ export const tacticsStore = defineStore('tactics', {
       return Object.values(techniquesMap);
     },
 
-
     // Generalized getter function (attribute_type examples: platform/data_sources/data_components)
     activeAttributes: (state) => (attribute_type: string) => {
       const data = domainOf(state, state.domain)?.[attribute_type as keyof Domain] as Attribute[] | undefined;
@@ -321,17 +313,14 @@ export const tacticsStore = defineStore('tactics', {
 
       // Filter and map the active items based on the attributeType
       const active_attributes = data
-        .filter(item => item.active_in_filter) // Filter the array to include only active items.
-        .map(item => item.name);
+        .filter((item) => item.active_in_filter) // Filter the array to include only active items.
+        .map((item) => item.name);
 
       return active_attributes;
     },
-
   },
 
-
   actions: {
-
     // Load the ATT&CK catalog. When that fails, the error is passed on to the caller, which shows the message (App.vue).
     async fetchTactics() {
       try {
@@ -350,7 +339,6 @@ export const tacticsStore = defineStore('tactics', {
       this.domain = newDomain;
     },
 
-
     // Load a DeTT&CT data source administration file. The whole file is checked first (see domain/attack/dettect.ts):
     // when it has a problem, an error explains it and nothing changes. Data sources that ATT&CK does not know are ignored
     // and returned, so they can be reported.
@@ -358,7 +346,9 @@ export const tacticsStore = defineStore('tactics', {
       if (!this.enterprise?.tactics) {
         throw new Error('The ATT&CK data is not loaded (yet). Please reload the page.');
       }
-      const file = readDettectFile(data, (domain) => (domainOf(this, domain)?.data_components ?? []).map((component) => component.name));
+      const file = readDettectFile(data, (domain) =>
+        (domainOf(this, domain)?.data_components ?? []).map((component) => component.name),
+      );
 
       // Switch to the domain of the file, and start from a clean state for that domain.
       this.domain = file.domain;
@@ -385,7 +375,9 @@ export const tacticsStore = defineStore('tactics', {
           technique.visibility = technique.data_components.some((component: string) => completeness.has(component));
           technique.visibility_ratio = techniqueVisibility(technique, completeness) ?? 0;
           technique.sub_techniques?.forEach((subtechnique) => {
-            subtechnique.visibility = subtechnique.data_components.some((component: string) => completeness.has(component));
+            subtechnique.visibility = subtechnique.data_components.some((component: string) =>
+              completeness.has(component),
+            );
             subtechnique.visibility_ratio = ownVisibility(subtechnique, completeness) ?? 0;
           });
         });
@@ -393,7 +385,6 @@ export const tacticsStore = defineStore('tactics', {
 
       return { unknownDataSources: file.unknownDataSources };
     },
-
 
     resetDomainVisibility(domain: string) {
       const domainEntry = domainOf(this, domain);
@@ -404,7 +395,7 @@ export const tacticsStore = defineStore('tactics', {
       const data_components = domainEntry.data_components;
 
       // Reset all components to visibility = false
-      data_components.forEach(component => {
+      data_components.forEach((component) => {
         component.visibility = false;
       });
 
@@ -414,7 +405,7 @@ export const tacticsStore = defineStore('tactics', {
           technique.visibility = false;
           technique.visibility_ratio = 0;
 
-          if (typeof technique.sub_techniques !== "undefined") {
+          if (typeof technique.sub_techniques !== 'undefined') {
             technique.sub_techniques.forEach((subtechnique) => {
               subtechnique.visibility = false;
               subtechnique.visibility_ratio = 0;
@@ -423,5 +414,5 @@ export const tacticsStore = defineStore('tactics', {
         });
       });
     },
-  }
+  },
 });

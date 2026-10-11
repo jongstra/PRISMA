@@ -19,9 +19,9 @@ function getTopNewComponents(): Component[] {
     return [];
   }
 
-  // Return the top 15 components (that are not used yet), which increase (sub)technique visibility the most. 
+  // Return the top 15 components (that are not used yet), which increase (sub)technique visibility the most.
   return components
-    .filter((component) =>component.visibility == false)
+    .filter((component) => component.visibility == false)
     .filter((component) => component.all_technique_count > 0)
     .slice(0, 15)
     .map((component) => ({
@@ -31,16 +31,22 @@ function getTopNewComponents(): Component[] {
     }));
 }
 
-
 // The longest bar in this chart fills the box.
-const maxCount = computed(() => Math.max(0, ...getTopNewComponents().map((x) => x.technique_count + x.subtechnique_count)));
+const maxCount = computed(() =>
+  Math.max(0, ...getTopNewComponents().map((x) => x.technique_count + x.subtechnique_count)),
+);
 
 // Blue: techniques; light blue: sub-techniques.
-const rows = computed(() => getTopNewComponents().map((component) => ({
-  name: component.name,
-  segments: [{ value: component.technique_count, color: 'SteelBlue' }, { value: component.subtechnique_count, color: '#89AFCF' }],
-  label: component.technique_count + component.subtechnique_count,
-})));
+const rows = computed(() =>
+  getTopNewComponents().map((component) => ({
+    name: component.name,
+    segments: [
+      { value: component.technique_count, color: 'SteelBlue' },
+      { value: component.subtechnique_count, color: '#89AFCF' },
+    ],
+    label: component.technique_count + component.subtechnique_count,
+  })),
+);
 </script>
 
 <template>

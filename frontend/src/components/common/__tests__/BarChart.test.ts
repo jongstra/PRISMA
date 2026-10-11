@@ -11,8 +11,22 @@ const styleWidth = (width: string) => {
 };
 
 const rows = [
-  { name: 'Windows', segments: [{ value: 30, color: 'SteelBlue' }, { value: 10, color: '#89AFCF' }], label: 40 },
-  { name: 'Linux', segments: [{ value: 20, color: 'SteelBlue' }, { value: 0, color: '#89AFCF' }], label: 20 },
+  {
+    name: 'Windows',
+    segments: [
+      { value: 30, color: 'SteelBlue' },
+      { value: 10, color: '#89AFCF' },
+    ],
+    label: 40,
+  },
+  {
+    name: 'Linux',
+    segments: [
+      { value: 20, color: 'SteelBlue' },
+      { value: 0, color: '#89AFCF' },
+    ],
+    label: 20,
+  },
 ];
 
 describe('BarChart', () => {

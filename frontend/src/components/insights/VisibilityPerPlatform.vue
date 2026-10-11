@@ -14,7 +14,7 @@ function getPlatforms(): string[] {
   const domain = getDomain();
 
   if (domain.platforms) {
-    domain.platforms.forEach(platform => {
+    domain.platforms.forEach((platform) => {
       platformsSet.add(platform.name);
     });
   }
@@ -29,16 +29,24 @@ function calculatePlatformVisibility(): { name: string; percentage: number }[] {
   const visibility = platformVisibility(domain.tactics ?? [], platformsOf);
 
   // Calculate the visibility percentage for each platform and sort by percentage
-  return getPlatforms().map(platform => ({
-    name: platform,
-    percentage: Math.round(visibility.get(platform) ?? 0),
-  })).sort((a, b) => a.percentage - b.percentage);
+  return getPlatforms()
+    .map((platform) => ({
+      name: platform,
+      percentage: Math.round(visibility.get(platform) ?? 0),
+    }))
+    .sort((a, b) => a.percentage - b.percentage);
 }
 
 // Number of (unique) techniques in the domain that cannot be detected via data sources; these are left out of the averages.
-const notDetectableCount = computed(() => new Set(
-  (getDomain().tactics ?? []).flatMap((tactic) => tactic.techniques).filter((technique) => !isDetectable(technique)).map((technique) => technique.external_id)
-).size);
+const notDetectableCount = computed(
+  () =>
+    new Set(
+      (getDomain().tactics ?? [])
+        .flatMap((tactic) => tactic.techniques)
+        .filter((technique) => !isDetectable(technique))
+        .map((technique) => technique.external_id),
+    ).size,
+);
 
 function getBarColor(percentage: number): string {
   const red = Math.max(0, 255 - (255 * percentage) / 100);
@@ -47,19 +55,22 @@ function getBarColor(percentage: number): string {
 }
 
 // One bar per platform, from red (0%) to green (100%).
-const rows = computed(() => calculatePlatformVisibility().map((platform) => (
-  { name: platform.name, segments: [{ value: platform.percentage, color: getBarColor(platform.percentage) }], label: platform.percentage }
-)));
+const rows = computed(() =>
+  calculatePlatformVisibility().map((platform) => ({
+    name: platform.name,
+    segments: [{ value: platform.percentage, color: getBarColor(platform.percentage) }],
+    label: platform.percentage,
+  })),
+);
 </script>
 
 <template>
   <BarChart :rows="rows" :max="100" label="inside">
-    <template #title>
-      Platforms - Visibility Percentage
-    </template>
+    <template #title> Platforms - Visibility Percentage </template>
     <template #footnote>
       <div v-if="notDetectableCount > 0" class="footnote">
-        Not counted: {{ notDetectableCount }} technique(s) for which ATT&CK lists no data components (not detectable via data sources).
+        Not counted: {{ notDetectableCount }} technique(s) for which ATT&CK lists no data components (not detectable via
+        data sources).
       </div>
     </template>
   </BarChart>

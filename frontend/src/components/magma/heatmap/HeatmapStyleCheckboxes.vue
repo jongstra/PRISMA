@@ -4,42 +4,26 @@ import { magmaStore } from '@/stores/magma';
 const magma = magmaStore();
 </script>
 
-
 <template>
-
   <div class="heatmap-settings-checkboxes">
-
     <label>
-      <input
-        type="checkbox"
-        v-model="magma.heatmapVisibility"
-      />
+      <input type="checkbox" v-model="magma.heatmapVisibility" />
       Visibility
     </label>
 
     <label>
-      <input
-        type="checkbox"
-        v-model="magma.heatmapImplementation"
-      />
+      <input type="checkbox" v-model="magma.heatmapImplementation" />
       Implementation
     </label>
 
     <label>
-      <input
-        type="checkbox"
-        v-model="magma.heatmapEffectiveness"
-      />
+      <input type="checkbox" v-model="magma.heatmapEffectiveness" />
       Effectiveness
     </label>
-
   </div>
-
 </template>
 
-
 <style scoped>
-
 div.heatmap-settings-checkboxes {
   display: flex;
   flex-direction: column;
@@ -53,7 +37,7 @@ div.heatmap-settings-checkboxes {
   margin-right: 5px;
 }
 
-input[type="checkbox"] {
+input[type='checkbox'] {
   margin-right: 4px;
 }
 
@@ -69,5 +53,4 @@ label {
   width: 140px;
   height: 20px;
 }
-
 </style>

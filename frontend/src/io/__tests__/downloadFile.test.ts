@@ -7,7 +7,10 @@ afterEach(() => vi.restoreAllMocks());
 describe('downloadFile', () => {
   it('offers the text as a file with the given name and type', async () => {
     let blob: Blob | undefined;
-    URL.createObjectURL = (object: Blob | MediaSource) => { blob = object as Blob; return 'blob:test'; };
+    URL.createObjectURL = (object: Blob | MediaSource) => {
+      blob = object as Blob;
+      return 'blob:test';
+    };
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     downloadFile('a: 1', 'data.yaml', 'text/yaml');

@@ -12,7 +12,11 @@ afterEach(() => {
 function showTooltip(pinned: boolean) {
   document.body.innerHTML = '<button id="anchor">Technique</button><div id="elsewhere">Elsewhere</div>';
   const anchor = document.getElementById('anchor')!;
-  wrapper = mount(TechniqueTooltip, { props: { anchor, pinned }, slots: { default: '<a href="#" id="link">Link</a>' }, attachTo: document.body });
+  wrapper = mount(TechniqueTooltip, {
+    props: { anchor, pinned },
+    slots: { default: '<a href="#" id="link">Link</a>' },
+    attachTo: document.body,
+  });
   const tooltip = () => document.body.querySelector('.tooltip') as HTMLElement;
   return { anchor, tooltip, unpins: () => wrapper!.emitted('unpin')?.length ?? 0 };
 }

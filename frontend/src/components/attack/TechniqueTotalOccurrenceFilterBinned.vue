@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed , watch} from 'vue'
-import '@vueform/slider/themes/default.css'
-import Slider from '@vueform/slider'
+import { ref, computed, watch } from 'vue';
+import '@vueform/slider/themes/default.css';
+import Slider from '@vueform/slider';
 import { tacticsStore } from '@/stores/tactics';
 
 const store = tacticsStore();
-const value = ref(0) // Default knob position: 0
+const value = ref(0); // Default knob position: 0
 
 // Watch the 'value' ref and update the store when it changes
 watch(value, (newValue) => {
@@ -18,19 +18,11 @@ const formatTooltip = computed(() => (value: number) => {
   if (value === 2) return 'High';
   if (value >= 3) return 'Very High';
 });
-
 </script>
 
 <template>
   <div class="slider-container">
-    <Slider
-      v-model="value"
-      :min="0"
-      :max="3"
-      :interval="1"
-      :showTooltip="'always'"
-      :format="formatTooltip"
-    />
+    <Slider v-model="value" :min="0" :max="3" :interval="1" :showTooltip="'always'" :format="formatTooltip" />
     <p class="slider-title">Minimum Total Occurrence</p>
   </div>
 </template>

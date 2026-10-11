@@ -15,7 +15,8 @@ export interface DettectFile {
   unknownDataSources: string[];
 }
 
-const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
  * Checks a parsed DeTT&CT file and reads its data sources. `dataComponents` gives the ATT&CK data component names of a
@@ -26,9 +27,11 @@ export function readDettectFile(data: unknown, dataComponents: (domain: string) 
     throw new Error('The file is not a DeTT&CT data source administration file.');
   }
   if (data.file_type !== 'data-source-administration') {
-    throw new Error(data.file_type
-      ? `The file is a DeTT&CT "${data.file_type}" file; PRISMA needs a data source administration file ("data-source-administration").`
-      : 'The file is not a DeTT&CT data source administration file (it has no file_type).');
+    throw new Error(
+      data.file_type
+        ? `The file is a DeTT&CT "${data.file_type}" file; PRISMA needs a data source administration file ("data-source-administration").`
+        : 'The file is not a DeTT&CT data source administration file (it has no file_type).',
+    );
   }
   if (typeof data.domain !== 'string' || !SUPPORTED_DOMAINS.includes(data.domain)) {
     throw new Error(`The domain of the file ("${data.domain}") is not supported; use ${SUPPORTED_DOMAINS.join(', ')}.`);
@@ -41,11 +44,18 @@ export function readDettectFile(data: unknown, dataComponents: (domain: string) 
   const names = dataSources.map((dataSource) => (isObject(dataSource) ? dataSource.data_source_name : undefined));
   const duplicates = [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
   if (duplicates.length > 0) {
-    throw new Error(`Duplicate data sources found in YAML: ${duplicates.join(', ')}. Please remove the duplicates before loading.`);
+    throw new Error(
+      `Duplicate data sources found in YAML: ${duplicates.join(', ')}. Please remove the duplicates before loading.`,
+    );
   }
 
   const known = new Set(dataComponents(data.domain));
-  const result: DettectFile = { domain: data.domain, dataSources: new Map(), completeness: new Map(), unknownDataSources: [] };
+  const result: DettectFile = {
+    domain: data.domain,
+    dataSources: new Map(),
+    completeness: new Map(),
+    unknownDataSources: [],
+  };
   for (const dataSource of dataSources) {
     const name = isObject(dataSource) ? dataSource.data_source_name : undefined;
     if (!isObject(dataSource) || typeof name !== 'string' || name.trim() === '') {
@@ -58,8 +68,15 @@ export function readDettectFile(data: unknown, dataComponents: (domain: string) 
       throw new Error(`Data source "${name}" has no data quality scores (data_source / data_quality).`);
     }
     const deviceCompleteness = entry.data_quality.device_completeness ?? 0;
-    if (typeof deviceCompleteness !== 'number' || !Number.isFinite(deviceCompleteness) || deviceCompleteness < 0 || deviceCompleteness > 5) {
-      throw new Error(`Data source "${name}": device_completeness "${deviceCompleteness}" is not valid; it must be a number from 0 to 5.`);
+    if (
+      typeof deviceCompleteness !== 'number' ||
+      !Number.isFinite(deviceCompleteness) ||
+      deviceCompleteness < 0 ||
+      deviceCompleteness > 5
+    ) {
+      throw new Error(
+        `Data source "${name}": device_completeness "${deviceCompleteness}" is not valid; it must be a number from 0 to 5.`,
+      );
     }
     if (!known.has(name)) {
       result.unknownDataSources.push(name);

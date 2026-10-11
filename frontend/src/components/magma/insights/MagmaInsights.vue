@@ -14,25 +14,24 @@ const store = tacticsStore();
 const magma = magmaStore();
 </script>
 
-
 <template>
-
-<div class="magma-insights">
-  <InsightNumberUseCasesPerLayer/>
-  <InsightNumberOfUseCasesPerDataSource/>
-  <InsightNumberOfUniqueAttackTechniquesPerDataSource/>
-  <InsightDataSourceMeanVisibility/>
-  <InsightDataSourceMeanImplementation/>
-  <InsightDataSourceMeanEffectiveness/>
-  <InsightMostFrequentlyLinkedAttackTechniques/>
-  <InsightImprovementPotentialForL3UseCases/>
-  <div v-for="L1UseCase in magma.L1UseCases(store.domain)" :key="L1UseCase.uid"> 
-    <InsightImprovementPotentialL3UseCasesForL1UseCase :L1UseCase=L1UseCase :relatedL3UseCases=magma.getGrandChildUseCases(L1UseCase) />
+  <div class="magma-insights">
+    <InsightNumberUseCasesPerLayer />
+    <InsightNumberOfUseCasesPerDataSource />
+    <InsightNumberOfUniqueAttackTechniquesPerDataSource />
+    <InsightDataSourceMeanVisibility />
+    <InsightDataSourceMeanImplementation />
+    <InsightDataSourceMeanEffectiveness />
+    <InsightMostFrequentlyLinkedAttackTechniques />
+    <InsightImprovementPotentialForL3UseCases />
+    <div v-for="L1UseCase in magma.L1UseCases(store.domain)" :key="L1UseCase.uid">
+      <InsightImprovementPotentialL3UseCasesForL1UseCase
+        :L1UseCase="L1UseCase"
+        :relatedL3UseCases="magma.getGrandChildUseCases(L1UseCase)"
+      />
+    </div>
   </div>
-</div>
-
 </template>
-
 
 <style scoped>
 .magma-insights {

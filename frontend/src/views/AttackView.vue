@@ -13,24 +13,26 @@ const store = tacticsStore();
 
 // When the domain is changed, we want to unpin any pinned tooltips for cleanliness,
 // and clear the technique filter search box text.
-watch(() => store.domain, () => {
-  store.pinnedTooltipId = '';
-  store.searchQuery = '';
-});
+watch(
+  () => store.domain,
+  () => {
+    store.pinnedTooltipId = '';
+    store.searchQuery = '';
+  },
+);
 
 // The matrix columns are keyed by domain and tactic, so switching domains creates new columns: each column and
 // technique button keeps the domain it was created for.
 </script>
 
 <template>
-  <div class='combined-controls'>
-    
+  <div class="combined-controls">
     <!-- Row 1 -->
     <div class="controls-row">
-      <div class='upload-button'><FileUploadButtonYaml/></div>
-      <div class='filter'><TechniqueTotalOccurrenceFilterBinned/></div>
-      <div class='filter'><TechniqueVisibilityPercentageFilter/></div>
-      <div class='legend'><VisibilityLegend/></div>
+      <div class="upload-button"><FileUploadButtonYaml /></div>
+      <div class="filter"><TechniqueTotalOccurrenceFilterBinned /></div>
+      <div class="filter"><TechniqueVisibilityPercentageFilter /></div>
+      <div class="legend"><VisibilityLegend /></div>
     </div>
 
     <!-- Horizontal bar -->
@@ -38,30 +40,43 @@ watch(() => store.domain, () => {
 
     <!-- Row 2 -->
     <div class="controls-row">
-      <div class='filter'><TechniqueAttributeFilter attribute_type="platforms"/></div>
-      <div class='search'><SearchBar/></div>
-      <div class='group-selection-tool'>
-        <SelectionTool list="groups" selected-field="selected" only-show-field="only_show_selected_groups" noun="group"
-          toggle-title="Only show techniques used by selected groups." color="red"/>
+      <div class="filter"><TechniqueAttributeFilter attribute_type="platforms" /></div>
+      <div class="search"><SearchBar /></div>
+      <div class="group-selection-tool">
+        <SelectionTool
+          list="groups"
+          selected-field="selected"
+          only-show-field="only_show_selected_groups"
+          noun="group"
+          toggle-title="Only show techniques used by selected groups."
+          color="red"
+        />
       </div>
-      <div class='component-selection-tool'>
-        <SelectionTool list="data_components" selected-field="selected" only-show-field="only_show_selected_components" noun="component"
-          toggle-title="Only show techniques covered by selected components." color="green"/>
+      <div class="component-selection-tool">
+        <SelectionTool
+          list="data_components"
+          selected-field="selected"
+          only-show-field="only_show_selected_components"
+          noun="component"
+          toggle-title="Only show techniques covered by selected components."
+          color="green"
+        />
       </div>
     </div>
-
   </div>
 
   <div class="matrix-container">
-    <div class='attack-matrix'>
-      <div v-for="tactic in store.currentDomain?.tactics" :key="`${store.domain}|${tactic.name}`" class="button-columns">
-        <TacticColumn :tactic=tactic :techniques=tactic.techniques />
+    <div class="attack-matrix">
+      <div
+        v-for="tactic in store.currentDomain?.tactics"
+        :key="`${store.domain}|${tactic.name}`"
+        class="button-columns"
+      >
+        <TacticColumn :tactic="tactic" :techniques="tactic.techniques" />
       </div>
     </div>
   </div>
 </template>
-
-
 
 <style scoped>
 .combined-controls {
@@ -91,7 +106,12 @@ watch(() => store.domain, () => {
   margin: 0px 0; /* Adds vertical spacing around the bar */
 }
 
-.filter, .search, .upload-button, .legend, .group-selection-tool, .component-selection-tool {
+.filter,
+.search,
+.upload-button,
+.legend,
+.group-selection-tool,
+.component-selection-tool {
   flex: 1; /* Allows the items to grow and fill space */
   display: flex;
   margin: 3px; /* Add some spacing between items */
@@ -100,13 +120,15 @@ watch(() => store.domain, () => {
 .matrix-container {
   overflow-x: auto; /* Enable horizontal scrollbar */
   width: 100%; /* Full width of the parent container */
-  transform: rotateX(180deg);  /* Rotates container upside down so the horizontal scrollbar is at the top. */
+  transform: rotateX(180deg); /* Rotates container upside down so the horizontal scrollbar is at the top. */
 }
 
 .attack-matrix {
   display: flex;
   width: fit-content; /* Allow content to take up natural width */
-  transform: rotateX(180deg); /* Rotates the matrix content upside down AGAIN (after doing this to the .matrix-container), so it rotated back to normal. */
+  transform: rotateX(
+    180deg
+  ); /* Rotates the matrix content upside down AGAIN (after doing this to the .matrix-container), so it rotated back to normal. */
 }
 
 .button-columns {

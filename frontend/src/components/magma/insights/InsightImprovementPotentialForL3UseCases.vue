@@ -8,20 +8,25 @@ import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 const magma = magmaStore();
 
-
 function getHighestPotentialL3UseCases() {
   const useCases = magma.L3UseCases(store.domain);
 
   // Sort use cases on their potential in descending order.
-  useCases.sort((a, b) => (b.potential??100) - (a.potential??100));
+  useCases.sort((a, b) => (b.potential ?? 100) - (a.potential ?? 100));
 
-  return useCases
+  return useCases;
 }
 
 // The 15 L3 use cases with the most improvement potential.
-const rows = computed(() => getHighestPotentialL3UseCases().slice(0, 15).map((useCase) => (
-  { name: useCase.id, segments: potentialSegments(useCase), label: `${(useCase.potential ?? 100).toFixed(2)}%` }
-)));
+const rows = computed(() =>
+  getHighestPotentialL3UseCases()
+    .slice(0, 15)
+    .map((useCase) => ({
+      name: useCase.id,
+      segments: potentialSegments(useCase),
+      label: `${(useCase.potential ?? 100).toFixed(2)}%`,
+    })),
+);
 </script>
 
 <template>

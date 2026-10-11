@@ -13,11 +13,18 @@ function getTopTechniques() {
 const maxCount = computed(() => Math.max(0, ...getTopTechniques().map((x) => x.total_occurrence)));
 
 // Red: groups; olive: software.
-const rows = computed(() => getTopTechniques().slice(0, 15).map((technique) => ({
-  name: technique.name,
-  segments: [{ value: technique.group_occurrence, color: 'FireBrick' }, { value: technique.software_occurrence, color: 'Olive' }],
-  label: technique.total_occurrence,
-})));
+const rows = computed(() =>
+  getTopTechniques()
+    .slice(0, 15)
+    .map((technique) => ({
+      name: technique.name,
+      segments: [
+        { value: technique.group_occurrence, color: 'FireBrick' },
+        { value: technique.software_occurrence, color: 'Olive' },
+      ],
+      label: technique.total_occurrence,
+    })),
+);
 </script>
 
 <template>

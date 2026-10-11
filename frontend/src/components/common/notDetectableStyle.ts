@@ -5,4 +5,5 @@ export const NOT_DETECTABLE_STYLE = {
   color: '#666666',
 };
 
-export const NOT_DETECTABLE_TEXT = 'n/a: ATT&CK lists no data components for this technique, so it cannot be detected via data sources';
+export const NOT_DETECTABLE_TEXT =
+  'n/a: ATT&CK lists no data components for this technique, so it cannot be detected via data sources';

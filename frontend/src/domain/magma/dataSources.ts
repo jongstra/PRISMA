@@ -12,7 +12,10 @@ type Score = 'visibility' | 'implementation' | 'effectiveness';
  * The mean of a score per data source, over the use cases that have a data source, from the lowest mean to the highest.
  * An empty score counts as 0%.
  */
-export function meanPerDataSource(useCases: ({ dataSource?: string } & Partial<Record<Score, unknown>>)[], score: Score): DataSourceMean[] {
+export function meanPerDataSource(
+  useCases: ({ dataSource?: string } & Partial<Record<Score, unknown>>)[],
+  score: Score,
+): DataSourceMean[] {
   const totals = new Map<string, { sum: number; count: number }>();
   for (const useCase of useCases) {
     if (useCase.dataSource === undefined) {

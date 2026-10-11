@@ -13,11 +13,15 @@ function getTopTechniquesByGroup() {
 const maxCount = computed(() => Math.max(0, ...getTopTechniquesByGroup().map((x) => x.group_occurrence)));
 
 // Red: the number of groups that use the technique.
-const rows = computed(() => getTopTechniquesByGroup().slice(0, 15).map((technique) => ({
-  name: technique.name,
-  segments: [{ value: technique.group_occurrence, color: 'FireBrick' }],
-  label: technique.group_occurrence,
-})));
+const rows = computed(() =>
+  getTopTechniquesByGroup()
+    .slice(0, 15)
+    .map((technique) => ({
+      name: technique.name,
+      segments: [{ value: technique.group_occurrence, color: 'FireBrick' }],
+      label: technique.group_occurrence,
+    })),
+);
 </script>
 
 <template>

@@ -19,7 +19,15 @@ describe('meanPerDataSource', () => {
   });
 
   it('counts an empty score as 0%', () => {
-    expect(meanPerDataSource([{ dataSource: 'Firewall', effectiveness: 90 }, { dataSource: 'Firewall' }, { dataSource: 'Firewall', effectiveness: null }], 'effectiveness'))
-      .toEqual([{ dataSource: 'Firewall', mean: 30, count: 3 }]);
+    expect(
+      meanPerDataSource(
+        [
+          { dataSource: 'Firewall', effectiveness: 90 },
+          { dataSource: 'Firewall' },
+          { dataSource: 'Firewall', effectiveness: null },
+        ],
+        'effectiveness',
+      ),
+    ).toEqual([{ dataSource: 'Firewall', mean: 30, count: 3 }]);
   });
 });

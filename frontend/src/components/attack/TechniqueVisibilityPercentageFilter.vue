@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import '@vueform/slider/themes/default.css'
-import Slider from '@vueform/slider'
+import { ref, watch } from 'vue';
+import '@vueform/slider/themes/default.css';
+import Slider from '@vueform/slider';
 import { tacticsStore } from '@/stores/tactics';
 
 const store = tacticsStore();
-const values = ref([0, 100]) // Default knob positions: 0% and 100%
+const values = ref([0, 100]); // Default knob positions: 0% and 100%
 
 // Watch the 'values' ref and update the store when they change
 watch(values, (newValues) => {
@@ -22,8 +22,8 @@ watch(values, (newValues) => {
       :max="100"
       :interval="1"
       :showTooltip="'always'"
-      :format="{'suffix': ''}"
-      :options="{connect: [false, true, false]}"
+      :format="{ suffix: '' }"
+      :options="{ connect: [false, true, false] }"
       :range="true"
     />
     <p class="slider-title">Visibility Percentage</p>
@@ -69,7 +69,6 @@ watch(values, (newValues) => {
 .slider-container :deep(.slider-base) {
   background-color: seashell; /* Background color for the unselected track */
 }
-
 
 /* Customizing tooltip styles more explicitly */
 .slider-container :deep(.slider-tooltip) {

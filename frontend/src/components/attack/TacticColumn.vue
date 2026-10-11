@@ -18,20 +18,16 @@ const domain = store.currentDomain!;
 
 // Method to handle movements outside of tooltip group buttons, to remove group.hovered properties.
 const handleMoveOutsideToDisableGroupHover = (event: MouseEvent) => {
-  if (
-    !(event.target as HTMLElement).closest('.group-box')
-  ) {
-    domain.groups.forEach(group => {
+  if (!(event.target as HTMLElement).closest('.group-box')) {
+    domain.groups.forEach((group) => {
       delete group.hovered;
     });
   }
 };
 // Method to handle movements outside of tooltip component buttons, to remove component.hovered properties.
 const handleMoveOutsideToDisableComponentHover = (event: MouseEvent) => {
-  if (
-    !(event.target as HTMLElement).closest('.component-box')
-  ) {
-    domain.data_components.forEach(component => {
+  if (!(event.target as HTMLElement).closest('.component-box')) {
+    domain.data_components.forEach((component) => {
       delete component.hovered;
     });
   }
@@ -50,29 +46,26 @@ onUnmounted(() => {
 });
 </script>
 
-
 <template>
-<div ref="buttonColumnRef" class="button-column">
-  
-  <!-- Tactic -->
-  <div class="button-column-tactic-name-div">
-    <p class="button-column-tactic-name"> {{ tactic.name }} </p>
-  </div>
+  <div ref="buttonColumnRef" class="button-column">
+    <!-- Tactic -->
+    <div class="button-column-tactic-name-div">
+      <p class="button-column-tactic-name">{{ tactic.name }}</p>
+    </div>
 
-  <!-- Technique count statistic -->
-  <div class="button-column-stats-div">
-    <p class="button-column-stat-1"> {{ tactic.techniques.length }} techniques </p>
-    
-    <!-- Compute the tactic-visibility based on the technique visibility_ratio value. -->
-    <p class="button-column-stat-2">{{ tacticVisibility(tactic) }} visibility</p>
-  </div>
+    <!-- Technique count statistic -->
+    <div class="button-column-stats-div">
+      <p class="button-column-stat-1">{{ tactic.techniques.length }} techniques</p>
 
-  <!-- Techniques column -->
-  <div v-for="(technique, index) in techniques" :key="index">
-    <TechniqueButton :technique="technique"/>
-  </div>
+      <!-- Compute the tactic-visibility based on the technique visibility_ratio value. -->
+      <p class="button-column-stat-2">{{ tacticVisibility(tactic) }} visibility</p>
+    </div>
 
-</div>
+    <!-- Techniques column -->
+    <div v-for="(technique, index) in techniques" :key="index">
+      <TechniqueButton :technique="technique" />
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -80,7 +73,8 @@ onUnmounted(() => {
   display: grid;
 }
 
-.button-column-tactic-name-div, .button-column-stats-div {
+.button-column-tactic-name-div,
+.button-column-stats-div {
   display: flex;
   flex-direction: column;
   align-items: center;

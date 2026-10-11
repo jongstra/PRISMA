@@ -22,19 +22,64 @@ async function showTable(level: 'L1' | 'L2' | 'L3') {
   magma.addNewUseCase(Number(level[1]), domain);
   magma.activeTab = level;
   const table = mount(UseCaseTable, { global: { plugins: [pinia] } });
-  const headers = () => table.findAll('thead th').slice(1).map((th) => th.text()); // without the delete-all column
-  const cell = (row: number, header: string) => table.findAll('tbody tr').at(row)!.findAll('td').at(headers().indexOf(header) + 1)!;
+  const headers = () =>
+    table
+      .findAll('thead th')
+      .slice(1)
+      .map((th) => th.text()); // without the delete-all column
+  const cell = (row: number, header: string) =>
+    table
+      .findAll('tbody tr')
+      .at(row)!
+      .findAll('td')
+      .at(headers().indexOf(header) + 1)!;
   return { magma, table, headers, cell };
 }
 
 describe('UseCaseTable', () => {
   it('shows the columns of the active level', async () => {
-    expect((await showTable('L1')).headers()).toEqual(['ID', 'Use Case Name', 'Description', 'L2 UC Related', 'L3 UC Related',
-      'Visibility %', 'Implementation %', 'Effectiveness %', 'Weight %', 'Potential %', 'IN Impact %', 'THR Impact %', 'OUT Impact %', 'Risk']);
-    expect((await showTable('L2')).headers()).toEqual(['ID', 'Use Case Name', 'Description', 'Parent Use Case', 'L3 UC Related',
-      'Visibility %', 'Implementation %', 'Effectiveness %', 'Weight %', 'Potential %']);
-    expect((await showTable('L3')).headers()).toEqual(['ID', 'Use Case Name', 'Description', 'Parent Use Case', 'Data Source',
-      'ATT&CK Technique', 'Override', 'Visibility %', 'Implementation %', 'Effectiveness %', 'Weight %', 'Potential %']);
+    expect((await showTable('L1')).headers()).toEqual([
+      'ID',
+      'Use Case Name',
+      'Description',
+      'L2 UC Related',
+      'L3 UC Related',
+      'Visibility %',
+      'Implementation %',
+      'Effectiveness %',
+      'Weight %',
+      'Potential %',
+      'IN Impact %',
+      'THR Impact %',
+      'OUT Impact %',
+      'Risk',
+    ]);
+    expect((await showTable('L2')).headers()).toEqual([
+      'ID',
+      'Use Case Name',
+      'Description',
+      'Parent Use Case',
+      'L3 UC Related',
+      'Visibility %',
+      'Implementation %',
+      'Effectiveness %',
+      'Weight %',
+      'Potential %',
+    ]);
+    expect((await showTable('L3')).headers()).toEqual([
+      'ID',
+      'Use Case Name',
+      'Description',
+      'Parent Use Case',
+      'Data Source',
+      'ATT&CK Technique',
+      'Override',
+      'Visibility %',
+      'Implementation %',
+      'Effectiveness %',
+      'Weight %',
+      'Potential %',
+    ]);
   });
 
   it('locks the permanent IN and THR use cases, and marks impacts that do not add up to 100', async () => {
@@ -73,8 +118,11 @@ describe('UseCaseTable', () => {
     magma.addNewUseCase(2, domain);
     await table.vm.$nextTick();
     const [first, second] = magma.L2UseCases(domain);
-    const rowOf = (id: string) => table.findAll('tbody tr')
-      .find((row) => row.find('input').exists() && (row.find('input').element as HTMLInputElement).value === id)?.element;
+    const rowOf = (id: string) =>
+      table
+        .findAll('tbody tr')
+        .find((row) => row.find('input').exists() && (row.find('input').element as HTMLInputElement).value === id)
+        ?.element;
     const secondRow = rowOf(second.id);
     magma.removeUseCaseByUid(first.uid);
     await table.vm.$nextTick();

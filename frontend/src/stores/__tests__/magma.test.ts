@@ -38,16 +38,29 @@ describe('magma store with the example files', () => {
     magma.updateAllL3UseCasesBasedOnDettectVisibility();
   });
 
-  const value = (id: string, field: keyof UseCase) => Number(magma.getUseCaseById(id, 'enterprise-attack')![field]).toFixed(2);
+  const value = (id: string, field: keyof UseCase) =>
+    Number(magma.getUseCaseById(id, 'enterprise-attack')![field]).toFixed(2);
 
   it('gives the known values for the example (same as before the recalculation rework)', () => {
     expect([value('IN', 'weight'), value('THR', 'weight')]).toEqual(['12.17', '0.00']);
-    expect([value('DOS', 'visibility'), value('DOS', 'weight'), value('DOS', 'risk')]).toEqual(['0.00', '0.00', '95.98']);
-    expect([value('FIN', 'visibility'), value('FIN', 'weight'), value('FIN', 'risk')]).toEqual(['16.67', '11.30', '92.14']);
+    expect([value('DOS', 'visibility'), value('DOS', 'weight'), value('DOS', 'risk')]).toEqual([
+      '0.00',
+      '0.00',
+      '95.98',
+    ]);
+    expect([value('FIN', 'visibility'), value('FIN', 'weight'), value('FIN', 'risk')]).toEqual([
+      '16.67',
+      '11.30',
+      '92.14',
+    ]);
   });
 
   it('updates the business risks when an L3 use case under cumulative IN changes', () => {
-    magma.updateUseCase(magma.getUseCaseById('IN-1-1', 'enterprise-attack')!.uid, { effectiveness: 100 }, 'enterprise-attack');
+    magma.updateUseCase(
+      magma.getUseCaseById('IN-1-1', 'enterprise-attack')!.uid,
+      { effectiveness: 100 },
+      'enterprise-attack',
+    );
     expect(value('IN', 'weight')).toBe('15.60');
     expect(value('DOS', 'risk')).toBe('94.85');
     expect(value('FIN', 'risk')).toBe('91.01');
@@ -72,7 +85,17 @@ describe('magma store with the same IDs in two domains', () => {
     const useCases = (domain: string, implementation: number) => [
       { domain, level: 1, id: 'D', name: 'd', inImpact: 0, thrImpact: 0, outImpact: 100 },
       { domain, level: 2, id: 'D-1', name: 'd1', parentIds: ['D'] },
-      { domain, level: 3, id: 'D-1-1', name: 'd11', parentIds: ['D-1'], visibility: 50, implementation, effectiveness: 50, visibilityFromAttackTechniqueOverride: true },
+      {
+        domain,
+        level: 3,
+        id: 'D-1-1',
+        name: 'd11',
+        parentIds: ['D-1'],
+        visibility: 50,
+        implementation,
+        effectiveness: 50,
+        visibilityFromAttackTechniqueOverride: true,
+      },
     ];
     magma.importUseCases([...useCases('enterprise-attack', 100), ...useCases('mobile-attack', 50)]);
     expect(magma.getUseCaseById('D-1', 'enterprise-attack')?.weight).toBeCloseTo(25);
@@ -85,9 +108,36 @@ describe('magma store performance', () => {
   it('imports 20 L1, 100 L2 and 1,000 L3 use cases quickly', async () => {
     const { magma } = await setUpStores();
     const useCases: object[] = [];
-    for (let i = 0; i < 20; i++) useCases.push({ domain: 'enterprise-attack', level: 1, id: `B${i}`, name: 'b', inImpact: 34, thrImpact: 33, outImpact: 33 });
-    for (let j = 0; j < 100; j++) useCases.push({ domain: 'enterprise-attack', level: 2, id: `B${j % 20}-${j}`, name: 'l2', parentIds: [`B${j % 20}`] });
-    for (let k = 0; k < 1000; k++) useCases.push({ domain: 'enterprise-attack', level: 3, id: `L3-${k}`, name: 'l3', parentIds: [`B${k % 20}-${k % 100}`], implementation: 50, effectiveness: 50, visibility: 50, visibilityFromAttackTechniqueOverride: true });
+    for (let i = 0; i < 20; i++)
+      useCases.push({
+        domain: 'enterprise-attack',
+        level: 1,
+        id: `B${i}`,
+        name: 'b',
+        inImpact: 34,
+        thrImpact: 33,
+        outImpact: 33,
+      });
+    for (let j = 0; j < 100; j++)
+      useCases.push({
+        domain: 'enterprise-attack',
+        level: 2,
+        id: `B${j % 20}-${j}`,
+        name: 'l2',
+        parentIds: [`B${j % 20}`],
+      });
+    for (let k = 0; k < 1000; k++)
+      useCases.push({
+        domain: 'enterprise-attack',
+        level: 3,
+        id: `L3-${k}`,
+        name: 'l3',
+        parentIds: [`B${k % 20}-${k % 100}`],
+        implementation: 50,
+        effectiveness: 50,
+        visibility: 50,
+        visibilityFromAttackTechniqueOverride: true,
+      });
     const start = performance.now();
     magma.importUseCases(useCases);
     magma.updateAllL3UseCasesBasedOnDettectVisibility();
@@ -100,18 +150,33 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
   it('rejects use cases that are their own (indirect) parent, and non-numeric or out-of-range percentages', async () => {
     const { magma } = await setUpStores();
     const domain = 'enterprise-attack';
-    const message = importSummary(magma.importUseCases([
-      { domain, level: 1, id: 'BIZ', name: 'b', inImpact: 0, thrImpact: 0, outImpact: 100 },
-      { domain, level: 2, id: 'BIZ-1', name: 'ok', parentIds: ['BIZ'] },
-      { domain, level: 2, id: 'SELF', name: 'self', parentIds: ['SELF'] },
-      { domain, level: 2, id: 'A', name: 'a', parentIds: ['B'] },
-      { domain, level: 2, id: 'B', name: 'b', parentIds: ['A'] },
-      { domain, level: 3, id: 'TEXT', name: 't', parentIds: ['BIZ-1'], implementation: 'abc' },
-      { domain, level: 3, id: 'NEGATIVE', name: 'n', parentIds: ['BIZ-1'], effectiveness: -5 },
-      { domain, level: 3, id: 'TOO-HIGH', name: 'h', parentIds: ['BIZ-1'], visibility: 150 },
-      { domain, level: 3, id: 'AS-TEXT', name: 'ok', parentIds: ['BIZ-1'], visibility: '50', implementation: 100, effectiveness: 100, visibilityFromAttackTechniqueOverride: true },
-    ])).text;
-    const imported = magma.useCases.filter((u) => !u.permanent).map((u) => u.id).sort();
+    const message = importSummary(
+      magma.importUseCases([
+        { domain, level: 1, id: 'BIZ', name: 'b', inImpact: 0, thrImpact: 0, outImpact: 100 },
+        { domain, level: 2, id: 'BIZ-1', name: 'ok', parentIds: ['BIZ'] },
+        { domain, level: 2, id: 'SELF', name: 'self', parentIds: ['SELF'] },
+        { domain, level: 2, id: 'A', name: 'a', parentIds: ['B'] },
+        { domain, level: 2, id: 'B', name: 'b', parentIds: ['A'] },
+        { domain, level: 3, id: 'TEXT', name: 't', parentIds: ['BIZ-1'], implementation: 'abc' },
+        { domain, level: 3, id: 'NEGATIVE', name: 'n', parentIds: ['BIZ-1'], effectiveness: -5 },
+        { domain, level: 3, id: 'TOO-HIGH', name: 'h', parentIds: ['BIZ-1'], visibility: 150 },
+        {
+          domain,
+          level: 3,
+          id: 'AS-TEXT',
+          name: 'ok',
+          parentIds: ['BIZ-1'],
+          visibility: '50',
+          implementation: 100,
+          effectiveness: 100,
+          visibilityFromAttackTechniqueOverride: true,
+        },
+      ]),
+    ).text;
+    const imported = magma.useCases
+      .filter((u) => !u.permanent)
+      .map((u) => u.id)
+      .sort();
     expect(imported).toEqual(['AS-TEXT', 'BIZ', 'BIZ-1']);
     expect(message).toContain('Successful imports: 3. Failed imports: 6.');
     expect(message).toContain('"SELF" in domain "enterprise-attack" is its own (indirect) parent: SELF → SELF');
@@ -123,12 +188,14 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
 
   it('warns about use cases with more than one parent', async () => {
     const { magma } = await setUpStores();
-    const message = importSummary(magma.importUseCases([
-      { domain: 'enterprise-attack', level: 2, id: 'DOS-1', name: 'd' },
-      { domain: 'enterprise-attack', level: 2, id: 'FIN-1', name: 'f' },
-      { domain: 'enterprise-attack', level: 3, id: 'DOS-1-1', name: 'comma typo', parentIds: ['DOS-1', 'FIN-1'] },
-      { domain: 'enterprise-attack', level: 3, id: 'DOS-1-2', name: 'fine', parentIds: ['DOS-1'] },
-    ])).text;
+    const message = importSummary(
+      magma.importUseCases([
+        { domain: 'enterprise-attack', level: 2, id: 'DOS-1', name: 'd' },
+        { domain: 'enterprise-attack', level: 2, id: 'FIN-1', name: 'f' },
+        { domain: 'enterprise-attack', level: 3, id: 'DOS-1-1', name: 'comma typo', parentIds: ['DOS-1', 'FIN-1'] },
+        { domain: 'enterprise-attack', level: 3, id: 'DOS-1-2', name: 'fine', parentIds: ['DOS-1'] },
+      ]),
+    ).text;
     expect(message).toContain('Successful imports: 4. Failed imports: 0.');
     expect(message).toContain('"DOS-1-1" in domain "enterprise-attack" has 2 parents (DOS-1, FIN-1)');
     expect(message).not.toContain('"DOS-1-2"');
@@ -136,10 +203,12 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
 
   it('keeps use cases with an unknown parent ID, and warns about them', async () => {
     const { magma } = await setUpStores();
-    const message = importSummary(magma.importUseCases([
-      { domain: 'enterprise-attack', level: 2, id: 'DOS-1', name: 'd', parentIds: ['DOS'] },
-      { domain: 'enterprise-attack', level: 3, id: 'DOS-1-1', name: 'typo', parentIds: ['DOS-l'] },
-    ])).text;
+    const message = importSummary(
+      magma.importUseCases([
+        { domain: 'enterprise-attack', level: 2, id: 'DOS-1', name: 'd', parentIds: ['DOS'] },
+        { domain: 'enterprise-attack', level: 3, id: 'DOS-1-1', name: 'typo', parentIds: ['DOS-l'] },
+      ]),
+    ).text;
     expect(magma.getUseCaseById('DOS-1-1', 'enterprise-attack')).toBeDefined();
     expect(message).toContain('Successful imports: 2. Failed imports: 0.');
     expect(message).toContain('"DOS-1-1" in domain "enterprise-attack" has parent "DOS-l", which does not exist');
@@ -164,7 +233,11 @@ describe('magma store: saving and loading', () => {
 
   it('loads files saved by older versions, which could contain .nan for empty impacts', async () => {
     const { magma } = await setUpStores();
-    const result = magma.importUseCases(readFile('- domain: enterprise-attack\n  level: 1\n  id: L1-1\n  name: old\n  inImpact: 100\n  thrImpact: .nan\n  outImpact: .nan\n'));
+    const result = magma.importUseCases(
+      readFile(
+        '- domain: enterprise-attack\n  level: 1\n  id: L1-1\n  name: old\n  inImpact: 100\n  thrImpact: .nan\n  outImpact: .nan\n',
+      ),
+    );
     expect(importSummary(result).text).toBe('Successful imports: 1. Failed imports: 0.');
     expect(magma.getUseCaseById('L1-1', 'enterprise-attack')?.risk).toBeCloseTo(100);
     expect(saveFile(magma)).not.toMatch(/nan/i);
@@ -214,7 +287,11 @@ describe('magma store: renaming and deleting use cases', () => {
 
 describe('magma store: loading a MaGMa file', () => {
   let magma: MagmaStore;
-  const ids = () => magma.useCases.filter((u) => !u.permanent).map((u) => `${u.domain.split('-')[0]}:${u.id}`).sort();
+  const ids = () =>
+    magma.useCases
+      .filter((u) => !u.permanent)
+      .map((u) => `${u.domain.split('-')[0]}:${u.id}`)
+      .sort();
 
   beforeEach(async () => {
     magma = (await setUpStores()).magma;
@@ -249,7 +326,11 @@ describe('magma store: L3 use cases per technique (heatmap)', () => {
       { domain: 'enterprise-attack', level: 3, id: 'OTHER', name: 'o', attackTechniqueId: 'T1059' },
       { domain: 'mobile-attack', level: 3, id: 'MOBILE', name: 'm', attackTechniqueId: 'T1660' },
     ]);
-    const ids = (techniqueId: string, domain: string) => magma.l3UseCasesForTechnique(techniqueId, domain).map((u) => u.id).sort();
+    const ids = (techniqueId: string, domain: string) =>
+      magma
+        .l3UseCasesForTechnique(techniqueId, domain)
+        .map((u) => u.id)
+        .sort();
     expect(ids('T1566', 'enterprise-attack')).toEqual(['PARENT', 'SUB']);
     expect(ids('T1660', 'enterprise-attack')).toEqual([]);
     expect(ids('T1660', 'mobile-attack')).toEqual(['MOBILE']);

@@ -8,7 +8,7 @@ const searchQuery = computed({
   get: () => store.searchQuery,
   set: (newValue) => {
     store.searchQuery = newValue;
-  }
+  },
 });
 </script>
 
@@ -19,8 +19,7 @@ const searchQuery = computed({
 </template>
 
 <style scoped>
-
-input[type="text"] {
+input[type='text'] {
   padding: 9px;
   font-size: 13.3px;
   border: 2px solid #555;

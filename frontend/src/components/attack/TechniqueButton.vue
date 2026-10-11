@@ -16,16 +16,15 @@ const buttonRef = ref<HTMLElement | null>(null);
 const { open: tooltipOpen, pinned, show: showTooltip, hide: hideTooltip, togglePin, unpin } = useTechniqueTooltip();
 
 const hoverGroup = (groupName: string) => {
-  domain.groups.forEach(group => {
+  domain.groups.forEach((group) => {
     if (group.name === groupName) {
       group.hovered = true;
     }
   });
 };
 
-
 const toggleGroupSelected = (groupName: string) => {
-  domain.groups.forEach(group => {
+  domain.groups.forEach((group) => {
     if (group.name === groupName) {
       group.selected = !group.selected;
     }
@@ -33,7 +32,7 @@ const toggleGroupSelected = (groupName: string) => {
 };
 
 const hoverComponent = (componentName: string) => {
-  domain.data_components.forEach(component => {
+  domain.data_components.forEach((component) => {
     if (component.name === componentName) {
       component.hovered = true;
     }
@@ -41,24 +40,26 @@ const hoverComponent = (componentName: string) => {
 };
 
 const toggleComponentSelected = (componentName: string) => {
-  domain.data_components.forEach(component => {
+  domain.data_components.forEach((component) => {
     if (component.name === componentName) {
       component.selected = !component.selected;
     }
   });
 };
 
-
 const getTooltipText = () => {
-  const subtechniques_string = props.technique.sub_techniques 
-    ? `Subtechniques:\n${props.technique.sub_techniques.map(
-      sub => `<a href='https://attack.mitre.org/techniques/${sub.external_id.split('.')[0]}/${sub.external_id.split('.')[1]}/' target="_blank">• ${sub.name}</a> - Vis: ${hasDataComponents(sub) ? `${(sub.visibility_ratio*100).toFixed(0)}%` : 'n/a'}`
-    ).join('\n')}`
+  const subtechniques_string = props.technique.sub_techniques
+    ? `Subtechniques:\n${props.technique.sub_techniques
+        .map(
+          (sub) =>
+            `<a href='https://attack.mitre.org/techniques/${sub.external_id.split('.')[0]}/${sub.external_id.split('.')[1]}/' target="_blank">• ${sub.name}</a> - Vis: ${hasDataComponents(sub) ? `${(sub.visibility_ratio * 100).toFixed(0)}%` : 'n/a'}`,
+        )
+        .join('\n')}`
     : 'No Subtechniques';
 
   return `<a href='https://attack.mitre.org/techniques/${props.technique.external_id}/' target="_blank">${props.technique.name}</a> (${props.technique.external_id})
 
-      Visibility: ${isDetectable(props.technique) ? `${(props.technique.visibility_ratio*100).toFixed(0)}%` : NOT_DETECTABLE_TEXT}
+      Visibility: ${isDetectable(props.technique) ? `${(props.technique.visibility_ratio * 100).toFixed(0)}%` : NOT_DETECTABLE_TEXT}
 
       <hr>
       ${subtechniques_string}
@@ -68,9 +69,8 @@ const getTooltipText = () => {
       Nr software using: ${props.technique.occurrence_software}
       Total occurrence: ${props.technique.occurrence_total}
 
-  `
+  `;
 };
-
 
 function getButtonStyles(visibility_ratio: number, detectable = true) {
   if (!detectable) {
@@ -102,20 +102,16 @@ function getButtonStyles(visibility_ratio: number, detectable = true) {
 const showButton = computed(() => {
   const platforms = props.technique?.platforms || [];
 
-  const platformFilterResult = (
-    platforms.some(platform => store.activeAttributes('platforms').includes(platform))
-  );
-    
-  const searchQueryFilterResult = (
-    !store.searchQuery ||  // There is no search query.
-    props.technique.name.toLowerCase().includes(store.searchQuery.toLowerCase()) ||  // The search query matches on the technique name.
-    props.technique.external_id.toLowerCase().includes(store.searchQuery.toLowerCase())  // The search query matches on the technique ID.
-  );
+  const platformFilterResult = platforms.some((platform) => store.activeAttributes('platforms').includes(platform));
 
-  const techniqueVisibilityPercentageFilterResult = (
-    (props.technique.visibility_ratio >= store.minVisibilityRatio) &&
-    (props.technique.visibility_ratio <= store.maxVisibilityRatio)
-  );
+  const searchQueryFilterResult =
+    !store.searchQuery || // There is no search query.
+    props.technique.name.toLowerCase().includes(store.searchQuery.toLowerCase()) || // The search query matches on the technique name.
+    props.technique.external_id.toLowerCase().includes(store.searchQuery.toLowerCase()); // The search query matches on the technique ID.
+
+  const techniqueVisibilityPercentageFilterResult =
+    props.technique.visibility_ratio >= store.minVisibilityRatio &&
+    props.technique.visibility_ratio <= store.maxVisibilityRatio;
 
   // Filter techniques based on the Minimum Total Occurrence BINNED slider.
   let techniqueTotalOccurrencesFilterBinnedResult = false;
@@ -125,80 +121,85 @@ const showButton = computed(() => {
   }
   // Minimum Total Occurrence: Medium
   if (store.minTotalOccurrencesBinned === 1) {
-    techniqueTotalOccurrencesFilterBinnedResult = (props.technique.occurrence_total_order_normalized > 0.25)
+    techniqueTotalOccurrencesFilterBinnedResult = props.technique.occurrence_total_order_normalized > 0.25;
   }
   // Minimum Total Occurrence: High
   if (store.minTotalOccurrencesBinned === 2) {
-    techniqueTotalOccurrencesFilterBinnedResult = (props.technique.occurrence_total_order_normalized > 0.5)
+    techniqueTotalOccurrencesFilterBinnedResult = props.technique.occurrence_total_order_normalized > 0.5;
   }
   // Minimum Total Occurrence: Very High
   if (store.minTotalOccurrencesBinned >= 3) {
-  techniqueTotalOccurrencesFilterBinnedResult = (props.technique.occurrence_total_order_normalized > 0.75)
+    techniqueTotalOccurrencesFilterBinnedResult = props.technique.occurrence_total_order_normalized > 0.75;
   }
 
-  
   // When the group tool mask toggle (domain.only_show_selected_groups) is switch to 'true', we want to hide all techniques that are not covered by the selected groups.
-  const groupMaskFilterResult = (
-    !(domain.only_show_selected_groups && !store.selectedGroupsTechniquesSet.has(props.technique.name))
+  const groupMaskFilterResult = !(
+    domain.only_show_selected_groups && !store.selectedGroupsTechniquesSet.has(props.technique.name)
   );
 
   // When the component tool mask toggle (domain.only_show_selected_components) is switch to 'true', we want to hide all techniques that are not covered by the selected components.
-    const componentMaskFilterResult = (
-    !(domain.only_show_selected_components && !store.selectedComponentsTechniquesSet.has(props.technique.name))
+  const componentMaskFilterResult = !(
+    domain.only_show_selected_components && !store.selectedComponentsTechniquesSet.has(props.technique.name)
   );
 
-  return platformFilterResult && searchQueryFilterResult && techniqueVisibilityPercentageFilterResult && techniqueTotalOccurrencesFilterBinnedResult && groupMaskFilterResult && componentMaskFilterResult;
+  return (
+    platformFilterResult &&
+    searchQueryFilterResult &&
+    techniqueVisibilityPercentageFilterResult &&
+    techniqueTotalOccurrencesFilterBinnedResult &&
+    groupMaskFilterResult &&
+    componentMaskFilterResult
+  );
 });
 
 const occursInHoveredGroups = () => {
   if (store.hoveredGroupsTechniquesSet.has(props.technique.name)) {
-    return true
+    return true;
   } else {
-    return false
+    return false;
   }
 };
 
 const occursInSelectedGroups = () => {
   if (store.selectedGroupsTechniquesSet.has(props.technique.name)) {
-    return true
+    return true;
   } else {
-    return false
+    return false;
   }
 };
 
 const occursInHoveredComponents = () => {
   if (store.hoveredComponentsTechniquesSet.has(props.technique.name)) {
-    return true
+    return true;
   } else {
-    return false
+    return false;
   }
 };
 
 const occursInSelectedComponents = () => {
   if (store.selectedComponentsTechniquesSet.has(props.technique.name)) {
-    return true
+    return true;
   } else {
-    return false
+    return false;
   }
 };
-
 </script>
 
-
-
 <template>
-  <button v-if="showButton"
+  <button
+    v-if="showButton"
     ref="buttonRef"
     :style="getButtonStyles(technique.visibility_ratio, isDetectable(technique))"
     @click="togglePin"
     @mouseenter="showTooltip"
     @mouseleave="hideTooltip"
-    :class="{ pinned,
+    :class="{
+      pinned,
       'occurs-in-hovered-groups': occursInHoveredGroups(),
       'occurs-in-selected-groups': occursInSelectedGroups(),
       'occurs-in-hovered-components': occursInHoveredComponents(),
       'occurs-in-selected-components': occursInSelectedComponents(),
-      }"
+    }"
   >
     <span class="buttontext">{{ technique.name }}</span>
   </button>
@@ -209,11 +210,16 @@ const occursInSelectedComponents = () => {
 
     <!-- Show which groups use this technique. -->
     <div v-if="props.technique.groups.length > 0">
-      <hr>
-      <br>
-      Groups:<br>
+      <hr />
+      <br />
+      Groups:<br />
       <!-- Group buttons -->
-      <label v-for="group in props.technique.groups" :key="group" for="${group}-${Math.random()}" style="display: inline-flex; align-items: center; margin-right: 5px;">
+      <label
+        v-for="group in props.technique.groups"
+        :key="group"
+        for="${group}-${Math.random()}"
+        style="display: inline-flex; align-items: center; margin-right: 5px"
+      >
         <span
           class="group-box"
           :style="{
@@ -223,28 +229,34 @@ const occursInSelectedComponents = () => {
             marginTop: '2px',
             marginBottom: '2px',
             backgroundColor: 'gray',
-            borderColor: domain.groups.find(g => g.name === group)?.selected ? 'rgb(230, 0, 0)' : '#ccc',
+            borderColor: domain.groups.find((g) => g.name === group)?.selected ? 'rgb(230, 0, 0)' : '#ccc',
             borderWidth: '1.5px',
             borderStyle: 'solid',
             borderRadius: '4px',
             cursor: 'pointer',
             transition: 'background-color 0.2s, border-color 0.2s',
-            fontSize: '11px'
+            fontSize: '11px',
           }"
           @mouseover="hoverGroup(group)"
-          @click="toggleGroupSelected(group)">
+          @click="toggleGroupSelected(group)"
+        >
           {{ group }}
         </span>
       </label>
     </div>
     <div v-else>No Groups</div>
-    <br>
-    <hr>
-    <br>
+    <br />
+    <hr />
+    <br />
     <div v-if="props.technique.data_components.length > 0">
-      Components:<br>
+      Components:<br />
       <!-- Component buttons -->
-      <label v-for="component in props.technique.data_components" :key="component" for="${component}-${Math.random()}" style="display: inline-flex; align-items: center; margin-right: 5px;">
+      <label
+        v-for="component in props.technique.data_components"
+        :key="component"
+        for="${component}-${Math.random()}"
+        style="display: inline-flex; align-items: center; margin-right: 5px"
+      >
         <span
           class="component-box"
           :style="{
@@ -254,28 +266,25 @@ const occursInSelectedComponents = () => {
             marginTop: '2px',
             marginBottom: '2px',
             backgroundColor: 'gray',
-            borderColor: domain.data_components.find(c => c.name === component)?.selected ? 'rgb(0, 230, 0)' : '#ccc',
+            borderColor: domain.data_components.find((c) => c.name === component)?.selected ? 'rgb(0, 230, 0)' : '#ccc',
             borderWidth: '1.5px',
             borderStyle: 'solid',
             borderRadius: '4px',
             cursor: 'pointer',
             transition: 'background-color 0.2s, border-color 0.2s',
-            fontSize: '11px'
+            fontSize: '11px',
           }"
           @mouseover="hoverComponent(component)"
-          @click="toggleComponentSelected(component)">
-          {{ component }} {{ domain.data_components.find(c => c.name === component)?.visibility ? '[VISIBLE]' : ''}}
+          @click="toggleComponentSelected(component)"
+        >
+          {{ component }} {{ domain.data_components.find((c) => c.name === component)?.visibility ? '[VISIBLE]' : '' }}
         </span>
       </label>
     </div>
     <div v-else>No Components</div>
-    <br>
+    <br />
   </TechniqueTooltip>
 </template>
-
-
-
-
 
 <style scoped>
 button {
@@ -284,29 +293,37 @@ button {
   background-color: rgb(246, 246, 246);
   border: 2px solid rgb(42, 42, 42);
   border-radius: 4px; /* Slightly rounded corners */
-  transition: transform 0.1s ease, box-shadow 0.1s ease; /* Smooth transition for hover effects */
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease; /* Smooth transition for hover effects */
   position: relative; /* Ensure the button's stacking context is isolated */
 }
 
 /* By adding button.occurs-in-hovered-groups.pinned, button.occurs-in-hovered-components.pinned here,
 we override the box-shadow that is normally shown when hovering a group/component in the tooltip. */
-button:hover, button.pinned, button.occurs-in-hovered-groups.pinned, button.occurs-in-hovered-components.pinned {
+button:hover,
+button.pinned,
+button.occurs-in-hovered-groups.pinned,
+button.occurs-in-hovered-components.pinned {
   transform: translate(0px, -2px) scale(1.04); /* On hover, move the button slightly to the right and upwards, and enlarge it slightly. */
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 3px, rgb(51, 51, 51) 0px 0px 0px 3px; /* On hover, add a thick black 'outline' to the button. */
+  box-shadow:
+    rgba(0, 0, 0, 0.16) 0px 1px 3px,
+    rgb(51, 51, 51) 0px 0px 0px 3px; /* On hover, add a thick black 'outline' to the button. */
   filter: brightness(0.88); /* Slightly darken the button on hover */
   z-index: 1001;
 }
 
-button.occurs-in-hovered-groups, button.occurs-in-hovered-components {
+button.occurs-in-hovered-groups,
+button.occurs-in-hovered-components {
   box-shadow: 0px 0px 3px 3px rgba(255, 174, 0, 1);
 }
 
 button.occurs-in-selected-groups {
-  border: 2px solid red;  /* Change the border color on group select */
+  border: 2px solid red; /* Change the border color on group select */
 }
 
 button.occurs-in-selected-components {
-  outline: 2px solid #03c03cd2;  /* Change the outline color and style on component select */
+  outline: 2px solid #03c03cd2; /* Change the outline color and style on component select */
   outline-offset: -5px;
 }
 
@@ -319,5 +336,4 @@ button.occurs-in-selected-components {
   text-overflow: ellipsis;
   text-align: center;
 }
-
 </style>

@@ -30,14 +30,21 @@ function getTechniqueCountPerSoftware(): Software[] {
 }
 
 // The longest bar in this chart fills the box.
-const maxCount = computed(() => Math.max(0, ...getTechniqueCountPerSoftware().map((x) => x.technique_count + x.subtechnique_count)));
+const maxCount = computed(() =>
+  Math.max(0, ...getTechniqueCountPerSoftware().map((x) => x.technique_count + x.subtechnique_count)),
+);
 
 // Blue: techniques; light blue: sub-techniques.
-const rows = computed(() => getTechniqueCountPerSoftware().map((software) => ({
-  name: software.name,
-  segments: [{ value: software.technique_count, color: 'SteelBlue' }, { value: software.subtechnique_count, color: '#89AFCF' }],
-  label: software.technique_count + software.subtechnique_count,
-})));
+const rows = computed(() =>
+  getTechniqueCountPerSoftware().map((software) => ({
+    name: software.name,
+    segments: [
+      { value: software.technique_count, color: 'SteelBlue' },
+      { value: software.subtechnique_count, color: '#89AFCF' },
+    ],
+    label: software.technique_count + software.subtechnique_count,
+  })),
+);
 </script>
 
 <template>

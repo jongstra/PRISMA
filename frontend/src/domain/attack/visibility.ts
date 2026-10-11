@@ -72,12 +72,16 @@ export function platformVisibility(
   tactics: { techniques: PlatformTechnique[] }[],
   platformsOf: (technique: PlatformTechnique) => string[] = (technique) => technique.platforms ?? [],
 ): Map<string, number | null> {
-  const techniques = new Map(tactics.flatMap((tactic) => tactic.techniques).map((technique) => [technique.external_id, technique]));
+  const techniques = new Map(
+    tactics.flatMap((tactic) => tactic.techniques).map((technique) => [technique.external_id, technique]),
+  );
   const techniquesByPlatform = new Map<string, PlatformTechnique[]>();
   for (const technique of techniques.values()) {
     for (const platform of platformsOf(technique)) {
       techniquesByPlatform.set(platform, [...(techniquesByPlatform.get(platform) ?? []), technique]);
     }
   }
-  return new Map([...techniquesByPlatform].map(([platform, techniques]) => [platform, averageVisibilityPercentage(techniques)]));
+  return new Map(
+    [...techniquesByPlatform].map(([platform, techniques]) => [platform, averageVisibilityPercentage(techniques)]),
+  );
 }

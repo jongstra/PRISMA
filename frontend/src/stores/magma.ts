@@ -2,7 +2,12 @@ import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
 import { tacticsStore } from '@/stores/tactics';
 import { recalculateUseCases } from '@/domain/magma/calculations';
-import { findMultipleParents, findParentCycles, findUnknownParents, percentageProblem } from '@/domain/magma/validation';
+import {
+  findMultipleParents,
+  findParentCycles,
+  findUnknownParents,
+  percentageProblem,
+} from '@/domain/magma/validation';
 import { exportNumber, magmaFileDomains } from '@/io/magmaFile';
 
 // A percentage (0-100) of a use case. What is typed in the sheet stays text (such as '45', or '' for an empty field), and
@@ -18,7 +23,7 @@ export interface UseCase {
   level: number;
   parentIds?: Array<string>;
   attackTechniqueId?: string;
-  dataSource?: string;  // Self-defined data source by user.
+  dataSource?: string; // Self-defined data source by user.
   visibilityFromAttackTechnique?: boolean;
   visibilityFromAttackTechniqueOverride?: boolean;
   visibility?: Percentage;
@@ -49,12 +54,34 @@ export interface ImportResult {
 }
 
 // The fields that can be changed in the sheets.
-type UpdatedFields = Partial<Pick<UseCase, 'name' | 'id' | 'description' | 'dataSource' | 'parentIds' | 'attackTechniqueId'
-  | 'visibilityFromAttackTechniqueOverride' | 'visibility' | 'implementation' | 'effectiveness' | 'inImpact' | 'thrImpact'
-  | 'outImpact'>>;
+type UpdatedFields = Partial<
+  Pick<
+    UseCase,
+    | 'name'
+    | 'id'
+    | 'description'
+    | 'dataSource'
+    | 'parentIds'
+    | 'attackTechniqueId'
+    | 'visibilityFromAttackTechniqueOverride'
+    | 'visibility'
+    | 'implementation'
+    | 'effectiveness'
+    | 'inImpact'
+    | 'thrImpact'
+    | 'outImpact'
+  >
+>;
 
 // The percentages of a use case that are entered by the user or imported.
-const PERCENTAGE_FIELDS = ['visibility', 'implementation', 'effectiveness', 'inImpact', 'thrImpact', 'outImpact'] as const;
+const PERCENTAGE_FIELDS = [
+  'visibility',
+  'implementation',
+  'effectiveness',
+  'inImpact',
+  'thrImpact',
+  'outImpact',
+] as const;
 
 // A visibility from the DeTT&CT file, as text with two decimals (none counts as 0).
 const formatPercentage = (percentage: number | null) => Number(percentage).toFixed(2);
@@ -73,22 +100,28 @@ export const magmaStore = defineStore('magma', {
 
   getters: {
     getUseCaseById(state) {
-      return (id: string, domain?: string) => state.useCases.find(useCase => useCase['id'] === id && (!domain || useCase.domain === domain));
+      return (id: string, domain?: string) =>
+        state.useCases.find((useCase) => useCase['id'] === id && (!domain || useCase.domain === domain));
     },
     getUseCaseByUid(state) {
-      return (uid: string, domain?: string) => state.useCases.find(useCase => useCase['uid'] === uid && (!domain || useCase.domain === domain));
+      return (uid: string, domain?: string) =>
+        state.useCases.find((useCase) => useCase['uid'] === uid && (!domain || useCase.domain === domain));
     },
     getAllUseCases(state) {
-      return (domain?: string) => state.useCases.filter(useCase => useCase['level'] === 1 && (!domain || useCase.domain === domain));
+      return (domain?: string) =>
+        state.useCases.filter((useCase) => useCase['level'] === 1 && (!domain || useCase.domain === domain));
     },
     L1UseCases(state) {
-      return (domain?: string) => state.useCases.filter(useCase => useCase['level'] === 1 && (!domain || useCase.domain === domain));
+      return (domain?: string) =>
+        state.useCases.filter((useCase) => useCase['level'] === 1 && (!domain || useCase.domain === domain));
     },
     L2UseCases(state) {
-      return (domain?: string) => state.useCases.filter(useCase => useCase['level'] === 2 && (!domain || useCase.domain === domain));
+      return (domain?: string) =>
+        state.useCases.filter((useCase) => useCase['level'] === 2 && (!domain || useCase.domain === domain));
     },
     L3UseCases(state) {
-      return (domain?: string) => state.useCases.filter(useCase => useCase['level'] === 3 && (!domain || useCase.domain === domain));
+      return (domain?: string) =>
+        state.useCases.filter((useCase) => useCase['level'] === 3 && (!domain || useCase.domain === domain));
     },
     activeTabUseCases(state) {
       return (domain?: string) => {
@@ -110,26 +143,26 @@ export const magmaStore = defineStore('magma', {
         'mobile-attack': 2,
         'ics-attack': 3,
       };
-  
+
       return state.useCases.slice().sort((a, b) => {
         return domainOrder[a.domain] - domainOrder[b.domain] || a.id.localeCompare(b.id);
       });
     },
     getAllIds(state) {
-      return (domain?: string) => state.useCases
-        .filter(useCase => !domain || useCase.domain === domain)
-        .map(useCase => useCase['id']);
+      return (domain?: string) =>
+        state.useCases.filter((useCase) => !domain || useCase.domain === domain).map((useCase) => useCase['id']);
     },
     getAllUids(state) {
-      return (domain?: string) => state.useCases
-        .filter(useCase => !domain || useCase.domain === domain)
-        .map(useCase => useCase['uid']);
+      return (domain?: string) =>
+        state.useCases.filter((useCase) => !domain || useCase.domain === domain).map((useCase) => useCase['uid']);
     },
     getParentUseCases(state) {
       return (useCase: UseCase) => {
         if (useCase && Array.isArray(useCase.parentIds)) {
           const parentIds = useCase.parentIds;
-          const parentUseCases = state.useCases.filter(parentUseCase => parentIds.includes(parentUseCase['id']) && (parentUseCase.domain === useCase.domain));
+          const parentUseCases = state.useCases.filter(
+            (parentUseCase) => parentIds.includes(parentUseCase['id']) && parentUseCase.domain === useCase.domain,
+          );
           return parentUseCases;
         } else {
           return [];
@@ -138,30 +171,41 @@ export const magmaStore = defineStore('magma', {
     },
     getChildUseCases(state) {
       return (useCase: UseCase) => {
-        const childUseCases = state.useCases.filter(childUseCase => Array.isArray(childUseCase['parentIds']) && childUseCase['parentIds'].includes(useCase.id) && (childUseCase.domain === useCase.domain));
+        const childUseCases = state.useCases.filter(
+          (childUseCase) =>
+            Array.isArray(childUseCase['parentIds']) &&
+            childUseCase['parentIds'].includes(useCase.id) &&
+            childUseCase.domain === useCase.domain,
+        );
         return childUseCases;
       };
     },
     getGrandChildUseCases() {
       return (useCase: UseCase) => {
         const childUseCases = this.getChildUseCases(useCase);
-        const grandChildUseCases = childUseCases.map(childUseCase => this.getChildUseCases(childUseCase)).flat();
-        return grandChildUseCases
+        const grandChildUseCases = childUseCases.map((childUseCase) => this.getChildUseCases(childUseCase)).flat();
+        return grandChildUseCases;
       };
     },
     // The L3 use cases in a domain that detect a technique or one of its sub-techniques (e.g. T1566 and T1566.001).
     l3UseCasesForTechnique(state) {
-      return (techniqueId: string, domain: string) => state.useCases.filter(useCase =>
-        useCase.level === 3 && useCase.domain === domain &&
-        (useCase.attackTechniqueId === techniqueId || useCase.attackTechniqueId?.startsWith(`${techniqueId}.`)));
+      return (techniqueId: string, domain: string) =>
+        state.useCases.filter(
+          (useCase) =>
+            useCase.level === 3 &&
+            useCase.domain === domain &&
+            (useCase.attackTechniqueId === techniqueId || useCase.attackTechniqueId?.startsWith(`${techniqueId}.`)),
+        );
     },
   },
 
   actions: {
     addNewUseCase(level: number = 0, domain: string) {
       // Filter existing use cases to find those that match the specified level
-      const filteredUseCases = this.useCases.filter(useCase => useCase['level'] === level && (!domain || useCase.domain === domain));
-    
+      const filteredUseCases = this.useCases.filter(
+        (useCase) => useCase['level'] === level && (!domain || useCase.domain === domain),
+      );
+
       // Extract numeric suffixes from the IDs of these use cases
       let maxSuffix = 0;
       for (const useCase of filteredUseCases) {
@@ -173,10 +217,10 @@ export const magmaStore = defineStore('magma', {
           }
         }
       }
-    
+
       // Increment the highest numeric suffix to generate a new unique ID
       const newSuffix = maxSuffix + 1;
-    
+
       // Generate the new use case ID.
       const uid = uuidv4();
 
@@ -208,19 +252,20 @@ export const magmaStore = defineStore('magma', {
         useCase.thrImpact = 0;
         useCase.outImpact = 0;
       }
-      
+
       // Add the new use case to the store, and recalculate (a new L1 use case gets a risk straight away).
       this.useCases.push(useCase);
       this.recalculateAll();
     },
-    
 
     addExistingUseCase(useCase: UseCase, recalculate = true) {
       const tactics = tacticsStore();
 
       // Check that the domain is set to a valid value.
       if (!['enterprise-attack', 'mobile-attack', 'ics-attack'].includes(useCase.domain)) {
-        throw new Error(`Use case domain "${useCase.domain}" is not supported. Please use one of: 'enterprise-attack', 'mobile-attack', 'ics-attack'. Use case: ${JSON.stringify(useCase)}`);
+        throw new Error(
+          `Use case domain "${useCase.domain}" is not supported. Please use one of: 'enterprise-attack', 'mobile-attack', 'ics-attack'. Use case: ${JSON.stringify(useCase)}`,
+        );
       }
 
       // Ensure that the use case has an ID.
@@ -230,7 +275,9 @@ export const magmaStore = defineStore('magma', {
 
       // Catch duplicate IDs.
       if (this.getUseCaseById(useCase.id, useCase.domain)) {
-        throw new Error(`Use case with id "${useCase.id}" in domain "${useCase.domain}" already exists. Use case: ${JSON.stringify(useCase)}`);
+        throw new Error(
+          `Use case with id "${useCase.id}" in domain "${useCase.domain}" already exists. Use case: ${JSON.stringify(useCase)}`,
+        );
       }
 
       // Check that the use case has a level.
@@ -251,7 +298,9 @@ export const magmaStore = defineStore('magma', {
         }
         const problem = percentageProblem(useCase[field]);
         if (problem) {
-          throw new Error(`Use case "${useCase.id}" in domain "${useCase.domain}": ${field} "${useCase[field]}" is not valid; ${problem}.`);
+          throw new Error(
+            `Use case "${useCase.id}" in domain "${useCase.domain}": ${field} "${useCase[field]}" is not valid; ${problem}.`,
+          );
         }
       }
 
@@ -262,18 +311,24 @@ export const magmaStore = defineStore('magma', {
 
       // Ensure that visibilityFromAttackTechniqueOverride is a boolean.
       if (typeof useCase.visibilityFromAttackTechniqueOverride !== 'boolean') {
-        throw new Error(`Use case has an invalid (non-boolean) value for property visibilityFromAttackTechniqueOverride. Use case: ${JSON.stringify(useCase)}`);
+        throw new Error(
+          `Use case has an invalid (non-boolean) value for property visibilityFromAttackTechniqueOverride. Use case: ${JSON.stringify(useCase)}`,
+        );
       }
 
       // If an attackTechnique is set, check that it exists and is valid.
       if (useCase.attackTechniqueId && useCase.attackTechniqueId !== 'none') {
         if (!tactics.domainTechniqueByIdMap(useCase.domain).hasOwnProperty(useCase.attackTechniqueId)) {
-          throw new Error(`Use case attackTechniqueId "${useCase.attackTechniqueId}" does not exist in the specified domain. Use case: ${JSON.stringify(useCase)}`);
+          throw new Error(
+            `Use case attackTechniqueId "${useCase.attackTechniqueId}" does not exist in the specified domain. Use case: ${JSON.stringify(useCase)}`,
+          );
         } else {
           // If the useCase.attackTechniqueId is valid, update the use case visibility based on the visibility of the attack technique.
           // Handle a possible visibility override.
           if (!useCase.visibilityFromAttackTechniqueOverride) {
-            useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain));
+            useCase.visibility = formatPercentage(
+              tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain),
+            );
             useCase.visibilityFromAttackTechnique = true;
           } else {
             useCase.visibilityFromAttackTechnique = false;
@@ -301,17 +356,17 @@ export const magmaStore = defineStore('magma', {
       }
     },
 
-    
     removeUseCaseByUid(uid: string) {
       const useCase = this.getUseCaseByUid(uid);
-      if (!useCase) { throw new Error(`No use case with uid "${uid}" exists.`);}
+      if (!useCase) {
+        throw new Error(`No use case with uid "${uid}" exists.`);
+      }
 
       // Remove the use case, and recalculate the values that depended on it. Its child use cases are kept and lose
       // their parent; the editor warns about this before deleting.
-      this.useCases = this.useCases.filter(x => x['uid'] !== uid);
+      this.useCases = this.useCases.filter((x) => x['uid'] !== uid);
       this.recalculateAll();
     },
-
 
     // Rename a use case. Its child use cases (in the same domain) move along to the new ID. Returns a message explaining
     // why the rename is refused, or null when the use case was renamed.
@@ -336,58 +391,54 @@ export const magmaStore = defineStore('magma', {
 
       // Move the children along, unless another use case still has the old ID (then they keep that parent).
       const oldId = useCase.id;
-      const oldIdStillUsed = this.useCases.some(other => other !== useCase && other.domain === useCase.domain && other.id === oldId);
+      const oldIdStillUsed = this.useCases.some(
+        (other) => other !== useCase && other.domain === useCase.domain && other.id === oldId,
+      );
       useCase.id = id;
       if (!oldIdStillUsed) {
         for (const child of this.getChildUseCases({ ...useCase, id: oldId })) {
-          child.parentIds = child.parentIds!.map(parentId => parentId === oldId ? id : parentId);
+          child.parentIds = child.parentIds!.map((parentId) => (parentId === oldId ? id : parentId));
         }
       }
       this.recalculateAll();
       return null;
     },
 
-
     removeAllUseCases() {
       this.useCases = [];
     },
-    
 
     removeActiveTabUseCases(domain?: string) {
-      this.activeTabUseCases(domain).forEach(useCase => {
+      this.activeTabUseCases(domain).forEach((useCase) => {
         if (!useCase.permanent) {
           this.removeUseCaseByUid(useCase.uid);
         }
       });
     },
 
-
     removeL1UseCases(domain?: string) {
-      this.L1UseCases(domain).forEach(useCase => {
+      this.L1UseCases(domain).forEach((useCase) => {
         if (!useCase.permanent) {
           this.removeUseCaseByUid(useCase.uid);
         }
-      })
+      });
     },
-
 
     removeL2UseCases(domain?: string) {
-      this.L2UseCases(domain).forEach(useCase => {
+      this.L2UseCases(domain).forEach((useCase) => {
         if (!useCase.permanent) {
           this.removeUseCaseByUid(useCase.uid);
         }
-      })
+      });
     },
-
 
     removeL3UseCases(domain?: string) {
-      this.L3UseCases(domain).forEach(useCase => {
+      this.L3UseCases(domain).forEach((useCase) => {
         if (!useCase.permanent) {
           this.removeUseCaseByUid(useCase.uid);
         }
-      })
+      });
     },
-
 
     // Recalculate the derived values (weight, potential, L1/L2 averages and L1 risks) of all use cases in all domains,
     // children before parents (see domain/magma/calculations.ts). Recalculating everything after each change ensures
@@ -396,13 +447,11 @@ export const magmaStore = defineStore('magma', {
       recalculateUseCases(this.useCases);
     },
 
-    
     updateUseCase(uid: string, updatedFields: UpdatedFields, domain?: string) {
       const tactics = tacticsStore();
       const useCase = this.getUseCaseByUid(uid, domain);
 
       if (useCase) {
-
         // If the attackTechniqueId field was updated, do the following.
         if (updatedFields.attackTechniqueId) {
           // Set visibility based on the visibility ratio of the selected ATT&CK technique (if one is selected).
@@ -411,7 +460,9 @@ export const magmaStore = defineStore('magma', {
           } else {
             if (!useCase.visibilityFromAttackTechniqueOverride) {
               const attackTechniqueId = updatedFields.attackTechniqueId;
-              useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(attackTechniqueId, domain ?? useCase.domain));
+              useCase.visibility = formatPercentage(
+                tactics.getDomainTechniqueVisibilityPercentageById(attackTechniqueId, domain ?? useCase.domain),
+              );
             }
             useCase.visibilityFromAttackTechnique = true;
           }
@@ -429,21 +480,22 @@ export const magmaStore = defineStore('magma', {
       }
     },
 
-  // Update the L3 use cases visibility based on the dettect visibility value, and update the depending weight/potential values. Also update any parent use cases.
+    // Update the L3 use cases visibility based on the dettect visibility value, and update the depending weight/potential values. Also update any parent use cases.
     updateAllL3UseCasesBasedOnDettectVisibility() {
       const tactics = tacticsStore();
       this.L3UseCases().forEach((useCase) => {
-        if (useCase.visibilityFromAttackTechnique === true && useCase.visibilityFromAttackTechniqueOverride === false && useCase.attackTechniqueId) {
-          useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain));
+        if (
+          useCase.visibilityFromAttackTechnique === true &&
+          useCase.visibilityFromAttackTechniqueOverride === false &&
+          useCase.attackTechniqueId
+        ) {
+          useCase.visibility = formatPercentage(
+            tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain),
+          );
         }
       });
       this.recalculateAll();
     },
-
-
-
-
-
 
     // Load the use cases of a MaGMa file (see readMagmaFile in io/magmaFile.ts): they replace the current use cases of the
     // domains in the file, and the other domains stay as they are.
@@ -458,26 +510,32 @@ export const magmaStore = defineStore('magma', {
     // What the user entered, without what PRISMA calculates (such as a visibility taken from the DeTT&CT file, weights
     // and the values of L1 and L2), so that loading another DeTT&CT file does not count as an unsaved change.
     userInput() {
-      return JSON.stringify(this.domainSortedUseCases.filter((useCase) => !useCase.permanent).map((useCase) => {
-        const visibilityEntered = useCase.level === 3 && (!useCase.visibilityFromAttackTechnique || useCase.visibilityFromAttackTechniqueOverride);
-        return {
-          domain: useCase.domain,
-          level: useCase.level,
-          id: useCase.id,
-          name: useCase.name,
-          description: useCase.description,
-          parentIds: useCase.parentIds,
-          dataSource: useCase.dataSource,
-          attackTechniqueId: useCase.attackTechniqueId,
-          visibilityFromAttackTechniqueOverride: useCase.visibilityFromAttackTechniqueOverride,
-          visibility: visibilityEntered ? exportNumber(useCase.visibility) : undefined,
-          implementation: useCase.level === 3 ? exportNumber(useCase.implementation) : undefined,
-          effectiveness: useCase.level === 3 ? exportNumber(useCase.effectiveness) : undefined,
-          inImpact: exportNumber(useCase.inImpact),
-          thrImpact: exportNumber(useCase.thrImpact),
-          outImpact: exportNumber(useCase.outImpact),
-        };
-      }));
+      return JSON.stringify(
+        this.domainSortedUseCases
+          .filter((useCase) => !useCase.permanent)
+          .map((useCase) => {
+            const visibilityEntered =
+              useCase.level === 3 &&
+              (!useCase.visibilityFromAttackTechnique || useCase.visibilityFromAttackTechniqueOverride);
+            return {
+              domain: useCase.domain,
+              level: useCase.level,
+              id: useCase.id,
+              name: useCase.name,
+              description: useCase.description,
+              parentIds: useCase.parentIds,
+              dataSource: useCase.dataSource,
+              attackTechniqueId: useCase.attackTechniqueId,
+              visibilityFromAttackTechniqueOverride: useCase.visibilityFromAttackTechniqueOverride,
+              visibility: visibilityEntered ? exportNumber(useCase.visibility) : undefined,
+              implementation: useCase.level === 3 ? exportNumber(useCase.implementation) : undefined,
+              effectiveness: useCase.level === 3 ? exportNumber(useCase.effectiveness) : undefined,
+              inImpact: exportNumber(useCase.inImpact),
+              thrImpact: exportNumber(useCase.thrImpact),
+              outImpact: exportNumber(useCase.outImpact),
+            };
+          }),
+      );
     },
 
     // Remember what the user had entered at a load or save, so the page can warn before closing with unsaved changes.
@@ -489,7 +547,6 @@ export const magmaStore = defineStore('magma', {
     hasUnsavedChanges() {
       return this.userInput() !== this.savedUseCases;
     },
-
 
     // Add use cases from a MaGMa file (see readMagmaFile in io/magmaFile.ts) to the current use cases. Use cases that cannot
     // be added are skipped; the result says why (see importSummary in io/magmaFile.ts).
@@ -506,12 +563,14 @@ export const magmaStore = defineStore('magma', {
       useCases.forEach((useCase) => {
         // Skip permanent use cases, since they should always be present already for all 3 domains).
         if (useCase.permanent) {
-          return
+          return;
         }
         try {
           const cycle = parentCycles.get(useCase);
           if (cycle) {
-            throw new Error(`Use case "${useCase.id}" in domain "${useCase.domain}" is its own (indirect) parent: ${cycle.join(' → ')}.`);
+            throw new Error(
+              `Use case "${useCase.id}" in domain "${useCase.domain}" is its own (indirect) parent: ${cycle.join(' → ')}.`,
+            );
           }
           this.addExistingUseCase(useCase, false);
           imported++;
@@ -526,15 +585,18 @@ export const magmaStore = defineStore('magma', {
       // Use cases with a parent ID that does not exist, or with more than one parent, are imported, but listed as a warning
       // (probably a typo, e.g. a comma in the parent column of the Excel file).
       const warnings = [
-        ...findUnknownParents(this.useCases).map(({ useCase, parentId }) =>
-          `Use case "${useCase.id}" in domain "${useCase.domain}" has parent "${parentId}", which does not exist.`),
-        ...findMultipleParents(this.useCases.filter((useCase) => !useCase.permanent)).map(({ useCase, parentIds }) =>
-          `Use case "${useCase.id}" in domain "${useCase.domain}" has ${parentIds.length} parents (${parentIds.join(', ')}); PRISMA expects one parent per use case, and counts it under each of them.`),
+        ...findUnknownParents(this.useCases).map(
+          ({ useCase, parentId }) =>
+            `Use case "${useCase.id}" in domain "${useCase.domain}" has parent "${parentId}", which does not exist.`,
+        ),
+        ...findMultipleParents(this.useCases.filter((useCase) => !useCase.permanent)).map(
+          ({ useCase, parentIds }) =>
+            `Use case "${useCase.id}" in domain "${useCase.domain}" has ${parentIds.length} parents (${parentIds.join(', ')}); PRISMA expects one parent per use case, and counts it under each of them.`,
+        ),
       ];
 
       return { imported, failed, warnings };
     },
-
 
     initializeDefaultUseCases() {
       if (this.useCases.length === 0) {
@@ -545,7 +607,8 @@ export const magmaStore = defineStore('magma', {
             uid: 'IN',
             id: 'IN',
             name: 'Cumulative IN risk',
-            description: 'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
+            description:
+              'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
             visibility: 0,
             implementation: 0,
             effectiveness: 0,
@@ -559,7 +622,8 @@ export const magmaStore = defineStore('magma', {
             uid: 'THR',
             id: 'THR',
             name: 'Cumulative THROUGH risk',
-            description: 'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
+            description:
+              'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
             visibility: 0,
             implementation: 0,
             effectiveness: 0,
@@ -573,7 +637,8 @@ export const magmaStore = defineStore('magma', {
             uid: 'IN',
             id: 'IN',
             name: 'Cumulative IN risk',
-            description: 'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
+            description:
+              'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
             visibility: 0,
             implementation: 0,
             effectiveness: 0,
@@ -587,7 +652,8 @@ export const magmaStore = defineStore('magma', {
             uid: 'THR',
             id: 'THR',
             name: 'Cumulative THROUGH risk',
-            description: 'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
+            description:
+              'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
             visibility: 0,
             implementation: 0,
             effectiveness: 0,
@@ -601,7 +667,8 @@ export const magmaStore = defineStore('magma', {
             uid: 'IN',
             id: 'IN',
             name: 'Cumulative IN risk',
-            description: 'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
+            description:
+              'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
             visibility: 0,
             implementation: 0,
             effectiveness: 0,
@@ -615,7 +682,8 @@ export const magmaStore = defineStore('magma', {
             uid: 'THR',
             id: 'THR',
             name: 'Cumulative THROUGH risk',
-            description: 'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
+            description:
+              'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
             visibility: 0,
             implementation: 0,
             effectiveness: 0,
@@ -626,7 +694,5 @@ export const magmaStore = defineStore('magma', {
         ];
       }
     },
-
-
-  }
+  },
 });

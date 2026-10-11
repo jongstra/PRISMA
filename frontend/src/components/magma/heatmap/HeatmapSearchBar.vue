@@ -8,9 +8,8 @@ const searchQuery = computed({
   get: () => magma.heatmapSearchQuery,
   set: (newValue) => {
     magma.heatmapSearchQuery = newValue;
-  }
+  },
 });
-
 </script>
 
 <template>
@@ -20,8 +19,7 @@ const searchQuery = computed({
 </template>
 
 <style scoped>
-
-input[type="text"] {
+input[type='text'] {
   margin: 15px 0px;
   padding: 9px;
   font-size: 13.3px;

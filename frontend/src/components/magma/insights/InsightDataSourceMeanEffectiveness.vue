@@ -11,9 +11,13 @@ const magma = magmaStore();
 const means = computed(() => meanPerDataSource(magma.L3UseCases(store.domain), 'effectiveness'));
 
 // One bar per data source, the 15 with the lowest mean, with the mean and the number of use cases.
-const rows = computed(() => means.value.slice(0, 15).map(({ dataSource, mean, count }) => (
-  { name: dataSource, segments: [{ value: mean, color: 'blue' }], label: `${mean.toFixed(2)}% (${count} UC)` }
-)));
+const rows = computed(() =>
+  means.value.slice(0, 15).map(({ dataSource, mean, count }) => ({
+    name: dataSource,
+    segments: [{ value: mean, color: 'blue' }],
+    label: `${mean.toFixed(2)}% (${count} UC)`,
+  })),
+);
 </script>
 
 <template>

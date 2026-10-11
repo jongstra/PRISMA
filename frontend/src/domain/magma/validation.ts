@@ -21,7 +21,8 @@ export function percentageProblem(value: unknown): string | null {
   if (value === undefined || value === null || value === '') {
     return null;
   }
-  const number = typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN;
+  const number =
+    typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN;
   if (!Number.isFinite(number) || number < 0 || number > 100) {
     return 'it must be a number from 0 to 100';
   }

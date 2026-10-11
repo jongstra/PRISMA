@@ -15,7 +15,11 @@ const exportYaml = () => {
 };
 
 // Display names of the ATT&CK domains, for messages.
-const domainNames: Record<string, string> = { 'enterprise-attack': 'Enterprise', 'mobile-attack': 'Mobile', 'ics-attack': 'ICS' };
+const domainNames: Record<string, string> = {
+  'enterprise-attack': 'Enterprise',
+  'mobile-attack': 'Mobile',
+  'ics-attack': 'ICS',
+};
 
 // Load a MaGMa YAML file. Its use cases replace the current use cases of the domains in the file; the other domains stay
 // as they are. A dialog asks for confirmation when current use cases will be replaced, and nothing changes
@@ -32,9 +36,9 @@ const importYaml = async (event: Event) => {
     Swal.fire({
       icon: 'error',
       title: 'Invalid file type',
-      text: 'Please select a valid MaGMa YAML file.'
-    })
-    return
+      text: 'Please select a valid MaGMa YAML file.',
+    });
+    return;
   }
 
   let useCases: UseCaseFromFile[];
@@ -43,21 +47,29 @@ const importYaml = async (event: Event) => {
     useCases = readMagmaFile(await readYamlFile(file));
     domains = magmaFileDomains(useCases);
   } catch (error) {
-    Swal.fire({ icon: 'error', titleText: 'The file was not loaded', text: `${(error as Error).message} Nothing was changed.` });
+    Swal.fire({
+      icon: 'error',
+      titleText: 'The file was not loaded',
+      text: `${(error as Error).message} Nothing was changed.`,
+    });
     return;
   }
 
   // Ask for confirmation when current use cases will be replaced.
-  const currentCount = (domain: string) => magma.useCases.filter((useCase) => !useCase.permanent && useCase.domain === domain).length;
-  const replaced = domains.filter(domain => currentCount(domain) > 0);
+  const currentCount = (domain: string) =>
+    magma.useCases.filter((useCase) => !useCase.permanent && useCase.domain === domain).length;
+  const replaced = domains.filter((domain) => currentCount(domain) > 0);
   if (replaced.length > 0) {
-    const kept = Object.keys(domainNames).filter(domain => !domains.includes(domain));
-    const replacedText = replaced.map(domain => `${domainNames[domain]} (${currentCount(domain)} use cases)`).join(' and ');
-    const keptText = kept.length > 0 ? ` ${kept.map(domain => domainNames[domain]).join(' and ')} will stay as they are.` : '';
+    const kept = Object.keys(domainNames).filter((domain) => !domains.includes(domain));
+    const replacedText = replaced
+      .map((domain) => `${domainNames[domain]} (${currentCount(domain)} use cases)`)
+      .join(' and ');
+    const keptText =
+      kept.length > 0 ? ` ${kept.map((domain) => domainNames[domain]).join(' and ')} will stay as they are.` : '';
     const result = await Swal.fire({
       icon: 'warning',
       titleText: 'Replace the current use cases?',
-      text: `The file contains use cases for ${domains.map(domain => domainNames[domain]).join(', ')}. It replaces the current use cases of ${replacedText}.${keptText}`,
+      text: `The file contains use cases for ${domains.map((domain) => domainNames[domain]).join(', ')}. It replaces the current use cases of ${replacedText}.${keptText}`,
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: 'green',
@@ -71,7 +83,12 @@ const importYaml = async (event: Event) => {
   }
 
   const summary = importSummary(magma.loadUseCases(useCases));
-  Swal.fire({ icon: summary.problems ? 'warning' : 'success', titleText: 'Import Summary', text: summary.text, confirmButtonText: 'OK' });
+  Swal.fire({
+    icon: summary.problems ? 'warning' : 'success',
+    titleText: 'Import Summary',
+    text: summary.text,
+    confirmButtonText: 'OK',
+  });
 };
 </script>
 
@@ -86,12 +103,7 @@ const importYaml = async (event: Event) => {
     >
       {{ tab }}
     </button>
-    <input
-      id="importYamlFile"
-      type="file"
-      @change="importYaml"
-      style="display: none;"
-    />
+    <input id="importYamlFile" type="file" @change="importYaml" style="display: none" />
     <label for="importYamlFile" class="load-button">Load MaGMa YAML</label>
     <label class="save-button" @click="exportYaml">Save MaGMa YAML</label>
   </div>
@@ -129,7 +141,8 @@ const importYaml = async (event: Event) => {
   border-bottom-color: transparent;
 }
 
-.load-button, .save-button {
+.load-button,
+.save-button {
   font-size: 14px;
   background-color: #d61b1b;
   border: 2px solid black;
@@ -148,7 +161,8 @@ const importYaml = async (event: Event) => {
   margin-left: 5px;
 }
 
-.load-button:hover, .save-button:hover {
+.load-button:hover,
+.save-button:hover {
   background-color: rgb(214, 133, 27);
   color: rgb(255, 255, 255);
 }

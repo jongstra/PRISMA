@@ -7,7 +7,14 @@ import { useTechniqueTooltip } from '../useTechniqueTooltip';
 // The tooltip state of a technique button, in a component that renders nothing.
 function button() {
   let tooltip!: ReturnType<typeof useTechniqueTooltip>;
-  const wrapper = mount(defineComponent({ setup() { tooltip = useTechniqueTooltip(); return () => null; } }));
+  const wrapper = mount(
+    defineComponent({
+      setup() {
+        tooltip = useTechniqueTooltip();
+        return () => null;
+      },
+    }),
+  );
   return { tooltip, wrapper };
 }
 
@@ -23,7 +30,8 @@ describe('useTechniqueTooltip', () => {
   });
 
   it('keeps a pinned tooltip open, and shows no other tooltips meanwhile', async () => {
-    const first = button().tooltip, second = button().tooltip;
+    const first = button().tooltip,
+      second = button().tooltip;
     first.show();
     first.togglePin();
     first.hide();
@@ -38,7 +46,8 @@ describe('useTechniqueTooltip', () => {
   });
 
   it('moves the pin to another button that is clicked', async () => {
-    const first = button().tooltip, second = button().tooltip;
+    const first = button().tooltip,
+      second = button().tooltip;
     first.togglePin();
     second.togglePin();
     first.unpin(); // the first tooltip saw a click elsewhere: it is not pinned anymore, so this changes nothing
@@ -47,7 +56,8 @@ describe('useTechniqueTooltip', () => {
   });
 
   it('unpins the tooltip when its button disappears, so other tooltips can be shown again', () => {
-    const first = button(), second = button().tooltip;
+    const first = button(),
+      second = button().tooltip;
     first.tooltip.togglePin();
     first.wrapper.unmount();
     second.show();

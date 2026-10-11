@@ -30,14 +30,21 @@ function getTechniqueCountPerGroup(): Group[] {
 }
 
 // The longest bar in this chart fills the box.
-const maxCount = computed(() => Math.max(0, ...getTechniqueCountPerGroup().map((x) => x.technique_count + x.subtechnique_count)));
+const maxCount = computed(() =>
+  Math.max(0, ...getTechniqueCountPerGroup().map((x) => x.technique_count + x.subtechnique_count)),
+);
 
 // Blue: techniques; light blue: sub-techniques.
-const rows = computed(() => getTechniqueCountPerGroup().map((group) => ({
-  name: group.name,
-  segments: [{ value: group.technique_count, color: 'SteelBlue' }, { value: group.subtechnique_count, color: '#89AFCF' }],
-  label: group.technique_count + group.subtechnique_count,
-})));
+const rows = computed(() =>
+  getTechniqueCountPerGroup().map((group) => ({
+    name: group.name,
+    segments: [
+      { value: group.technique_count, color: 'SteelBlue' },
+      { value: group.subtechnique_count, color: '#89AFCF' },
+    ],
+    label: group.technique_count + group.subtechnique_count,
+  })),
+);
 </script>
 
 <template>

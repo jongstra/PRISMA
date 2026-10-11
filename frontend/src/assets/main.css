@@ -14,12 +14,13 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 /* Firefox */
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 
 /* The mount point in index.html (#app) and the page frame in App.vue (.app). */
-#app, .app {
+#app,
+.app {
   max-width: 100%;
   margin: 0 auto;
   padding: 2rem;
@@ -34,7 +35,8 @@ a {
 }
 
 @media (hover: hover) {
-  a:hover, .dom:hover {
+  a:hover,
+  .dom:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
   }
 }

@@ -30,7 +30,8 @@ const averages = computed(() => {
   if (data.length === 0) {
     return {};
   }
-  const average = (field: string) => (data.reduce((sum, useCase) => sum + (Number(fieldValue(useCase, field)) || 0), 0) / data.length).toFixed(2);
+  const average = (field: string) =>
+    (data.reduce((sum, useCase) => sum + (Number(fieldValue(useCase, field)) || 0), 0) / data.length).toFixed(2);
   return {
     visibility: average('visibility'),
     implementation: average('implementation'),
@@ -47,15 +48,20 @@ const addNewUseCase = () => {
 
 // A short list of use case IDs for a message, e.g. "DOS-1-1, DOS-1-2 and 3 more".
 const listIds = (useCases: UseCase[], max = 5) => {
-  const ids = useCases.slice(0, max).map(useCase => useCase.id).join(', ');
+  const ids = useCases
+    .slice(0, max)
+    .map((useCase) => useCase.id)
+    .join(', ');
   return useCases.length > max ? `${ids} and ${useCases.length - max} more` : ids;
 };
 
 // Child use cases are kept when their parent is deleted, but lose their parent, so the dialog warns about them.
 const confirmRemoveUseCase = (useCase: UseCase) => {
   const children = magma.getChildUseCases(useCase);
-  const childrenWarning = children.length === 0 ? '' :
-    `"${useCase.id}" still has ${children.length} child use case(s): ${listIds(children)}. They will lose their parent (and turn red), so you can move them to another parent.\n\n`;
+  const childrenWarning =
+    children.length === 0
+      ? ''
+      : `"${useCase.id}" still has ${children.length} child use case(s): ${listIds(children)}. They will lose their parent (and turn red), so you can move them to another parent.\n\n`;
   Swal.fire({
     titleText: `Delete use case '${useCase.id}'?`,
     text: childrenWarning + "You won't be able to revert this.",
@@ -78,7 +84,8 @@ const confirmRemoveUseCaseLevel = () => {
     // The use cases on the level below are kept, but lose their parent.
     const deleted = magma.activeTabUseCases(tactics.domain).filter((useCase) => !useCase.permanent);
     const orphans = new Set(deleted.flatMap((useCase) => magma.getChildUseCases(useCase)));
-    const orphansWarning = orphans.size === 0 ? '' : `\n\n${orphans.size} use case(s) on the level below will lose their parent.`;
+    const orphansWarning =
+      orphans.size === 0 ? '' : `\n\n${orphans.size} use case(s) on the level below will lose their parent.`;
     Swal.fire({
       title: `You are about to delete all ${magma.activeTab} use cases`,
       text: `This is a permanent and irreversible action.${orphansWarning}\n\nDo you wish to proceed?`,
@@ -110,7 +117,7 @@ const renameUseCase = (useCase: UseCase, event: Event) => {
 
 // The value of a field as the sheet gives it: text (also for numbers), the list of parent IDs, or the override checkbox.
 const updateObjectField = (uid: string, field: string, value: string | string[] | boolean | undefined) => {
-  magma.updateUseCase(uid, {[field]: value}, tactics.domain);
+  magma.updateUseCase(uid, { [field]: value }, tactics.domain);
 };
 
 // A typed percentage: kept between 0 and 100 (see validateAndFormat), then saved.
@@ -130,35 +137,34 @@ const updateOverride = (useCase: UseCase, event: Event) => {
 
 // Fields that are shown but cannot be changed: those of the permanent IN and THR use cases, and a visibility that
 // comes from the use case's ATT&CK technique (unless it is overridden).
-const isLocked = (useCase: UseCase, field: string) => field === 'visibility'
-  ? useCase.visibilityFromAttackTechnique && !useCase.visibilityFromAttackTechniqueOverride
-  : useCase.permanent;
+const isLocked = (useCase: UseCase, field: string) =>
+  field === 'visibility'
+    ? useCase.visibilityFromAttackTechnique && !useCase.visibilityFromAttackTechniqueOverride
+    : useCase.permanent;
 
 const getBackgroundColor = (useCase: UseCase, field: string) => {
-
   if (['inImpact', 'thrImpact', 'outImpact'].includes(field)) {
     if (useCase.permanent) {
-      return 'black'
-    } else if ((Number(useCase.inImpact ?? 0) + Number(useCase.thrImpact ?? 0) + Number(useCase.outImpact ?? 0)) == 100) {
-      return 'white'
+      return 'black';
+    } else if (Number(useCase.inImpact ?? 0) + Number(useCase.thrImpact ?? 0) + Number(useCase.outImpact ?? 0) == 100) {
+      return 'white';
     } else {
-      return 'crimson'
+      return 'crimson';
     }
   }
 
   if (field === 'risk') {
-    return useCase.permanent ? 'black': 'lightgoldenrodyellow';
+    return useCase.permanent ? 'black' : 'lightgoldenrodyellow';
   }
 
   if (useCase.permanent) {
-      return 'lightgoldenrodyellow'
+    return 'lightgoldenrodyellow';
   }
 
   if (field === 'visibility') {
     if (useCase.visibilityFromAttackTechnique && !useCase.visibilityFromAttackTechniqueOverride) {
-      return 'lightgoldenrodyellow'
-    }
-    else {
+      return 'lightgoldenrodyellow';
+    } else {
       return 'white';
     }
   }
@@ -166,7 +172,7 @@ const getBackgroundColor = (useCase: UseCase, field: string) => {
   if (field === 'id') {
     const id = useCase.id;
     const allIds = magma.getAllIds(tactics.domain);
-    const noDuplicateId = (allIds.filter(item => item === id).length <= 1);
+    const noDuplicateId = allIds.filter((item) => item === id).length <= 1;
     if (noDuplicateId) {
       return 'white';
     } else {
@@ -176,30 +182,31 @@ const getBackgroundColor = (useCase: UseCase, field: string) => {
 
   if (field === 'parentIds') {
     const parentIds = useCase.parentIds;
-    const validParentIds = Array.isArray(parentIds) && parentIds.every(id => magma.getAllIds(tactics.domain).includes(id));
+    const validParentIds =
+      Array.isArray(parentIds) && parentIds.every((id) => magma.getAllIds(tactics.domain).includes(id));
     if (validParentIds) {
       return 'white';
     } else {
       return 'crimson';
     }
   }
-
 };
 
 // The use cases one level up that can be chosen as parent, sorted by ID. IDs that occur more than once are left out.
 const parentLevelUseCases = computed(() => {
-  const useCases = magma.activeTab === 'L3' ? magma.L2UseCases(tactics.domain)
-    : magma.activeTab === 'L2' ? magma.L1UseCases(tactics.domain)
-    : [];
+  const useCases =
+    magma.activeTab === 'L3'
+      ? magma.L2UseCases(tactics.domain)
+      : magma.activeTab === 'L2'
+        ? magma.L1UseCases(tactics.domain)
+        : [];
 
   const idCounts = new Map<string, number>();
-  useCases.forEach(useCase => {
+  useCases.forEach((useCase) => {
     idCounts.set(useCase.id, (idCounts.get(useCase.id) || 0) + 1);
   });
 
-  return useCases
-    .filter(useCase => (idCounts.get(useCase.id) || 0) === 1)
-    .sort((a, b) => a.id.localeCompare(b.id));
+  return useCases.filter((useCase) => (idCounts.get(useCase.id) || 0) === 1).sort((a, b) => a.id.localeCompare(b.id));
 });
 
 const formatPercentage = (value: unknown) => Number(value).toFixed(2);
@@ -228,22 +235,26 @@ const validateAndFormat = (event: Event) => {
     <thead>
       <tr>
         <!-- Deletes all use cases of this level. -->
-        <th class="remove-col" @click="confirmRemoveUseCaseLevel()" style="background-color: #e73030; color: white; cursor: pointer;">&#10806;</th>
+        <th
+          class="remove-col"
+          @click="confirmRemoveUseCaseLevel()"
+          style="background-color: #e73030; color: white; cursor: pointer"
+        >
+          &#10806;
+        </th>
         <th v-for="column in columns" :key="column.field" :style="{ width: `${column.width}px` }">
           {{ column.title }}
         </th>
       </tr>
     </thead>
     <tbody>
-
       <!-- Rows for all use cases. -->
       <tr v-for="useCase in useCases" :key="useCase.uid">
-
         <!-- Remove-use-case buttons -->
         <td class="remove-col">
           <button
             v-if="!useCase.permanent"
-            class='remove-button'
+            class="remove-button"
             @click="confirmRemoveUseCase(useCase)"
             style="background-color: #e73030; color: white; border: none; cursor: pointer; width: 100%; height: 100%"
           >
@@ -260,7 +271,7 @@ const validateAndFormat = (event: Event) => {
               :value="fieldValue(useCase, column.field)"
               @input="(event) => updatePercentage(useCase, column.field, event)"
               :disabled="isLocked(useCase, column.field)"
-              :style="{backgroundColor: getBackgroundColor(useCase, column.field)}"
+              :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
             />
 
             <input
@@ -268,36 +279,52 @@ const validateAndFormat = (event: Event) => {
               :value="useCase.id"
               @change="(event) => renameUseCase(useCase, event)"
               :disabled="isLocked(useCase, column.field)"
-              :style="{backgroundColor: getBackgroundColor(useCase, column.field)}"
+              :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
             />
 
             <textarea
               v-else-if="TEXT_FIELDS.includes(column.field)"
               :value="textValue(useCase, column.field)"
-              @input="(event) => updateObjectField(useCase.uid, column.field, (event.target as HTMLTextAreaElement).value)"
+              @input="
+                (event) => updateObjectField(useCase.uid, column.field, (event.target as HTMLTextAreaElement).value)
+              "
               :disabled="isLocked(useCase, column.field)"
-              :style="{backgroundColor: getBackgroundColor(useCase, column.field)}"
+              :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
             ></textarea>
 
             <select
               v-else-if="column.field === 'parentIds'"
               class="parent-ids select-with-wrap"
               :value="useCase.parentIds"
-              @change="(event) => updateObjectField(useCase.uid, 'parentIds', Array.from((event.target as HTMLSelectElement).selectedOptions).map(option => option.value))"
-              :style="{backgroundColor: getBackgroundColor(useCase, column.field)}"
+              @change="
+                (event) =>
+                  updateObjectField(
+                    useCase.uid,
+                    'parentIds',
+                    Array.from((event.target as HTMLSelectElement).selectedOptions).map((option) => option.value),
+                  )
+              "
+              :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
             >
               <option value="none">None</option>
-              <option v-for="parent in parentLevelUseCases" :key="parent.id" :value="parent.id">{{ parent.id }}: {{ parent.name }}</option>
+              <option v-for="parent in parentLevelUseCases" :key="parent.id" :value="parent.id">
+                {{ parent.id }}: {{ parent.name }}
+              </option>
             </select>
 
             <select
               v-else-if="column.field === 'attackTechniqueId'"
               class="attack-technique select-with-wrap"
               :value="useCase.attackTechniqueId || 'none'"
-              @change="(event) => updateObjectField(useCase.uid, 'attackTechniqueId', (event.target as HTMLSelectElement).value)"
+              @change="
+                (event) =>
+                  updateObjectField(useCase.uid, 'attackTechniqueId', (event.target as HTMLSelectElement).value)
+              "
             >
               <option value="none">None</option>
-              <option v-for="technique in tactics.allTechniquesIdsAndNames" :key="technique.id" :value="technique.id">{{ technique.id }}: {{ technique.name }}</option>
+              <option v-for="technique in tactics.allTechniquesIdsAndNames" :key="technique.id" :value="technique.id">
+                {{ technique.id }}: {{ technique.name }}
+              </option>
             </select>
 
             <input
@@ -324,7 +351,7 @@ const validateAndFormat = (event: Event) => {
           <input
             v-else-if="column.field === 'risk'"
             :value="useCase.permanent ? '' : formatPercentage(useCase.risk || 0)"
-            :style="{backgroundColor: getBackgroundColor(useCase, column.field)}"
+            :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
             disabled
           />
 
@@ -332,7 +359,6 @@ const validateAndFormat = (event: Event) => {
             {{ fieldValue(useCase, column.field) }}
           </template>
         </td>
-
       </tr>
 
       <!-- The empty rows add a little space (the table's border spacing) above and below the averages. -->
@@ -351,14 +377,11 @@ const validateAndFormat = (event: Event) => {
         <td style="background-color: #eee">{{ averages.potential }}</td>
       </tr>
       <tr></tr>
-
     </tbody>
     <tfoot>
       <tr>
         <td colspan="10" class="add-button-cell">
-          <button @click="addNewUseCase">
-            + ADD NEW USE CASE +
-          </button>
+          <button @click="addNewUseCase">+ ADD NEW USE CASE +</button>
         </td>
       </tr>
     </tfoot>
@@ -372,7 +395,9 @@ const validateAndFormat = (event: Event) => {
 }
 
 /* Default cell settings, will be overwritten later. But gives more consistent feel. */
-th, td, input {
+th,
+td,
+input {
   width: 140px;
   height: 30px;
   border: 2px solid rgb(42, 42, 42);
@@ -455,7 +480,8 @@ select.attack-technique {
   width: 164px;
 }
 
-input, .uneditable {
+input,
+.uneditable {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -466,7 +492,7 @@ input, .uneditable {
   background-color: lightgoldenrodyellow;
 }
 
-input[type=checkbox] {
+input[type='checkbox'] {
   accent-color: white;
 }
 

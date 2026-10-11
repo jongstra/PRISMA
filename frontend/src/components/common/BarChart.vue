@@ -9,19 +9,22 @@ export interface BarChartRow {
   label: string | number; // the text next to (or in) the bar
 }
 
-withDefaults(defineProps<{
-  rows: BarChartRow[];
-  max: number; // the value of a bar that fills the box
-  labelSpace?: string; // room kept for the label next to the longest bar (see barWidth)
-  nameWidth?: number; // minimum width of the name column, in pixels
-  label?: 'after' | 'inside' | 'inside-wide' | 'end'; // after the bar, in the bar, in the bar and 90px wide, or at the row's end
-  wrapLongNames?: boolean; // let long names wrap, instead of making the bars shorter
-}>(), {
-  labelSpace: '40px',
-  nameWidth: 170,
-  label: 'after',
-  wrapLongNames: false,
-});
+withDefaults(
+  defineProps<{
+    rows: BarChartRow[];
+    max: number; // the value of a bar that fills the box
+    labelSpace?: string; // room kept for the label next to the longest bar (see barWidth)
+    nameWidth?: number; // minimum width of the name column, in pixels
+    label?: 'after' | 'inside' | 'inside-wide' | 'end'; // after the bar, in the bar, in the bar and 90px wide, or at the row's end
+    wrapLongNames?: boolean; // let long names wrap, instead of making the bars shorter
+  }>(),
+  {
+    labelSpace: '40px',
+    nameWidth: 170,
+    label: 'after',
+    wrapLongNames: false,
+  },
+);
 </script>
 
 <template>
@@ -29,7 +32,7 @@ withDefaults(defineProps<{
     <div class="title">
       <slot name="title" />
     </div>
-    <hr>
+    <hr />
     <slot name="legend" />
     <div v-for="(row, index) in rows" :key="index" class="item-row">
       <div class="item-name" :style="{ minWidth: `${nameWidth}px` }">

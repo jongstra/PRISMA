@@ -36,8 +36,14 @@ describe('findParentCycles', () => {
 
   it('does not report normal hierarchies, multiple parents or other domains', () => {
     const useCases = [
-      useCase('DOS'), useCase('DOS-1', ['DOS']), useCase('DOS-1-1', ['DOS-1']), useCase('BOTH', ['DOS-1', 'DOS']),
-      useCase('X', ['Y'], 'mobile-attack'), useCase('Y', ['X'], 'ics-attack'), useCase('Z', 'not a list'), useCase('N', ['none']),
+      useCase('DOS'),
+      useCase('DOS-1', ['DOS']),
+      useCase('DOS-1-1', ['DOS-1']),
+      useCase('BOTH', ['DOS-1', 'DOS']),
+      useCase('X', ['Y'], 'mobile-attack'),
+      useCase('Y', ['X'], 'ics-attack'),
+      useCase('Z', 'not a list'),
+      useCase('N', ['none']),
     ];
     expect(findParentCycles(useCases).size).toBe(0);
   });
@@ -47,7 +53,13 @@ describe('findUnknownParents', () => {
   it('lists parent IDs that do not exist in the same domain, ignoring "none"', () => {
     const typo = useCase('DOS-1-1', ['DOS-l']);
     const otherDomain = useCase('M-1', ['DOS'], 'mobile-attack');
-    const result = findUnknownParents([useCase('DOS'), useCase('DOS-1', ['DOS']), typo, otherDomain, useCase('N', ['none'])]);
+    const result = findUnknownParents([
+      useCase('DOS'),
+      useCase('DOS-1', ['DOS']),
+      typo,
+      otherDomain,
+      useCase('N', ['none']),
+    ]);
     expect(result).toEqual([
       { useCase: typo, parentId: 'DOS-l' },
       { useCase: otherDomain, parentId: 'DOS' },

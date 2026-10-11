@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import '@vueform/slider/themes/default.css'
-import Slider from '@vueform/slider'
+import { ref, watch } from 'vue';
+import '@vueform/slider/themes/default.css';
+import Slider from '@vueform/slider';
 import { magmaStore } from '@/stores/magma';
 
 const magma = magmaStore();
-const value = ref(magma.heatmapFilterValue)
+const value = ref(magma.heatmapFilterValue);
 
 // Watch the 'value' ref and update the store when it changes
 watch(value, (newValue) => {
@@ -15,17 +15,10 @@ watch(value, (newValue) => {
 
 <template>
   <div class="slider-container">
-    <Slider
-      v-model="value"
-      :min="0"
-      :max="100"
-      :interval="1"
-      :showTooltip="'always'"
-    />
+    <Slider v-model="value" :min="0" :max="100" :interval="1" :showTooltip="'always'" />
     <p class="slider-title">Filter Percentage</p>
   </div>
 </template>
-
 
 <style scoped>
 .slider-container {

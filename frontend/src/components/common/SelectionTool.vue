@@ -9,7 +9,8 @@ const props = defineProps<{
   list: 'groups' | 'data_components'; // the list of the domain to select from
   selectedField: 'selected' | 'selectedInMagmaHeatmap'; // the field that marks an item as selected
   // The domain field that says: only show the techniques of the selected items.
-  onlyShowField: 'only_show_selected_groups' | 'only_show_selected_components' | 'only_show_selected_groups_magma_heatmap';
+  onlyShowField:
+    'only_show_selected_groups' | 'only_show_selected_components' | 'only_show_selected_groups_magma_heatmap';
   noun: string; // 'group' or 'component', for the texts
   toggleTitle: string;
   color: 'red' | 'green'; // colour of the selected items
@@ -47,8 +48,8 @@ const confirmClearAllSelections = () => {
     reverseButtons: true,
     customClass: {
       confirmButton: 'swal2-confirm-custom',
-      cancelButton: 'swal2-cancel-custom'
-    }
+      cancelButton: 'swal2-cancel-custom',
+    },
   }).then((result) => {
     if (result.isConfirmed) {
       clearAllSelections();
@@ -88,29 +89,25 @@ const onlyShowSelected = computed<boolean>({
 <template>
   <div class="selection-container" :class="`items-${color}`">
     <div class="header">
-      <input class='search-box' v-model="searchQuery" :placeholder="`Search ${noun}s...`" @keydown.enter="addItemFromSearch" />
-      <button class='clear-all-button' @click="confirmClearAllSelections">Clear</button>
+      <input
+        class="search-box"
+        v-model="searchQuery"
+        :placeholder="`Search ${noun}s...`"
+        @keydown.enter="addItemFromSearch"
+      />
+      <button class="clear-all-button" @click="confirmClearAllSelections">Clear</button>
       <label class="toggle-label">
         <input type="checkbox" v-model="onlyShowSelected" />
         <span class="toggle-switch" :title="toggleTitle"></span>
       </label>
     </div>
     <div v-if="filteredItems.length && searchQuery" class="suggestions">
-      <div
-        v-for="item in filteredItems"
-        :key="item.name"
-        class="suggestion-item"
-        @click="selectItem(item)"
-      >
+      <div v-for="item in filteredItems" :key="item.name" class="suggestion-item" @click="selectItem(item)">
         {{ item.name }}
       </div>
     </div>
     <div class="buttons-wrapper">
-      <button
-        v-for="item in selectedItems"
-        :key="item.name"
-        @click="removeSelection(item)"
-      >
+      <button v-for="item in selectedItems" :key="item.name" @click="removeSelection(item)">
         {{ item.name }}
       </button>
     </div>
@@ -165,7 +162,9 @@ button {
   border-color: #000;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
   font-size: 11px;
   height: 18px;
 }
@@ -246,19 +245,19 @@ button::before {
   height: 20px;
   background-color: #ccc;
   border-radius: 34px;
-  transition: .4s;
+  transition: 0.4s;
 }
 
 .toggle-switch:before {
   position: absolute;
-  content: "";
+  content: '';
   height: 16px;
   width: 16px;
   left: 2px;
   bottom: 2px;
   background-color: white;
   border-radius: 50%;
-  transition: .4s;
+  transition: 0.4s;
 }
 
 .toggle-label input {
@@ -268,7 +267,7 @@ button::before {
 }
 
 .toggle-label input:checked + .toggle-switch {
-  background-color: #2196F3;
+  background-color: #2196f3;
 }
 
 .toggle-label input:checked + .toggle-switch:before {

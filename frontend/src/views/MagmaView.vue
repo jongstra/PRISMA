@@ -17,17 +17,17 @@ magma.updateAllL3UseCasesBasedOnDettectVisibility();
 
 <template>
   <div class="magma-container">
-    <SheetTabs/>
+    <SheetTabs />
     <div class="scroll-container">
-      <UseCaseTable v-if="['L1', 'L2', 'L3'].includes(magma.activeTab)"/>
+      <UseCaseTable v-if="['L1', 'L2', 'L3'].includes(magma.activeTab)" />
       <div v-if="magma.activeTab === 'Heatmap'">
-        <Heatmap/>
+        <Heatmap />
       </div>
       <div v-if="magma.activeTab === 'Insights'">
-        <MagmaInsights/>
+        <MagmaInsights />
       </div>
       <div v-if="magma.activeTab === 'Summary'">
-        <MagmaSummary/>
+        <MagmaSummary />
       </div>
     </div>
   </div>

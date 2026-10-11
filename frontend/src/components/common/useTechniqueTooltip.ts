@@ -13,11 +13,14 @@ export function useTechniqueTooltip() {
   const open = computed(() => hovered.value || pinned.value);
 
   // A tooltip that is unpinned, or loses the pin to another tooltip, stays closed until its button is hovered again.
-  watch(() => store.pinnedTooltipId, (pinnedId) => {
-    if (pinnedId !== id) {
-      hovered.value = false;
-    }
-  });
+  watch(
+    () => store.pinnedTooltipId,
+    (pinnedId) => {
+      if (pinnedId !== id) {
+        hovered.value = false;
+      }
+    },
+  );
 
   // A pinned tooltip whose button disappears (for example on another page) is unpinned, so other tooltips show again.
   onUnmounted(() => {

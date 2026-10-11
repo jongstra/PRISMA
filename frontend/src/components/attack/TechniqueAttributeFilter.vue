@@ -31,7 +31,9 @@ function toggleAttribute(attribute: Attribute) {
 }
 
 // Compute attributes based on the current domain and attribute type
-const attributes = computed(() => (store.currentDomain?.[props.attribute_type as keyof Domain] as Attribute[] | undefined) ?? []);
+const attributes = computed(
+  () => (store.currentDomain?.[props.attribute_type as keyof Domain] as Attribute[] | undefined) ?? [],
+);
 
 // Compute the state of the main checkbox
 const allSelected = computed(() => {
@@ -87,15 +89,11 @@ onBeforeUnmount(() => {
             />
             All
           </label>
-        ------------
+          ------------
         </li>
         <li v-for="attribute in attributes" :key="attribute.name">
           <label>
-            <input
-              type="checkbox"
-              :checked="attribute.active_in_filter"
-              @change="toggleAttribute(attribute)"
-            />
+            <input type="checkbox" :checked="attribute.active_in_filter" @change="toggleAttribute(attribute)" />
             {{ attribute.name }}
           </label>
         </li>
@@ -138,7 +136,7 @@ onBeforeUnmount(() => {
 }
 
 .active .collapsible-icon::after {
-  content: "\2796"; /* Unicode character for "minus" sign (-) */
+  content: '\2796'; /* Unicode character for "minus" sign (-) */
 }
 
 .collapsible-header:hover {
