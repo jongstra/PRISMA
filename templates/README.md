@@ -1,6 +1,6 @@
 # Templates
 
-The MaGMa Excel template, for preparing many use cases before loading them into PRISMA.
+The MaGMa Excel template, for preparing many use cases before loading them into PRISMA. The template contains ATT&CK data; MITRE's licence for it is in [`frontend/public/LICENCE-ATTACK.txt`](../frontend/public/LICENCE-ATTACK.txt).
 
 | Name | Description |
 |---|---|
