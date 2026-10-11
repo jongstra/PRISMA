@@ -1,7 +1,6 @@
 {
   "meta": {
     "attack_version": "17.1",
-    "format_version": 1,
     "generated_by": "tools/build_attack_catalog.ipynb",
     "sources": {
       "enterprise-attack-17.1.json": "sha256:0d1c347a4d584cf7e11ef46556c33b7689341443bf86299188d46c307274323b",
