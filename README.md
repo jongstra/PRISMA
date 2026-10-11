@@ -25,7 +25,7 @@ The figure below shows the overview of how MaGMa 2.0 and DeTT&CT are combined to
 ### Install Node.js
 If you do not have Node.js installed, please [download](https://nodejs.org/en/download) and install it. After this step, it is assumed that you have Node.js installed with npm as the package manager.
 
-**Note:** Last tested with Node.js v26.10.0 (October 2026). Newer versions are expected to work. You can check your installed version with `node -v`.
+**Note:** PRISMA needs Node.js 22.22 or newer: version 22 (from 22.22), 24 (from 24.15), or 26 and later. It was last tested with Node.js v26.10.0 (October 2026). You can check your installed version with `node -v`.
 
 ### Clone this Repository
 ```sh

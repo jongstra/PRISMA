@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "dev-lean": "OMIT_VUE_DEVTOOLS=true vite",
@@ -23,21 +26,21 @@
     "yaml": "^2.7.0"
   },
   "devDependencies": {
-    "@tsconfig/node20": "^20.1.4",
-    "@types/jsdom": "^21.1.6",
-    "@types/node": "^20.12.5",
+    "@tsconfig/node24": "^24.0.5",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^24.19.0",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vue/eslint-config-typescript": "^14.9.0",
     "@vue/test-utils": "^2.5.1",
     "@vue/tsconfig": "^0.9.1",
     "eslint": "^10.11.0",
     "eslint-plugin-vue": "^10.11.1",
-    "jsdom": "^24.0.0",
+    "jsdom": "^30.1.1",
     "prettier": "3.9.9",
     "typescript": "~6.0.3",
-    "vite": "^7.3.7",
+    "vite": "^8.3.1",
     "vite-plugin-vue-devtools": "^8.2.1",
-    "vitest": "^4.0.16",
+    "vitest": "^5.0.2",
     "vue-tsc": "^3.3.13"
   }
 }
