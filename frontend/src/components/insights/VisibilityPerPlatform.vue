@@ -37,7 +37,7 @@ function calculatePlatformVisibility(): { name: string; percentage: number }[] {
 
 // Number of (unique) techniques in the domain that cannot be detected via data sources; these are left out of the averages.
 const notDetectableCount = computed(() => new Set(
-  (getDomain().tactics ?? []).flatMap((tactic: any) => tactic.techniques).filter((technique: any) => !isDetectable(technique)).map((technique: any) => technique.external_id)
+  (getDomain().tactics ?? []).flatMap((tactic) => tactic.techniques).filter((technique) => !isDetectable(technique)).map((technique) => technique.external_id)
 ).size);
 
 function getBarColor(percentage: number): string {

@@ -22,9 +22,7 @@ describe('tactics store: processDettectYaml', () => {
 
   it('gives every detectable technique and sub-technique exactly 100% with the maximum-quality file', () => {
     store.processDettectYaml(readExample('dettect/enterprise_max_quality.yaml'));
-    // The store types `enterprise` as a list, while it holds one domain object (fixed in the type clean-up).
-    const enterprise: any = store.enterprise;
-    for (const tactic of enterprise.tactics) {
+    for (const tactic of store.enterprise!.tactics) {
       for (const technique of tactic.techniques) {
         if (isDetectable(technique)) {
           expect(technique.visibility_ratio, `${technique.external_id} in ${tactic.name}`).toBe(1);
@@ -41,7 +39,7 @@ describe('tactics store: processDettectYaml', () => {
 
 describe('tactics store: loading a DeTT&CT file safely', () => {
   let store: ReturnType<typeof tacticsStore>;
-  const ratio = (id: string) => (store.enterprise as any).tactics.flatMap((t: any) => t.techniques).find((t: any) => t.external_id === id).visibility_ratio;
+  const ratio = (id: string) => store.enterprise!.tactics.flatMap((t) => t.techniques).find((t) => t.external_id === id)?.visibility_ratio;
   const dettect = (dataSources: unknown[]) => ({ version: 1.1, file_type: 'data-source-administration', domain: 'enterprise-attack', data_sources: dataSources });
   const dataSource = (name: string, deviceCompleteness: unknown) => ({ data_source_name: name, data_source: [{ applicable_to: ['all'], data_quality: { device_completeness: deviceCompleteness } }] });
 

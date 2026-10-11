@@ -5,7 +5,7 @@ import { tacticsStore, type Tactic } from '@/stores/tactics';
 import { averageVisibilityPercentage, isDetectable } from '@/domain/attack/visibility';
 const store = tacticsStore();
 
-function getTactics(): any {
+function getTactics(): Tactic[] {
   const tactics = store.currentDomain?.tactics?.slice(); // A shallow copy
 
   if (!tactics) {
@@ -22,7 +22,7 @@ function getVisibilityPercentage(tactic: Tactic) {
 
 // Number of (unique) techniques in the domain that cannot be detected via data sources; these are left out of the averages.
 const notDetectableCount = computed(() => new Set(
-  (getTactics()).flatMap((tactic: any) => tactic.techniques).filter((technique: any) => !isDetectable(technique)).map((technique: any) => technique.external_id)
+  (getTactics()).flatMap((tactic) => tactic.techniques).filter((technique) => !isDetectable(technique)).map((technique) => technique.external_id)
 ).size);
 
 function getBarColor(percentage: number) {
@@ -32,7 +32,7 @@ function getBarColor(percentage: number) {
 }
 
 // One bar per tactic, from red (0%) to green (100%).
-const rows = computed(() => getTactics().map((tactic: any) => {
+const rows = computed(() => getTactics().map((tactic) => {
   const percentage = getVisibilityPercentage(tactic);
   return { name: tactic.name, segments: [{ value: percentage, color: getBarColor(percentage) }], label: percentage };
 }));

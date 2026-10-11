@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The tab bar of the MaGMa page, with the buttons to load and save the use cases as a MaGMa YAML file.
 import Swal from 'sweetalert2';
-import { magmaStore } from '@/stores/magma';
+import { magmaStore, type UseCaseFromFile } from '@/stores/magma';
 import { isYamlFile, readYamlFile } from '@/io/readYamlFile';
 import { importSummary, magmaFileDomains, readMagmaFile, writeMagmaFile } from '@/io/magmaFile';
 import { downloadFile } from '@/io/downloadFile';
@@ -37,7 +37,7 @@ const importYaml = async (event: Event) => {
     return
   }
 
-  let useCases: any[];
+  let useCases: UseCaseFromFile[];
   let domains: string[];
   try {
     useCases = readMagmaFile(await readYamlFile(file));
@@ -48,7 +48,7 @@ const importYaml = async (event: Event) => {
   }
 
   // Ask for confirmation when current use cases will be replaced.
-  const currentCount = (domain: string) => magma.useCases.filter((useCase: any) => !useCase.permanent && useCase.domain === domain).length;
+  const currentCount = (domain: string) => magma.useCases.filter((useCase) => !useCase.permanent && useCase.domain === domain).length;
   const replaced = domains.filter(domain => currentCount(domain) > 0);
   if (replaced.length > 0) {
     const kept = Object.keys(domainNames).filter(domain => !domains.includes(domain));

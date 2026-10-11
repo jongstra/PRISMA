@@ -37,25 +37,44 @@ export interface Tactic {
   all_technique_count: number;
 }
 
-/** A platform, data source, data component, group or software of a domain; the fields differ per kind. */
+/** A data source of a domain (only used by the filter), and the base of the other attributes below. */
 export interface Attribute {
   name: string;
-  active_in_filter?: boolean;
-  [field: string]: any;
+  active_in_filter?: boolean; // platforms, data sources and data components: whether the filter on the DeTT&CT page includes it
 }
 
-type Attributes = Attribute[];
+/** A platform, data component, group or software of a domain, with the techniques it applies to (by name). */
+export interface TechniqueAttribute extends Attribute {
+  techniques: string[];
+  subtechniques: string[];
+  all_techniques: string[];
+  technique_count: number;
+  subtechnique_count: number;
+  all_technique_count: number;
+  hovered?: boolean; // groups and data components: the mouse is on its button in a technique tooltip
+  selected?: boolean; // groups and data components: selected on the DeTT&CT page
+  selectedInMagmaHeatmap?: boolean; // groups: selected on the MaGMa heatmap
+}
+
+/** A data component of a domain, with its quality from the DeTT&CT file. */
+export interface DataComponent extends TechniqueAttribute {
+  visibility: boolean;
+  // The data quality scores (0-5) from the DeTT&CT file, null before one is loaded. Only device_completeness is checked
+  // and used; the other scores are copied as they are.
+  quality: { device_completeness: number | null; [score: string]: unknown };
+}
 
 export interface Domain {
   tactics: Tactic[];
-  platforms: Attributes;
-  data_sources: Attributes;
-  data_components: Attributes;
-  groups: Attributes;
-  softwares: Attributes;
-  only_show_selected_groups: boolean;
-  only_show_selected_components: boolean;
-  only_show_selected_groups_magma_heatmap: boolean;
+  platforms: TechniqueAttribute[];
+  data_sources: Attribute[];
+  data_components: DataComponent[];
+  groups: TechniqueAttribute[];
+  softwares: TechniqueAttribute[];
+  // Set by the selection tools (not in the catalog): only show the techniques of the selected groups or components.
+  only_show_selected_groups?: boolean;
+  only_show_selected_components?: boolean;
+  only_show_selected_groups_magma_heatmap?: boolean;
 }
 
 
@@ -335,22 +354,22 @@ export const tacticsStore = defineStore('tactics', {
     // Load a DeTT&CT data source administration file. The whole file is checked first (see domain/attack/dettect.ts):
     // when it has a problem, an error explains it and nothing changes. Data sources that ATT&CK does not know are ignored
     // and returned, so they can be reported.
-    processDettectYaml(data: any): { unknownDataSources: string[] } {
-      const domainData = (domain: string): any => domainOf(this, domain);
+    processDettectYaml(data: unknown): { unknownDataSources: string[] } {
       if (!this.enterprise?.tactics) {
         throw new Error('The ATT&CK data is not loaded (yet). Please reload the page.');
       }
-      const file = readDettectFile(data, (domain) => (domainData(domain)?.data_components ?? []).map((component: any) => component.name));
+      const file = readDettectFile(data, (domain) => (domainOf(this, domain)?.data_components ?? []).map((component) => component.name));
 
       // Switch to the domain of the file, and start from a clean state for that domain.
       this.domain = file.domain;
       this.resetDomainVisibility(file.domain);
-      const tactics = domainData(file.domain).tactics;
-      const dataComponents = domainData(file.domain).data_components;
+      // readDettectFile only accepts the supported domains, and the catalog has all of them.
+      const { tactics, data_components: dataComponents } = domainOf(this, file.domain)!;
 
       // Apply the quality scores of the data sources (DeTT&CT) to the data components (ATT&CK).
       for (const [name, entry] of file.dataSources) {
-        const component = dataComponents.find((component: any) => component.name === name);
+        // file.dataSources only has the data sources that are data components of the domain.
+        const component = dataComponents.find((component) => component.name === name)!;
         Object.assign(component.quality, entry.data_quality);
         component.visibility = true;
       }
@@ -361,11 +380,11 @@ export const tacticsStore = defineStore('tactics', {
       // Update the visibility of all techniques and sub-techniques of the domain. Techniques and sub-techniques for which
       // ATT&CK lists no data components cannot be detected via data sources; they get visibility_ratio 0 and are left
       // out of the visibility averages (see domain/attack/visibility.ts).
-      tactics.forEach((tactic: any) => {
-        tactic.techniques.forEach((technique: any) => {
+      tactics.forEach((tactic) => {
+        tactic.techniques.forEach((technique) => {
           technique.visibility = technique.data_components.some((component: string) => completeness.has(component));
           technique.visibility_ratio = techniqueVisibility(technique, completeness) ?? 0;
-          technique.sub_techniques?.forEach((subtechnique: any) => {
+          technique.sub_techniques?.forEach((subtechnique) => {
             subtechnique.visibility = subtechnique.data_components.some((component: string) => completeness.has(component));
             subtechnique.visibility_ratio = ownVisibility(subtechnique, completeness) ?? 0;
           });

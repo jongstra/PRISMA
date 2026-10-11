@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import TechniqueButton from './TechniqueButton.vue';
-import { tacticsStore } from '@/stores/tactics';
+import { tacticsStore, type Tactic, type Technique } from '@/stores/tactics';
 import { averageVisibilityPercentage } from '@/domain/attack/visibility';
 const store = tacticsStore();
 
-defineProps(['tactic', 'techniques']);
+defineProps<{ tactic: Tactic; techniques: Technique[] }>();
 
 // Visibility of a tactic: the average over its techniques that can be detected via data sources.
-const tacticVisibility = (tactic: any) => {
+const tacticVisibility = (tactic: Tactic) => {
   const percentage = averageVisibilityPercentage(tactic.techniques);
   return percentage === null ? 'n/a' : `${Math.round(percentage)}%`;
 };

@@ -3,7 +3,7 @@
 // to add a use case. The columns are defined in useCaseColumns.ts.
 import Swal from 'sweetalert2';
 import { computed } from 'vue';
-import { magmaStore } from '@/stores/magma';
+import { magmaStore, type UseCase } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
 import { USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
 
@@ -14,7 +14,10 @@ const columns = computed(() => USE_CASE_COLUMNS[magma.activeTab as SheetLevel]);
 const useCases = computed(() => magma.activeTabUseCases(tactics.domain));
 
 // The value of the use case field that a column shows.
-const fieldValue = (useCase: object, field: string) => (useCase as Record<string, any>)[field];
+const fieldValue = (useCase: UseCase, field: string) => useCase[field as keyof UseCase];
+
+// The text of a text field (name, description or data source); a number from a file is shown as text.
+const textValue = (useCase: UseCase, field: string) => String(fieldValue(useCase, field) ?? '');
 
 // The percentages that are typed in a number field, and the calculated ones that are only shown.
 const PERCENTAGE_INPUTS = ['visibility', 'implementation', 'effectiveness', 'inImpact', 'thrImpact', 'outImpact'];
@@ -27,7 +30,7 @@ const averages = computed(() => {
   if (data.length === 0) {
     return {};
   }
-  const average = (field: string) => (data.reduce((sum, useCase) => sum + (fieldValue(useCase, field) || 0), 0) / data.length).toFixed(2);
+  const average = (field: string) => (data.reduce((sum, useCase) => sum + (Number(fieldValue(useCase, field)) || 0), 0) / data.length).toFixed(2);
   return {
     visibility: average('visibility'),
     implementation: average('implementation'),
@@ -43,13 +46,13 @@ const addNewUseCase = () => {
 };
 
 // A short list of use case IDs for a message, e.g. "DOS-1-1, DOS-1-2 and 3 more".
-const listIds = (useCases: any[], max = 5) => {
+const listIds = (useCases: UseCase[], max = 5) => {
   const ids = useCases.slice(0, max).map(useCase => useCase.id).join(', ');
   return useCases.length > max ? `${ids} and ${useCases.length - max} more` : ids;
 };
 
 // Child use cases are kept when their parent is deleted, but lose their parent, so the dialog warns about them.
-const confirmRemoveUseCase = (useCase: any) => {
+const confirmRemoveUseCase = (useCase: UseCase) => {
   const children = magma.getChildUseCases(useCase);
   const childrenWarning = children.length === 0 ? '' :
     `"${useCase.id}" still has ${children.length} child use case(s): ${listIds(children)}. They will lose their parent (and turn red), so you can move them to another parent.\n\n`;
@@ -73,8 +76,8 @@ const confirmRemoveUseCase = (useCase: any) => {
 const confirmRemoveUseCaseLevel = () => {
   if (magma.activeTabUseCases(tactics.domain).length > 0) {
     // The use cases on the level below are kept, but lose their parent.
-    const deleted = magma.activeTabUseCases(tactics.domain).filter((useCase: any) => !useCase.permanent);
-    const orphans = new Set(deleted.flatMap((useCase: any) => magma.getChildUseCases(useCase)));
+    const deleted = magma.activeTabUseCases(tactics.domain).filter((useCase) => !useCase.permanent);
+    const orphans = new Set(deleted.flatMap((useCase) => magma.getChildUseCases(useCase)));
     const orphansWarning = orphans.size === 0 ? '' : `\n\n${orphans.size} use case(s) on the level below will lose their parent.`;
     Swal.fire({
       title: `You are about to delete all ${magma.activeTab} use cases`,
@@ -96,7 +99,7 @@ const confirmRemoveUseCaseLevel = () => {
 
 // Rename a use case when its ID field is committed (Enter, or leaving the field). Its children move along to the new ID.
 // A refused rename (empty, or an ID that already exists) is explained, and the field shows the current ID again.
-const renameUseCase = (useCase: any, event: Event) => {
+const renameUseCase = (useCase: UseCase, event: Event) => {
   const input = event.target as HTMLInputElement;
   const problem = magma.renameUseCase(useCase.uid, input.value);
   if (problem) {
@@ -105,18 +108,19 @@ const renameUseCase = (useCase: any, event: Event) => {
   }
 };
 
-const updateObjectField = (uid: string, field: string, value: any) => {
+// The value of a field as the sheet gives it: text (also for numbers), the list of parent IDs, or the override checkbox.
+const updateObjectField = (uid: string, field: string, value: string | string[] | boolean | undefined) => {
   magma.updateUseCase(uid, {[field]: value}, tactics.domain);
 };
 
 // A typed percentage: kept between 0 and 100 (see validateAndFormat), then saved.
-const updatePercentage = (useCase: any, field: string, event: Event) => {
+const updatePercentage = (useCase: UseCase, field: string, event: Event) => {
   validateAndFormat(event);
   updateObjectField(useCase.uid, field, (event.target as HTMLInputElement).value);
 };
 
 // Turning the override off takes the visibility from the ATT&CK technique again (by setting the technique again).
-const updateOverride = (useCase: any, event: Event) => {
+const updateOverride = (useCase: UseCase, event: Event) => {
   const checked = (event.target as HTMLInputElement).checked;
   updateObjectField(useCase.uid, 'visibilityFromAttackTechniqueOverride', checked);
   if (!checked) {
@@ -126,11 +130,11 @@ const updateOverride = (useCase: any, event: Event) => {
 
 // Fields that are shown but cannot be changed: those of the permanent IN and THR use cases, and a visibility that
 // comes from the use case's ATT&CK technique (unless it is overridden).
-const isLocked = (useCase: any, field: string) => field === 'visibility'
+const isLocked = (useCase: UseCase, field: string) => field === 'visibility'
   ? useCase.visibilityFromAttackTechnique && !useCase.visibilityFromAttackTechniqueOverride
   : useCase.permanent;
 
-const getBackgroundColor = (useCase: any, field: string) => {
+const getBackgroundColor = (useCase: UseCase, field: string) => {
 
   if (['inImpact', 'thrImpact', 'outImpact'].includes(field)) {
     if (useCase.permanent) {
@@ -198,10 +202,7 @@ const parentLevelUseCases = computed(() => {
     .sort((a, b) => a.id.localeCompare(b.id));
 });
 
-const formatPercentage = (number: any) => {
-  number = Number(number);
-  return number.toFixed(2);
-};
+const formatPercentage = (value: unknown) => Number(value).toFixed(2);
 
 // Validation method to limit input to numbers with up to two decimal places, and rangebound between 0 and 100.
 const validateAndFormat = (event: Event) => {
@@ -272,7 +273,7 @@ const validateAndFormat = (event: Event) => {
 
             <textarea
               v-else-if="TEXT_FIELDS.includes(column.field)"
-              :value="fieldValue(useCase, column.field)"
+              :value="textValue(useCase, column.field)"
               @input="(event) => updateObjectField(useCase.uid, column.field, (event.target as HTMLTextAreaElement).value)"
               :disabled="isLocked(useCase, column.field)"
               :style="{backgroundColor: getBackgroundColor(useCase, column.field)}"

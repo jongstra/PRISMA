@@ -3,12 +3,13 @@
 // cover. Used on the DeTT&CT page (groups and data components) and on the MaGMa heatmap (groups).
 import Swal from 'sweetalert2';
 import { computed, ref } from 'vue';
-import { tacticsStore } from '@/stores/tactics';
+import { tacticsStore, type TechniqueAttribute } from '@/stores/tactics';
 
 const props = defineProps<{
   list: 'groups' | 'data_components'; // the list of the domain to select from
-  selectedField: string; // the field that marks an item as selected
-  onlyShowField: string; // the domain field that says: only show the techniques of the selected items
+  selectedField: 'selected' | 'selectedInMagmaHeatmap'; // the field that marks an item as selected
+  // The domain field that says: only show the techniques of the selected items.
+  onlyShowField: 'only_show_selected_groups' | 'only_show_selected_components' | 'only_show_selected_groups_magma_heatmap';
   noun: string; // 'group' or 'component', for the texts
   toggleTitle: string;
   color: 'red' | 'green'; // colour of the selected items
@@ -16,11 +17,11 @@ const props = defineProps<{
 
 const store = tacticsStore();
 
-const items = computed<any[]>(() => (store.currentDomain as any)?.[props.list] ?? []);
+const items = computed<TechniqueAttribute[]>(() => store.currentDomain?.[props.list] ?? []);
 
 const selectedItems = computed(() => items.value.filter((item) => item[props.selectedField] === true));
 
-const removeSelection = (item: any) => {
+const removeSelection = (item: TechniqueAttribute) => {
   delete item[props.selectedField];
 };
 
@@ -62,7 +63,7 @@ const filteredItems = computed(() => {
   return items.value.filter((item) => item.name.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
-const selectItem = (item: any) => {
+const selectItem = (item: TechniqueAttribute) => {
   item[props.selectedField] = true;
   searchQuery.value = '';
 };
@@ -74,11 +75,11 @@ const addItemFromSearch = () => {
   }
 };
 
-const onlyShowSelected = computed({
-  get: () => (store.currentDomain as any)?.[props.onlyShowField],
+const onlyShowSelected = computed<boolean>({
+  get: () => store.currentDomain?.[props.onlyShowField] ?? false,
   set: (value) => {
     if (store.currentDomain) {
-      (store.currentDomain as any)[props.onlyShowField] = value;
+      store.currentDomain[props.onlyShowField] = value;
     }
   },
 });
@@ -97,7 +98,7 @@ const onlyShowSelected = computed({
     <div v-if="filteredItems.length && searchQuery" class="suggestions">
       <div
         v-for="item in filteredItems"
-        :key="item.id"
+        :key="item.name"
         class="suggestion-item"
         @click="selectItem(item)"
       >
@@ -107,7 +108,7 @@ const onlyShowSelected = computed({
     <div class="buttons-wrapper">
       <button
         v-for="item in selectedItems"
-        :key="item.id"
+        :key="item.name"
         @click="removeSelection(item)"
       >
         {{ item.name }}

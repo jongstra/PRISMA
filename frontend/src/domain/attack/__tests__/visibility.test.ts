@@ -62,7 +62,8 @@ describe('with the real ATT&CK catalog and the maximum-quality DeTT&CT example',
   const catalog = JSON.parse(fs.readFileSync('public/tactics_and_techniques_by_domain.json', 'utf8')).enterprise;
   const dettect = parse(fs.readFileSync('../examples/dettect/enterprise_max_quality.yaml', 'utf8'));
   const completeness: Completeness = new Map(
-    dettect.data_sources.map((ds: any) => [ds.data_source_name, ds.data_source[0].data_quality.device_completeness / 5]),
+    dettect.data_sources.map((ds: { data_source_name: string; data_source: { data_quality: { device_completeness: number } }[] }) =>
+      [ds.data_source_name, ds.data_source[0].data_quality.device_completeness / 5]),
   );
 
   it('gives every detectable technique exactly 100%, never more (rounding errors hid some techniques)', () => {

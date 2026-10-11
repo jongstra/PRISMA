@@ -5,6 +5,10 @@ import { recalculateUseCases } from '@/domain/magma/calculations';
 import { findMultipleParents, findParentCycles, findUnknownParents, percentageProblem } from '@/domain/magma/validation';
 import { exportNumber, magmaFileDomains } from '@/io/magmaFile';
 
+// A percentage (0-100) of a use case. What is typed in the sheet stays text (such as '45', or '' for an empty field), and
+// a visibility from the DeTT&CT file is stored as text with two decimals ('45.00'); the calculations use Number().
+export type Percentage = number | string | null;
+
 export interface UseCase {
   domain: string;
   id: string;
@@ -17,20 +21,24 @@ export interface UseCase {
   dataSource?: string;  // Self-defined data source by user.
   visibilityFromAttackTechnique?: boolean;
   visibilityFromAttackTechniqueOverride?: boolean;
-  visibility?: number | null;
-  implementation?: number | null;
-  effectiveness?: number | null;
+  visibility?: Percentage;
+  implementation?: Percentage;
+  effectiveness?: Percentage;
   weight?: number | null;
   potential?: number | null;
   invalidVisibility?: boolean;
   invalidId?: boolean;
   invalidParentIds?: boolean;
   permanent?: boolean;
-  inImpact?: number;
-  thrImpact?: number;
-  outImpact?: number;
+  inImpact?: Percentage;
+  thrImpact?: Percentage;
+  outImpact?: Percentage;
   risk?: number;
 }
+
+// A use case as it is read from a MaGMa file: each field can be missing or have the wrong type, until addExistingUseCase
+// checks it.
+export type UseCaseFromFile = Partial<Record<keyof UseCase, unknown>>;
 
 // The result of adding use cases from a file: how many were added, why the others were not, and warnings about the
 // added ones (see importSummary in io/magmaFile.ts).
@@ -40,25 +48,16 @@ export interface ImportResult {
   warnings: string[];
 }
 
-interface UpdatedFields {
-  name?: string;
-  id?: string;
-  description?: string;
-  parentIds?: Array<string>;
-  attackTechniqueId?: string;
-  visibilityFromAttackTechniqueOverride?: boolean;
-  visibility?: number | null;
-  implementation?: number | null;
-  effectiveness?: number | null;
-}
+// The fields that can be changed in the sheets.
+type UpdatedFields = Partial<Pick<UseCase, 'name' | 'id' | 'description' | 'dataSource' | 'parentIds' | 'attackTechniqueId'
+  | 'visibilityFromAttackTechniqueOverride' | 'visibility' | 'implementation' | 'effectiveness' | 'inImpact' | 'thrImpact'
+  | 'outImpact'>>;
 
 // The percentages of a use case that are entered by the user or imported.
 const PERCENTAGE_FIELDS = ['visibility', 'implementation', 'effectiveness', 'inImpact', 'thrImpact', 'outImpact'] as const;
 
-const formatPercentage = (number: any) => {
-  number = Number(number);
-  return number.toFixed(2);
-};
+// A visibility from the DeTT&CT file, as text with two decimals (none counts as 0).
+const formatPercentage = (percentage: number | null) => Number(percentage).toFixed(2);
 
 export const magmaStore = defineStore('magma', {
   state: () => ({
@@ -274,7 +273,7 @@ export const magmaStore = defineStore('magma', {
           // If the useCase.attackTechniqueId is valid, update the use case visibility based on the visibility of the attack technique.
           // Handle a possible visibility override.
           if (!useCase.visibilityFromAttackTechniqueOverride) {
-            useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain))??0;
+            useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain));
             useCase.visibilityFromAttackTechnique = true;
           } else {
             useCase.visibilityFromAttackTechnique = false;
@@ -412,7 +411,7 @@ export const magmaStore = defineStore('magma', {
           } else {
             if (!useCase.visibilityFromAttackTechniqueOverride) {
               const attackTechniqueId = updatedFields.attackTechniqueId;
-              useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(attackTechniqueId, domain ?? useCase.domain))??0;
+              useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(attackTechniqueId, domain ?? useCase.domain));
             }
             useCase.visibilityFromAttackTechnique = true;
           }
@@ -435,7 +434,7 @@ export const magmaStore = defineStore('magma', {
       const tactics = tacticsStore();
       this.L3UseCases().forEach((useCase) => {
         if (useCase.visibilityFromAttackTechnique === true && useCase.visibilityFromAttackTechniqueOverride === false && useCase.attackTechniqueId) {
-          useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain))??0;
+          useCase.visibility = formatPercentage(tactics.getDomainTechniqueVisibilityPercentageById(useCase.attackTechniqueId, useCase.domain));
         }
       });
       this.recalculateAll();
@@ -448,7 +447,7 @@ export const magmaStore = defineStore('magma', {
 
     // Load the use cases of a MaGMa file (see readMagmaFile in io/magmaFile.ts): they replace the current use cases of the
     // domains in the file, and the other domains stay as they are.
-    loadUseCases(useCases: any[]): ImportResult {
+    loadUseCases(useCases: UseCaseFromFile[]): ImportResult {
       const domains = magmaFileDomains(useCases);
       this.useCases = this.useCases.filter((useCase) => useCase.permanent || !domains.includes(useCase.domain));
       const result = this.importUseCases(useCases);
@@ -494,15 +493,17 @@ export const magmaStore = defineStore('magma', {
 
     // Add use cases from a MaGMa file (see readMagmaFile in io/magmaFile.ts) to the current use cases. Use cases that cannot
     // be added are skipped; the result says why (see importSummary in io/magmaFile.ts).
-    importUseCases(useCases: any[]): ImportResult {
+    importUseCases(useCasesFromFile: UseCaseFromFile[]): ImportResult {
+      // Each use case is checked when it is added (addExistingUseCase); until then, its fields are taken as they are.
+      const useCases = useCasesFromFile as UseCase[];
       const failed: string[] = [];
       let imported = 0;
 
       // Use cases that are their own (indirect) parent cannot be calculated, so they are not imported.
-      const parentCycles = findParentCycles(useCases.filter((useCase: any) => !useCase.permanent));
+      const parentCycles = findParentCycles(useCases.filter((useCase) => !useCase.permanent));
 
       // Iterate over each use case and try to add it.
-      useCases.forEach((useCase: any) => {
+      useCases.forEach((useCase) => {
         // Skip permanent use cases, since they should always be present already for all 3 domains).
         if (useCase.permanent) {
           return

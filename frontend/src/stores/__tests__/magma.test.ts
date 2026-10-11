@@ -3,15 +3,16 @@ import { setActivePinia, createPinia } from 'pinia';
 import fs from 'node:fs';
 import { parse } from 'yaml';
 import { tacticsStore } from '../tactics';
-import { magmaStore } from '../magma';
+import { magmaStore, type UseCase } from '../magma';
 import { importSummary, magmaFileDomains, readMagmaFile, writeMagmaFile } from '@/io/magmaFile';
 
 const catalog = JSON.parse(fs.readFileSync('public/tactics_and_techniques_by_domain.json', 'utf8'));
 const readExample = (name: string) => fs.readFileSync(`../examples/${name}`, 'utf8');
 
 // A MaGMa file read as the app reads it, and the use cases in a store written as a MaGMa file (see io/magmaFile.ts).
+type MagmaStore = ReturnType<typeof magmaStore>;
 const readFile = (text: string) => readMagmaFile(parse(text));
-const saveFile = (magma: any) => writeMagmaFile(magma.domainSortedUseCases);
+const saveFile = (magma: MagmaStore) => writeMagmaFile(magma.domainSortedUseCases);
 
 // Fresh stores, with the ATT&CK catalog and the permanent IN and THR use cases.
 async function setUpStores() {
@@ -27,7 +28,7 @@ async function setUpStores() {
 }
 
 describe('magma store with the example files', () => {
-  let magma: any;
+  let magma: MagmaStore;
 
   beforeEach(async () => {
     const stores = await setUpStores();
@@ -37,7 +38,7 @@ describe('magma store with the example files', () => {
     magma.updateAllL3UseCasesBasedOnDettectVisibility();
   });
 
-  const value = (id: string, field: string) => Number(magma.getUseCaseById(id, 'enterprise-attack')[field]).toFixed(2);
+  const value = (id: string, field: keyof UseCase) => Number(magma.getUseCaseById(id, 'enterprise-attack')![field]).toFixed(2);
 
   it('gives the known values for the example (same as before the recalculation rework)', () => {
     expect([value('IN', 'weight'), value('THR', 'weight')]).toEqual(['12.17', '0.00']);
@@ -46,14 +47,14 @@ describe('magma store with the example files', () => {
   });
 
   it('updates the business risks when an L3 use case under cumulative IN changes', () => {
-    magma.updateUseCase(magma.getUseCaseById('IN-1-1', 'enterprise-attack').uid, { effectiveness: 100 }, 'enterprise-attack');
+    magma.updateUseCase(magma.getUseCaseById('IN-1-1', 'enterprise-attack')!.uid, { effectiveness: 100 }, 'enterprise-attack');
     expect(value('IN', 'weight')).toBe('15.60');
     expect(value('DOS', 'risk')).toBe('94.85');
     expect(value('FIN', 'risk')).toBe('91.01');
   });
 
   it('updates parents and risks when an L3 use case is removed', () => {
-    magma.removeUseCaseByUid(magma.getUseCaseById('IN-1-1', 'enterprise-attack').uid);
+    magma.removeUseCaseByUid(magma.getUseCaseById('IN-1-1', 'enterprise-attack')!.uid);
     expect(value('IN', 'weight')).toBe('0.00');
     expect(value('DOS', 'risk')).toBe('100.00');
   });
@@ -61,7 +62,7 @@ describe('magma store with the example files', () => {
   it('gives a new L1 use case a risk straight away', () => {
     magma.addNewUseCase(1, 'enterprise-attack');
     const created = magma.L1UseCases('enterprise-attack').at(-1);
-    expect(Number(created.risk).toFixed(2)).toBe('87.83'); // IN impact 100% × cumulative IN 12.17%.
+    expect(Number(created!.risk).toFixed(2)).toBe('87.83'); // IN impact 100% × cumulative IN 12.17%.
   });
 });
 
@@ -110,7 +111,7 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
       { domain, level: 3, id: 'TOO-HIGH', name: 'h', parentIds: ['BIZ-1'], visibility: 150 },
       { domain, level: 3, id: 'AS-TEXT', name: 'ok', parentIds: ['BIZ-1'], visibility: '50', implementation: 100, effectiveness: 100, visibilityFromAttackTechniqueOverride: true },
     ])).text;
-    const imported = magma.useCases.filter((u: any) => !u.permanent).map((u: any) => u.id).sort();
+    const imported = magma.useCases.filter((u) => !u.permanent).map((u) => u.id).sort();
     expect(imported).toEqual(['AS-TEXT', 'BIZ', 'BIZ-1']);
     expect(message).toContain('Successful imports: 3. Failed imports: 6.');
     expect(message).toContain('"SELF" in domain "enterprise-attack" is its own (indirect) parent: SELF → SELF');
@@ -171,7 +172,7 @@ describe('magma store: saving and loading', () => {
 });
 
 describe('magma store: renaming and deleting use cases', () => {
-  let magma: any;
+  let magma: MagmaStore;
   const domain = 'enterprise-attack';
   const parentsOf = (id: string, inDomain = domain) => magma.getUseCaseById(id, inDomain)?.parentIds;
 
@@ -182,38 +183,38 @@ describe('magma store: renaming and deleting use cases', () => {
   });
 
   it('moves the children along when an ID is renamed, within the same domain only', () => {
-    const weightBefore = magma.getUseCaseById('DOS', domain).weight;
-    expect(magma.renameUseCase(magma.getUseCaseById('DOS-1', domain).uid, 'DOS-A')).toBeNull();
+    const weightBefore = magma.getUseCaseById('DOS', domain)!.weight;
+    expect(magma.renameUseCase(magma.getUseCaseById('DOS-1', domain)!.uid, 'DOS-A')).toBeNull();
     expect(parentsOf('DOS-1-1')).toEqual(['DOS-A']);
     expect(parentsOf('DOS-1-2')).toEqual(['DOS-A']);
-    expect(magma.getUseCaseById('DOS', domain).weight).toBe(weightBefore);
+    expect(magma.getUseCaseById('DOS', domain)!.weight).toBe(weightBefore);
     expect(parentsOf('M-1', 'mobile-attack')).toEqual(['DOS-1']);
   });
 
   it('refuses an empty ID, an ID that already exists, and renaming IN/THR, without changing anything', () => {
-    const uid = magma.getUseCaseById('DOS-1', domain).uid;
+    const uid = magma.getUseCaseById('DOS-1', domain)!.uid;
     expect(magma.renameUseCase(uid, 'FIN-1')).toContain('already exists');
     expect(magma.renameUseCase(uid, '  ')).toContain('cannot be empty');
-    expect(magma.renameUseCase(magma.getUseCaseById('IN', domain).uid, 'IN2')).toContain('cannot be renamed');
+    expect(magma.renameUseCase(magma.getUseCaseById('IN', domain)!.uid, 'IN2')).toContain('cannot be renamed');
     expect(magma.getUseCaseById('DOS-1', domain)).toBeDefined();
     expect(parentsOf('DOS-1-1')).toEqual(['DOS-1']);
   });
 
   it('trims spaces around a new ID', () => {
-    expect(magma.renameUseCase(magma.getUseCaseById('DOS-1', domain).uid, '  DOS-B ')).toBeNull();
+    expect(magma.renameUseCase(magma.getUseCaseById('DOS-1', domain)!.uid, '  DOS-B ')).toBeNull();
     expect(parentsOf('DOS-1-1')).toEqual(['DOS-B']);
   });
 
   it('keeps the children when their parent is deleted (they lose their parent)', () => {
-    magma.removeUseCaseByUid(magma.getUseCaseById('DOS-1', domain).uid);
+    magma.removeUseCaseByUid(magma.getUseCaseById('DOS-1', domain)!.uid);
     expect(parentsOf('DOS-1-1')).toEqual(['DOS-1']);
-    expect(magma.getUseCaseById('DOS', domain).weight).toBe(0);
+    expect(magma.getUseCaseById('DOS', domain)!.weight).toBe(0);
   });
 });
 
 describe('magma store: loading a MaGMa file', () => {
-  let magma: any;
-  const ids = () => magma.useCases.filter((u: any) => !u.permanent).map((u: any) => `${u.domain.split('-')[0]}:${u.id}`).sort();
+  let magma: MagmaStore;
+  const ids = () => magma.useCases.filter((u) => !u.permanent).map((u) => `${u.domain.split('-')[0]}:${u.id}`).sort();
 
   beforeEach(async () => {
     magma = (await setUpStores()).magma;
@@ -248,7 +249,7 @@ describe('magma store: L3 use cases per technique (heatmap)', () => {
       { domain: 'enterprise-attack', level: 3, id: 'OTHER', name: 'o', attackTechniqueId: 'T1059' },
       { domain: 'mobile-attack', level: 3, id: 'MOBILE', name: 'm', attackTechniqueId: 'T1660' },
     ]);
-    const ids = (techniqueId: string, domain: string) => magma.l3UseCasesForTechnique(techniqueId, domain).map((u: any) => u.id).sort();
+    const ids = (techniqueId: string, domain: string) => magma.l3UseCasesForTechnique(techniqueId, domain).map((u) => u.id).sort();
     expect(ids('T1566', 'enterprise-attack')).toEqual(['PARENT', 'SUB']);
     expect(ids('T1660', 'enterprise-attack')).toEqual([]);
     expect(ids('T1660', 'mobile-attack')).toEqual(['MOBILE']);

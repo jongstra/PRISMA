@@ -23,14 +23,14 @@ function getTopCoverageComponents(): Component[] {
   // Return the top 15 components (that are not used yet), which increase (sub)technique visibility the most. 
   return components
     .filter((component) => component.visibility == true)
-    .filter((component) => component.quality.device_completeness < 5)
+    .filter((component) => (component.quality.device_completeness ?? 0) < 5) // an empty score counts as 0
     .filter((component) => component.all_technique_count > 0)
     .slice(0, 15)
     .map((component) => ({
       name: component.name,
       technique_count: component.technique_count,
       subtechnique_count: component.subtechnique_count,
-      coverage: (component.quality.device_completeness * 0.2 * 100).toFixed(0),
+      coverage: ((component.quality.device_completeness ?? 0) * 0.2 * 100).toFixed(0),
     }));
 }
 

@@ -1,7 +1,7 @@
 // The MaGMa file format: a YAML list of use cases, saved with "Save MaGMa YAML" on the MaGMa page, or made from the MaGMa
 // Excel template with tools/convert_magma_excel.py.
 import * as yaml from 'yaml';
-import type { ImportResult, UseCase } from '@/stores/magma';
+import type { ImportResult, UseCase, UseCaseFromFile } from '@/stores/magma';
 
 // The ATT&CK domains that use cases can belong to, in the usual order.
 export const SUPPORTED_DOMAINS = ['enterprise-attack', 'mobile-attack', 'ics-attack'];
@@ -14,11 +14,12 @@ export const exportNumber = (value: unknown) => {
 
 // Check the YAML read from a MaGMa file: a list of use cases, for at least one supported domain. Throws an error with an
 // explanation otherwise, so the file can be refused before anything changes.
-export function readMagmaFile(data: unknown): any[] {
-  if (!Array.isArray(data) || !data.every((useCase) => useCase && typeof useCase === 'object' && !Array.isArray(useCase))) {
+export function readMagmaFile(data: unknown): UseCaseFromFile[] {
+  const isUseCase = (value: unknown): value is UseCaseFromFile => typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (!Array.isArray(data) || !data.every(isUseCase)) {
     throw new Error('The file does not contain a list of MaGMa use cases.');
   }
-  if (!data.some((useCase) => !useCase.permanent && SUPPORTED_DOMAINS.includes(useCase.domain))) {
+  if (!data.some((useCase) => !useCase.permanent && typeof useCase.domain === 'string' && SUPPORTED_DOMAINS.includes(useCase.domain))) {
     throw new Error(`The file contains no use cases for a supported domain (${SUPPORTED_DOMAINS.join(', ')}).`);
   }
   return data;
@@ -26,7 +27,7 @@ export function readMagmaFile(data: unknown): any[] {
 
 // The supported domains that a file has use cases for, in the usual order. The permanent IN and THR use cases do not
 // count: every file saved by PRISMA contains them for all domains.
-export function magmaFileDomains(useCases: any[]): string[] {
+export function magmaFileDomains(useCases: UseCaseFromFile[]): string[] {
   const domains = new Set(useCases.filter((useCase) => !useCase.permanent).map((useCase) => useCase.domain));
   return SUPPORTED_DOMAINS.filter((domain) => domains.has(domain));
 }

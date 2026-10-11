@@ -15,7 +15,7 @@ export interface DettectFile {
   unknownDataSources: string[];
 }
 
-const isObject = (value: unknown): value is Record<string, any> => typeof value === 'object' && value !== null && !Array.isArray(value);
+const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
  * Checks a parsed DeTT&CT file and reads its data sources. `dataComponents` gives the ATT&CK data component names of a
@@ -30,24 +30,25 @@ export function readDettectFile(data: unknown, dataComponents: (domain: string) 
       ? `The file is a DeTT&CT "${data.file_type}" file; PRISMA needs a data source administration file ("data-source-administration").`
       : 'The file is not a DeTT&CT data source administration file (it has no file_type).');
   }
-  if (!SUPPORTED_DOMAINS.includes(data.domain)) {
+  if (typeof data.domain !== 'string' || !SUPPORTED_DOMAINS.includes(data.domain)) {
     throw new Error(`The domain of the file ("${data.domain}") is not supported; use ${SUPPORTED_DOMAINS.join(', ')}.`);
   }
   if (!Array.isArray(data.data_sources)) {
     throw new Error('The file contains no list of data sources (data_sources).');
   }
 
-  const names = data.data_sources.map((dataSource: any) => dataSource?.data_source_name);
-  const duplicates = [...new Set(names.filter((name: unknown, index: number) => names.indexOf(name) !== index))];
+  const dataSources: unknown[] = data.data_sources;
+  const names = dataSources.map((dataSource) => (isObject(dataSource) ? dataSource.data_source_name : undefined));
+  const duplicates = [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
   if (duplicates.length > 0) {
     throw new Error(`Duplicate data sources found in YAML: ${duplicates.join(', ')}. Please remove the duplicates before loading.`);
   }
 
   const known = new Set(dataComponents(data.domain));
   const result: DettectFile = { domain: data.domain, dataSources: new Map(), completeness: new Map(), unknownDataSources: [] };
-  for (const dataSource of data.data_sources) {
-    const name = dataSource?.data_source_name;
-    if (typeof name !== 'string' || name.trim() === '') {
+  for (const dataSource of dataSources) {
+    const name = isObject(dataSource) ? dataSource.data_source_name : undefined;
+    if (!isObject(dataSource) || typeof name !== 'string' || name.trim() === '') {
       throw new Error('The file contains a data source without a name (data_source_name).');
     }
     // DeTT&CT can register a data source per group of systems; PRISMA uses the first entry (using the other entries is
