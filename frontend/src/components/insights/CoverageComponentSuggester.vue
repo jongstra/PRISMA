@@ -55,7 +55,7 @@ const rows = computed(() =>
 <template>
   <BarChart :rows="rows" :max="maxCount" wrap-long-names>
     <template #title>
-      Suggestion: Improve Coverage of Exisiting Components
+      Suggestion: Improve Coverage of Existing Components
       <span v-if="getTopCoverageComponents().length >= 15"> (Top 15)</span>
     </template>
     <template #name="{ row, index }"
