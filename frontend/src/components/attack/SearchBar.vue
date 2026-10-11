@@ -24,7 +24,6 @@ input[type='text'] {
   font-size: 13.3px;
   border: 2px solid #555;
   border-radius: 5px;
-  width: 150;
   height: 38px;
 }
 </style>
