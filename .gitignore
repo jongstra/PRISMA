@@ -31,6 +31,9 @@ coverage
 *.tsbuildinfo
 
 
+# ATT&CK files that tools/build_attack_catalog.ipynb downloads from MITRE (not part of the repository)
+tools/mitre_attack_files/
+
 # Python stuff
 tools/venv/
 __pycache__/

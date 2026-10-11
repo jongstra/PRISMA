@@ -18,6 +18,7 @@ The figure below shows the overview of how MaGMa 2.0 and DeTT&CT are combined to
 | [`templates/`](templates/) | MaGMa Excel template, for preparing many use cases |
 | [`tools/`](tools/) | A notebook that builds the ATT&CK catalog, and scripts that convert Excel files |
 | [`LICENCE`](LICENCE) | Licence of this project |
+| [`LICENCE-ATTACK.txt`](LICENCE-ATTACK.txt) | MITRE's licence for the ATT&CK data in the catalog and the MaGMa template |
 
 ## Installation Instructions
 

@@ -3,14 +3,20 @@ import hashlib
 import json
 from pathlib import Path
 
+from mitreattack.release_info import STIX21
+
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / 'frontend' / 'public' / 'tactics_and_techniques_by_domain.json'
+DETTECT_FILE = ROOT / 'tools' / 'dettect_files' / 'dettect_data_sources.json'
 
 
-def test_the_catalog_was_built_from_the_source_files_in_the_repository():
-    """Fails when the ATT&CK or DeTT&CT files change without building the catalog again (run build_attack_catalog.ipynb)."""
+def test_the_catalog_was_built_from_mitres_files_and_the_dettect_file_in_the_repository():
+    """
+    The fingerprints in the catalog's meta block must be MITRE's official ones for its ATT&CK version, and the one of the
+    DeTT&CT file in the repository. This fails when the DeTT&CT file changes without building the catalog again.
+    """
     meta = json.loads(CATALOG.read_text())['meta']
-    sources = [*sorted((ROOT / 'tools' / 'mitre_attack_files').glob('*-attack-*.json')), ROOT / 'tools' / 'dettect_files' / 'dettect_data_sources.json']
-    expected = {path.name: 'sha256:' + hashlib.sha256(path.read_bytes()).hexdigest() for path in sources}
+    version = meta['attack_version']
+    expected = {f'{domain}-attack-{version}.json': 'sha256:' + STIX21[domain][version] for domain in ('enterprise', 'ics', 'mobile')}
+    expected['dettect_data_sources.json'] = 'sha256:' + hashlib.sha256(DETTECT_FILE.read_bytes()).hexdigest()
     assert meta['sources'] == expected
-    assert all(f"-attack-{meta['attack_version']}.json" in name for name in expected if 'attack' in name)

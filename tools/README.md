@@ -5,7 +5,6 @@ Python tools that prepare data for PRISMA: a notebook that builds the ATT&CK cat
 | Name | Description |
 |---|---|
 | [`dettect_files/`](dettect_files/) | Extra DeTT&CT data sources per technique, used for the catalog |
-| [`mitre_attack_files/`](mitre_attack_files/) | ATT&CK v17.1 source data from MITRE |
 | [`tests/`](tests/) | Tests for the converters and the catalog |
 | [`build_attack_catalog.ipynb`](build_attack_catalog.ipynb) | Builds the ATT&CK catalog the app loads (`frontend/public/`) |
 | [`common.py`](common.py) | Helpers that both converters use |
@@ -31,10 +30,10 @@ tools/.venv/bin/python tools/convert_magma_excel.py my_magma.xlsx my_magma.yaml
 tools/.venv/bin/python tools/convert_manual_excel.py rules.xlsx rules.yaml
 ```
 
-Build the catalog in Jupyter: start it with `tools/.venv/bin/jupyter notebook tools`, open `build_attack_catalog.ipynb` and run all cells. The notebook checks the catalog before writing it.
+Build the catalog in Jupyter: start it with `tools/.venv/bin/jupyter notebook tools`, open `build_attack_catalog.ipynb` and run all cells. The first run downloads MITRE's ATT&CK files (about 50 MB) into `mitre_attack_files/` and checks them against MITRE's official fingerprints; that folder is not part of the repository. The notebook checks the catalog before writing it.
 
 Run the tests with `tools/.venv/bin/python -m pytest tools`.
 
 ## New ATT&CK version
 
-Download the new files from [MITRE's ATT&CK STIX data](https://github.com/mitre-attack/attack-stix-data) into `mitre_attack_files/`, set `ATTACK_VERSION` in `build_attack_catalog.ipynb`, and run it. Then refresh the template's technique list (see [`templates/`](../templates/)).
+Set `ATTACK_VERSION` in `build_attack_catalog.ipynb` and run it; it downloads the new files. If `mitreattack-python` does not know the version yet, update it in `requirements.txt` first. Then refresh the template's technique list (see [`templates/`](../templates/)).
