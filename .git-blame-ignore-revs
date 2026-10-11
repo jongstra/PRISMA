@@ -1,0 +1,4 @@
+# Commits that only change formatting; git blame skips them (GitHub reads this file by itself).
+
+# Format the frontend code with Prettier
+8d414e2e652b4e29c1ce88abac4bd4b1e40795ef
