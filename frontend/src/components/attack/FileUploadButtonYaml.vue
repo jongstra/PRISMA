@@ -35,7 +35,7 @@ const uploadFile = async () => {
       Swal.fire({
         icon: 'warning',
         titleText: 'DeTT&CT file loaded, with unknown data sources',
-        text: `These data sources are not data components in MITRE ATT&CK v17.1, so they were ignored: ${unknownDataSources.join(', ')}.`,
+        text: `These data sources are not data components in MITRE ATT&CK v${store.attackVersion}, so they were ignored: ${unknownDataSources.join(', ')}.`,
       })
     }
   } catch (error) {

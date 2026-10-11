@@ -71,6 +71,13 @@ describe('tactics store: loading a DeTT&CT file safely', () => {
     expect(ratio('T1595')).toBeGreaterThan(0); // Active Scanning is visible through Network Traffic Content.
   });
 
+  it('remembers the ATT&CK version of the catalog', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve(catalog) })));
+    await store.fetchTactics();
+    vi.unstubAllGlobals();
+    expect(store.attackVersion).toBe('17.1');
+  });
+
   it('passes the error on when the ATT&CK data cannot be loaded (App.vue shows the message)', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false, status: 404, statusText: 'Not Found' })));
     await expect(store.fetchTactics()).rejects.toThrow('HTTP 404 Not Found');

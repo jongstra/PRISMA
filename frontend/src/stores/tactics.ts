@@ -94,6 +94,7 @@ export const tacticsStore = defineStore('tactics', {
   state: () => ({
     domain: 'enterprise-attack',  // Alternative initial value: 'none'.
     dataLoaded: false,
+    attackVersion: '' as string, // the ATT&CK version of the catalog (from its meta block), shown next to the domain buttons
     enterprise: [] as Domain[],
     ics: [] as Domain[],
     mobile: [] as Domain[],
@@ -340,6 +341,7 @@ export const tacticsStore = defineStore('tactics', {
         this.enterprise = data.enterprise;
         this.mobile = data.mobile;
         this.ics = data.ics;
+        this.attackVersion = data.meta?.attack_version ?? '';
       } finally {
         this.dataLoaded = true;
       }
