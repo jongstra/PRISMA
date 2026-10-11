@@ -30,22 +30,22 @@ function getUsedDataSources() {
   return dataSources
 }
 
-function calculateMean(arr) {
-    return arr.reduce((acc, val) => acc + val, 0) / arr.length;
+function calculateMean(values: number[]) {
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+// The means of the scores over the L1 use cases of the current domain (including IN and THR).
 function getUseCaseStatistics() {
     const useCases = magma.L1UseCases(store.domain);
-    const useCaseStatistics = {};
-    
-    // Calculate mean values for all use cases in the current domain.
-    useCaseStatistics.meanVisibility = calculateMean(useCases.map((useCase) => useCase.visibility));
-    useCaseStatistics.meanImplementation = calculateMean(useCases.map((useCase) => useCase.implementation));
-    useCaseStatistics.meanEffectiveness = calculateMean(useCases.map((useCase) => useCase.effectiveness));
-    useCaseStatistics.meanWeight = calculateMean(useCases.map((useCase) => useCase.weight));
-    useCaseStatistics.meanPotential = calculateMean(useCases.map((useCase) => useCase.potential));
-
-    return useCaseStatistics;
+    const meanOf = (score: 'visibility' | 'implementation' | 'effectiveness' | 'weight' | 'potential') =>
+      calculateMean(useCases.map((useCase) => Number(useCase[score])));
+    return {
+      meanVisibility: meanOf('visibility'),
+      meanImplementation: meanOf('implementation'),
+      meanEffectiveness: meanOf('effectiveness'),
+      meanWeight: meanOf('weight'),
+      meanPotential: meanOf('potential'),
+    };
 }
 
 </script>
