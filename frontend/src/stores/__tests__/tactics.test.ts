@@ -84,6 +84,20 @@ describe('tactics store: loading a DeTT&CT file safely', () => {
     expect(ratio('T1595')).toBeGreaterThan(0); // Active Scanning is visible through Network Traffic Content.
   });
 
+  it('forgets the scores of the previous file', () => {
+    const quality = (name: string) => store.enterprise!.data_components.find((c) => c.name === name)!.quality;
+    store.processDettectYaml(dettect([dataSource('Process Creation', 3), dataSource('Command Execution', 4)]));
+    expect(quality('Process Creation').device_completeness).toBe(3);
+
+    // The next file has no device completeness for Process Creation (which counts as 0), and no Command Execution.
+    store.processDettectYaml(
+      dettect([{ data_source_name: 'Process Creation', data_source: [{ data_quality: { retention: 2 } }] }]),
+    );
+    expect(quality('Process Creation').device_completeness).toBeNull();
+    expect(quality('Process Creation').retention).toBe(2);
+    expect(quality('Command Execution').device_completeness).toBeNull();
+  });
+
   it('remembers the ATT&CK version of the catalog', async () => {
     vi.stubGlobal(
       'fetch',

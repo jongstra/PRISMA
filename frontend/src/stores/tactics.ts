@@ -394,9 +394,12 @@ export const tacticsStore = defineStore('tactics', {
       const tactics = domainEntry.tactics;
       const data_components = domainEntry.data_components;
 
-      // Reset all components to visibility = false
+      // Forget the visibility and the DeTT&CT scores of all components.
       data_components.forEach((component) => {
         component.visibility = false;
+        for (const score of Object.keys(component.quality)) {
+          component.quality[score] = null;
+        }
       });
 
       // Reset all techniques and subtechniques to visibility_ratio = 0
