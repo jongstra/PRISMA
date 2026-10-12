@@ -149,3 +149,18 @@ describe('tactics store: techniques of the hovered and selected groups and data 
     expect(store.hoveredGroupsTechniquesSet.size).toBe(0);
   });
 });
+
+describe('tactics store: the technique options of the L3 sheet', () => {
+  it('lists every technique and sub-technique of the domain once, by ID, with the parent name before a sub-technique', () => {
+    setActivePinia(createPinia());
+    const store = tacticsStore();
+    store.enterprise = structuredClone(catalog).enterprise;
+    const options = store.techniqueOptions;
+    expect(options).toHaveLength(679); // 211 techniques and 468 sub-techniques
+    expect(new Set(options.map((option) => option.id)).size).toBe(options.length);
+    expect(options.find((option) => option.id === 'T1566')?.name).toBe('Phishing');
+    expect(options.find((option) => option.id === 'T1566.001')?.name).toBe('Phishing: Spearphishing Attachment');
+    const ids = options.map((option) => option.id);
+    expect(ids.indexOf('T1566')).toBe(ids.indexOf('T1566.001') - 1);
+  });
+});

@@ -116,59 +116,19 @@ export const tacticsStore = defineStore('tactics', {
     /** The catalog data of the selected domain. */
     currentDomain: (state) => domainOf(state, state.domain),
 
-    allTechniquesIdsAndNames: (state) => {
-      const tactics = domainOf(state, state.domain)?.tactics || [];
-
-      const allTechniquesIdsAndNames = tactics.flatMap((tactic) => {
-        return tactic.techniques.map((technique) => ({
-          id: technique.external_id,
-          name: technique.name,
-        }));
-      });
-
-      // Remove duplicates using a Set based on the ID
-      const uniqueTechniques = Array.from(new Map(allTechniquesIdsAndNames.map((item) => [item.id, item])).values());
-
-      // Sort the array alphabetically based on the ID
-      uniqueTechniques.sort((a, b) => a.id.localeCompare(b.id));
-
-      return uniqueTechniques;
-    },
-
-    allTechniquesAndSubtechniquesIdsAndNames: (state) => {
-      const tactics = domainOf(state, state.domain)?.tactics || [];
-
-      const allTechniquesAndSubtechniquesIdsAndNames = tactics.flatMap((tactic) => {
-        return tactic.techniques.flatMap((technique) => {
-          const techniqueData = [
-            {
-              id: technique.external_id,
-              name: technique.name,
-            },
-          ];
-
-          if (technique.sub_techniques) {
-            techniqueData.push(
-              ...technique.sub_techniques.map((subTechnique) => ({
-                id: subTechnique.external_id,
-                name: subTechnique.name,
-              })),
-            );
+    // The techniques and sub-techniques of the selected domain, each once and sorted by ID, for the technique field of
+    // the L3 sheet. A sub-technique's name starts with its parent's name ('Phishing: Spearphishing Attachment').
+    techniqueOptions: (state): { id: string; name: string }[] => {
+      const options = new Map<string, { id: string; name: string }>();
+      for (const tactic of domainOf(state, state.domain)?.tactics ?? []) {
+        for (const technique of tactic.techniques) {
+          options.set(technique.external_id, { id: technique.external_id, name: technique.name });
+          for (const sub of technique.sub_techniques ?? []) {
+            options.set(sub.external_id, { id: sub.external_id, name: `${technique.name}: ${sub.name}` });
           }
-
-          return techniqueData;
-        });
-      });
-
-      // Remove duplicates using a Set based on the ID
-      const uniqueTechniques = Array.from(
-        new Map(allTechniquesAndSubtechniquesIdsAndNames.map((item) => [item.id, item])).values(),
-      );
-
-      // Sort the array alphabetically based on the ID
-      uniqueTechniques.sort((a, b) => a.id.localeCompare(b.id));
-
-      return uniqueTechniques;
+        }
+      }
+      return [...options.values()].sort((a, b) => a.id.localeCompare(b.id));
     },
 
     domainTechniqueByIdMap: (state) => (domain: string) => {

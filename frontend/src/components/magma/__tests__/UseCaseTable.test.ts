@@ -113,6 +113,33 @@ describe('UseCaseTable', () => {
     expect(visibility()).toBeUndefined();
   });
 
+  it('sets the technique of an L3 use case with the technique field, including sub-techniques', async () => {
+    const { magma, cell } = await showTable('L3');
+    const field = () => cell(0, 'ATT&CK Technique');
+    expect(field().find('.current').text()).toBe('None');
+    await field().find('.current').trigger('click');
+    await field().find('input').setValue('1566.001');
+    await field().find('input').trigger('keydown', { key: 'Enter' });
+    expect(magma.L3UseCases(domain)[0].attackTechniqueId).toBe('T1566.001');
+    expect(field().find('.current').text()).toBe('T1566.001 Phishing: Spearphishing Attachment');
+    expect(cell(0, 'Visibility %').find('input').attributes('disabled')).toBeDefined(); // it comes from the technique now
+  });
+
+  it('sets the parent of a use case with the parent field, and marks a missing parent red', async () => {
+    const { magma, cell } = await showTable('L2');
+    const field = () => cell(0, 'Parent Use Case');
+    expect(field().find('.current').text()).toBe('None');
+    expect((field().find('.option-picker').element as HTMLElement).style.backgroundColor).toBe('crimson');
+    await field().find('.current').trigger('click');
+    await field().find('input').setValue('THR');
+    await field().find('input').trigger('keydown', { key: 'Enter' });
+    expect(magma.L2UseCases(domain)[0].parentIds).toEqual(['THR']);
+    expect(field().find('.current').text()).toBe('THR Cumulative THROUGH risk');
+    expect((field().find('.option-picker').element as HTMLElement).style.backgroundColor).toBe('white');
+    await field().find('.clear').trigger('click');
+    expect(magma.L2UseCases(domain)[0].parentIds).toEqual(['none']);
+  });
+
   it('keeps each row with its use case when a row above it is deleted', async () => {
     const { table, magma } = await showTable('L2');
     magma.addNewUseCase(2, domain);

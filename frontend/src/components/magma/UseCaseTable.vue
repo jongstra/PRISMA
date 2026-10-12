@@ -6,6 +6,8 @@ import { computed } from 'vue';
 import { magmaStore, type UseCase } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
 import { USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
+import OptionPicker from './OptionPicker.vue';
+import { searchTechniques } from './optionSearch';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -292,40 +294,23 @@ const validateAndFormat = (event: Event) => {
               :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
             ></textarea>
 
-            <select
+            <OptionPicker
               v-else-if="column.field === 'parentIds'"
-              class="parent-ids select-with-wrap"
-              :value="useCase.parentIds"
-              @change="
-                (event) =>
-                  updateObjectField(
-                    useCase.uid,
-                    'parentIds',
-                    Array.from((event.target as HTMLSelectElement).selectedOptions).map((option) => option.value),
-                  )
-              "
+              :model-value="useCase.parentIds?.[0]"
+              :options="parentLevelUseCases"
+              noun="use case"
               :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
-            >
-              <option value="none">None</option>
-              <option v-for="parent in parentLevelUseCases" :key="parent.id" :value="parent.id">
-                {{ parent.id }}: {{ parent.name }}
-              </option>
-            </select>
+              @update:model-value="(id) => updateObjectField(useCase.uid, 'parentIds', [id])"
+            />
 
-            <select
+            <OptionPicker
               v-else-if="column.field === 'attackTechniqueId'"
-              class="attack-technique select-with-wrap"
-              :value="useCase.attackTechniqueId || 'none'"
-              @change="
-                (event) =>
-                  updateObjectField(useCase.uid, 'attackTechniqueId', (event.target as HTMLSelectElement).value)
-              "
-            >
-              <option value="none">None</option>
-              <option v-for="technique in tactics.allTechniquesIdsAndNames" :key="technique.id" :value="technique.id">
-                {{ technique.id }}: {{ technique.name }}
-              </option>
-            </select>
+              :model-value="useCase.attackTechniqueId"
+              :options="tactics.techniqueOptions"
+              :search="searchTechniques"
+              noun="technique"
+              @update:model-value="(id) => updateObjectField(useCase.uid, 'attackTechniqueId', id)"
+            />
 
             <input
               v-else-if="column.field === 'visibilityFromAttackTechniqueOverride'"
@@ -459,25 +444,6 @@ button.remove-button {
 
 .remove-col {
   width: 40px;
-}
-
-select {
-  height: 50px;
-  text-align: center;
-}
-
-.select-with-wrap {
-  white-space: normal;
-  overflow-wrap: break-word;
-  border: 0px;
-}
-
-select.parent-ids {
-  width: 144px;
-}
-
-select.attack-technique {
-  width: 164px;
 }
 
 input,
