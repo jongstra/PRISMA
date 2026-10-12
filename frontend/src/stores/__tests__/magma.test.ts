@@ -374,3 +374,18 @@ describe('magma store: unsaved changes (for the leave-page prompt)', () => {
     expect(magma.hasUnsavedChanges()).toBe(false);
   });
 });
+
+describe('magma store: grandchildren (the L3 use cases under an L1 use case)', () => {
+  it('lists a rule once, also when two of its parents belong to the same L1 use case', async () => {
+    const { magma } = await setUpStores();
+    const domain = 'enterprise-attack';
+    magma.importUseCases(readFile(readExample('magma/example.yaml')));
+    magma.importUseCases([
+      { domain, level: 2, id: 'DOS-2', name: 'Second DOS use case', parentIds: ['DOS'] },
+      { domain, level: 3, id: 'DOS-X', name: 'Rule with two parents', parentIds: ['DOS-1', 'DOS-2'] },
+    ]);
+    const ids = magma.getGrandChildUseCases(magma.getUseCaseById('DOS', domain)!).map((useCase) => useCase.id);
+    expect(ids.filter((id) => id === 'DOS-X')).toHaveLength(1);
+    expect(ids).toContain('DOS-1-1');
+  });
+});

@@ -1,45 +1,31 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { COUNT_COLOR } from '@/components/common/barColor';
+import { useCasesPerDataSource } from '@/domain/magma/dataSources';
 import { magmaStore } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
 
 const store = tacticsStore();
 const magma = magmaStore();
 
-function getMostFrequentDataSources() {
-  const useCases = magma.L3UseCases(store.domain);
+const counts = computed(() => useCasesPerDataSource(magma.L3UseCases(store.domain)));
 
-  const frequencyDict: Record<string, number> = {};
-  useCases.forEach((useCase) => {
-    if (useCase.dataSource === undefined) {
-      // Use cases without a data source are not counted.
-      return;
-    }
-    frequencyDict[useCase.dataSource] = (frequencyDict[useCase.dataSource] || 0) + 1;
-  });
-
-  // Sort the frequencyDict by values from high to low and convert back to an object.
-  const sortedFrequencyDict = Object.fromEntries(Object.entries(frequencyDict).sort(([, a], [, b]) => b - a));
-  return sortedFrequencyDict;
-}
-
-// The longest bar in this chart fills the box.
-const maxCount = computed(() => Math.max(0, ...Object.values(getMostFrequentDataSources())));
-
-// One red bar per item, the top 15.
+// One bar per data source, the 15 with the most use cases; the longest bar fills the box.
 const rows = computed(() =>
-  Object.entries(getMostFrequentDataSources())
-    .slice(0, 15)
-    .map(([name, frequency]) => ({ name, segments: [{ value: frequency ?? 0, color: 'red' }], label: frequency ?? 0 })),
+  counts.value.slice(0, 15).map(({ dataSource, count }) => ({
+    name: dataSource,
+    segments: [{ value: count, color: COUNT_COLOR }],
+    label: count,
+  })),
 );
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount" :name-width="100" label="inside">
+  <BarChart :rows="rows" :max="counts[0]?.count ?? 0" :name-width="100" label="inside">
     <template #title>
       Number of Use Cases per Data Source
-      <span v-if="Object.keys(getMostFrequentDataSources()).length >= 15"> (Top 15)</span>
+      <span v-if="counts.length > 15"> (Top 15)</span>
     </template>
   </BarChart>
 </template>

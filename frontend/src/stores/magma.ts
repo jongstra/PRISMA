@@ -182,9 +182,9 @@ export const magmaStore = defineStore('magma', {
     },
     getGrandChildUseCases() {
       return (useCase: UseCase) => {
-        const childUseCases = this.getChildUseCases(useCase);
-        const grandChildUseCases = childUseCases.map((childUseCase) => this.getChildUseCases(childUseCase)).flat();
-        return grandChildUseCases;
+        // A rule with two parents under the same use case is listed once.
+        const grandChildUseCases = this.getChildUseCases(useCase).flatMap((child) => this.getChildUseCases(child));
+        return [...new Set(grandChildUseCases)];
       };
     },
     // The L3 use cases in a domain that detect a technique or one of its sub-techniques (e.g. T1566 and T1566.001).
