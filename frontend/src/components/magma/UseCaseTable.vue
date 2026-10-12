@@ -493,4 +493,14 @@ input[type='checkbox'] {
 .text-field.left-aligned textarea {
   text-align: left;
 }
+
+/* The focus ring goes around the whole cell, like that of the other fields, not only around the text. */
+.text-field:focus-within {
+  outline: auto 1px;
+  outline: -webkit-focus-ring-color auto 1px; /* the browser's own focus ring colour, where it exists */
+}
+
+.text-field textarea:focus {
+  outline: none;
+}
 </style>
