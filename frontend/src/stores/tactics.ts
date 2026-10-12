@@ -239,8 +239,8 @@ export const tacticsStore = defineStore('tactics', {
 
     // Load a DeTT&CT data source administration file. The whole file is checked first (see domain/attack/dettect.ts):
     // when it has a problem, an error explains it and nothing changes. Data sources that ATT&CK does not know are ignored
-    // and returned, so they can be reported.
-    processDettectYaml(data: unknown): { unknownDataSources: string[] } {
+    // and returned, so they can be reported, together with the number of known data sources that were applied.
+    processDettectYaml(data: unknown): { unknownDataSources: string[]; dataSources: number } {
       if (!this.enterprise?.tactics) {
         throw new Error('The ATT&CK data is not loaded (yet). Please reload the page.');
       }
@@ -281,7 +281,7 @@ export const tacticsStore = defineStore('tactics', {
         });
       });
 
-      return { unknownDataSources: file.unknownDataSources };
+      return { unknownDataSources: file.unknownDataSources, dataSources: file.dataSources.size };
     },
 
     resetDomainVisibility(domain: string) {

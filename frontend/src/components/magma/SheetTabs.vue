@@ -5,6 +5,9 @@ import { magmaStore, type UseCaseFromFile } from '@/stores/magma';
 import { isYamlFile, readYamlFile } from '@/io/readYamlFile';
 import { importSummary, magmaFileDomains, readMagmaFile, writeMagmaFile } from '@/io/magmaFile';
 import { downloadFile } from '@/io/downloadFile';
+import { DOMAIN_NAMES, domainNames } from '@/domain/domains';
+import { notifySuccess } from '@/components/common/notify';
+import { importSummaryContent } from './importSummaryContent';
 
 const magma = magmaStore();
 const tabs = ['L1', 'L2', 'L3', 'Heatmap', 'Insights', 'Summary'];
@@ -14,16 +17,10 @@ const exportYaml = () => {
   magma.markAsSaved();
 };
 
-// Display names of the ATT&CK domains, for messages.
-const domainNames: Record<string, string> = {
-  'enterprise-attack': 'Enterprise',
-  'mobile-attack': 'Mobile',
-  'ics-attack': 'ICS',
-};
-
 // Load a MaGMa YAML file. Its use cases replace the current use cases of the domains in the file; the other domains stay
 // as they are. A dialog asks for confirmation when current use cases will be replaced, and nothing changes
-// when the file cannot be read. Afterwards, a summary says how many use cases were loaded, and why others were not.
+// when the file cannot be read. Afterwards, a short message confirms it, or a dialog lists the use cases that were not
+// loaded and why, and the warnings.
 const importYaml = async (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
   const file = fileInput.files?.[0];
@@ -60,16 +57,15 @@ const importYaml = async (event: Event) => {
     magma.useCases.filter((useCase) => !useCase.permanent && useCase.domain === domain).length;
   const replaced = domains.filter((domain) => currentCount(domain) > 0);
   if (replaced.length > 0) {
-    const kept = Object.keys(domainNames).filter((domain) => !domains.includes(domain));
+    const kept = Object.keys(DOMAIN_NAMES).filter((domain) => !domains.includes(domain));
     const replacedText = replaced
-      .map((domain) => `${domainNames[domain]} (${currentCount(domain)} use cases)`)
+      .map((domain) => `${DOMAIN_NAMES[domain]} (${currentCount(domain)} use cases)`)
       .join(' and ');
-    const keptText =
-      kept.length > 0 ? ` ${kept.map((domain) => domainNames[domain]).join(' and ')} will stay as they are.` : '';
+    const keptText = kept.length > 0 ? ` ${domainNames(kept)} will stay as they are.` : '';
     const result = await Swal.fire({
       icon: 'warning',
       titleText: 'Replace the current use cases?',
-      text: `The file contains use cases for ${domains.map((domain) => domainNames[domain]).join(', ')}. It replaces the current use cases of ${replacedText}.${keptText}`,
+      text: `The file contains use cases for ${domainNames(domains)}. It replaces the current use cases of ${replacedText}.${keptText}`,
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: 'green',
@@ -83,12 +79,17 @@ const importYaml = async (event: Event) => {
   }
 
   const summary = importSummary(magma.loadUseCases(useCases));
-  Swal.fire({
-    icon: summary.problems ? 'warning' : 'success',
-    titleText: 'Import Summary',
-    text: summary.text,
-    confirmButtonText: 'OK',
-  });
+  if (summary.problems) {
+    Swal.fire({
+      icon: 'warning',
+      titleText: 'Import Summary',
+      html: importSummaryContent(summary),
+      confirmButtonText: 'OK',
+    });
+  } else {
+    const count = summary.imported === 1 ? '1 use case' : `${summary.imported} use cases`;
+    notifySuccess(`MaGMa file loaded: ${count} for ${domainNames(domains)}`);
+  }
 };
 </script>
 

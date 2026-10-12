@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia';
 import fs from 'node:fs';
 import { parse } from 'yaml';
 import { tacticsStore } from '../tactics';
-import { magmaStore, type UseCase } from '../magma';
+import { magmaStore, type ImportResult, type UseCase } from '../magma';
 import { importSummary, magmaFileDomains, readMagmaFile, writeMagmaFile } from '@/io/magmaFile';
 
 const catalog = JSON.parse(fs.readFileSync('public/tactics_and_techniques_by_domain.json', 'utf8'));
@@ -12,6 +12,11 @@ const readExample = (name: string) => fs.readFileSync(`../examples/${name}`, 'ut
 // A MaGMa file read as the app reads it, and the use cases in a store written as a MaGMa file (see io/magmaFile.ts).
 type MagmaStore = ReturnType<typeof magmaStore>;
 const readFile = (text: string) => readMagmaFile(parse(text));
+// The whole import summary as one text: the counts, the use cases that failed and the warnings.
+const summaryText = (result: ImportResult) => {
+  const summary = importSummary(result);
+  return [summary.text, ...summary.failed, ...summary.warnings].join('\n');
+};
 const saveFile = (magma: MagmaStore) => writeMagmaFile(magma.domainSortedUseCases);
 
 // Fresh stores, with the ATT&CK catalog and the permanent IN and THR use cases.
@@ -150,7 +155,7 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
   it('rejects use cases that are their own (indirect) parent, and non-numeric or out-of-range percentages', async () => {
     const { magma } = await setUpStores();
     const domain = 'enterprise-attack';
-    const message = importSummary(
+    const message = summaryText(
       magma.importUseCases([
         { domain, level: 1, id: 'BIZ', name: 'b', inImpact: 0, thrImpact: 0, outImpact: 100 },
         { domain, level: 2, id: 'BIZ-1', name: 'ok', parentIds: ['BIZ'] },
@@ -172,7 +177,7 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
           visibilityFromAttackTechniqueOverride: true,
         },
       ]),
-    ).text;
+    );
     const imported = magma.useCases
       .filter((u) => !u.permanent)
       .map((u) => u.id)
@@ -188,14 +193,14 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
 
   it('warns about use cases with more than one parent', async () => {
     const { magma } = await setUpStores();
-    const message = importSummary(
+    const message = summaryText(
       magma.importUseCases([
         { domain: 'enterprise-attack', level: 2, id: 'DOS-1', name: 'd' },
         { domain: 'enterprise-attack', level: 2, id: 'FIN-1', name: 'f' },
         { domain: 'enterprise-attack', level: 3, id: 'DOS-1-1', name: 'comma typo', parentIds: ['DOS-1', 'FIN-1'] },
         { domain: 'enterprise-attack', level: 3, id: 'DOS-1-2', name: 'fine', parentIds: ['DOS-1'] },
       ]),
-    ).text;
+    );
     expect(message).toContain('Successful imports: 4. Failed imports: 0.');
     expect(message).toContain('"DOS-1-1" in domain "enterprise-attack" has 2 parents (DOS-1, FIN-1)');
     expect(message).not.toContain('"DOS-1-2"');
@@ -203,12 +208,12 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
 
   it('keeps use cases with an unknown parent ID, and warns about them', async () => {
     const { magma } = await setUpStores();
-    const message = importSummary(
+    const message = summaryText(
       magma.importUseCases([
         { domain: 'enterprise-attack', level: 2, id: 'DOS-1', name: 'd', parentIds: ['DOS'] },
         { domain: 'enterprise-attack', level: 3, id: 'DOS-1-1', name: 'typo', parentIds: ['DOS-l'] },
       ]),
-    ).text;
+    );
     expect(magma.getUseCaseById('DOS-1-1', 'enterprise-attack')).toBeDefined();
     expect(message).toContain('Successful imports: 2. Failed imports: 0.');
     expect(message).toContain('"DOS-1-1" in domain "enterprise-attack" has parent "DOS-l", which does not exist');

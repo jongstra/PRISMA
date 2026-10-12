@@ -3,7 +3,7 @@
 // The whole file is checked before anything is applied, so a file with a problem changes nothing. Data sources in
 // DeTT&CT are data components in MITRE ATT&CK; the visibility calculation uses their device completeness (0-5).
 
-export const SUPPORTED_DOMAINS = ['enterprise-attack', 'mobile-attack', 'ics-attack'];
+import { SUPPORTED_DOMAINS } from '@/domain/domains';
 
 export interface DettectFile {
   domain: string;

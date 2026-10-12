@@ -2,9 +2,7 @@
 // Excel template with tools/convert_magma_excel.py.
 import * as yaml from 'yaml';
 import type { ImportResult, UseCase, UseCaseFromFile } from '@/stores/magma';
-
-// The ATT&CK domains that use cases can belong to, in the usual order.
-export const SUPPORTED_DOMAINS = ['enterprise-attack', 'mobile-attack', 'ics-attack'];
+import { SUPPORTED_DOMAINS } from '@/domain/domains';
 
 // A number for the file; values that are not a valid number are left out instead of being saved as NaN.
 export const exportNumber = (value: unknown) => {
@@ -85,16 +83,9 @@ export function writeMagmaFile(useCases: UseCase[]): string {
 
 // The message after loading a MaGMa file: how many use cases were loaded, which ones failed and why, and the warnings.
 export function importSummary(result: ImportResult) {
-  let text = `Successful imports: ${result.imported}. Failed imports: ${result.failed.length}.`;
-  if (result.failed.length > 0) {
-    text +=
-      ' _________________________________________________ FAILED USE CASES _________________________________________________ ' +
-      result.failed.join('• ');
-  }
-  if (result.warnings.length > 0) {
-    text +=
-      ' _________________________________________________ WARNINGS _________________________________________________ ' +
-      result.warnings.join('• ');
-  }
-  return { text, problems: result.failed.length > 0 || result.warnings.length > 0 };
+  return {
+    ...result,
+    text: `Successful imports: ${result.imported}. Failed imports: ${result.failed.length}.`,
+    problems: result.failed.length > 0 || result.warnings.length > 0,
+  };
 }

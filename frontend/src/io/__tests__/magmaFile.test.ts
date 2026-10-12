@@ -56,11 +56,16 @@ describe('magmaFile', () => {
   it('summarises an import: the number of use cases loaded, the ones that failed and why, and the warnings', () => {
     expect(importSummary({ imported: 14, failed: [], warnings: [] })).toEqual({
       text: 'Successful imports: 14. Failed imports: 0.',
+      imported: 14,
+      failed: [],
+      warnings: [],
       problems: false,
     });
-    const line = '_'.repeat(49);
     expect(importSummary({ imported: 1, failed: ['A failed.', 'B failed.'], warnings: ['C is odd.'] })).toEqual({
-      text: `Successful imports: 1. Failed imports: 2. ${line} FAILED USE CASES ${line} A failed.• B failed. ${line} WARNINGS ${line} C is odd.`,
+      text: 'Successful imports: 1. Failed imports: 2.',
+      imported: 1,
+      failed: ['A failed.', 'B failed.'],
+      warnings: ['C is odd.'],
       problems: true,
     });
   });

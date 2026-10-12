@@ -81,6 +81,7 @@ describe('tactics store: loading a DeTT&CT file safely', () => {
       dettect([dataSource('Network Traffic Content', 5), dataSource('Typo Source', 5)]),
     );
     expect(result.unknownDataSources).toEqual(['Typo Source']);
+    expect(result.dataSources).toBe(1); // the known ones, which were applied
     expect(ratio('T1595')).toBeGreaterThan(0); // Active Scanning is visible through Network Traffic Content.
   });
 

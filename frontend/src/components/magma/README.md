@@ -4,9 +4,10 @@ The MaGMa page: the use case sheets, the heatmap, the insights and the summary.
 
 | Name | Description |
 |---|---|
-| [`__tests__/`](__tests__/) | Tests for the use case sheets and their search field |
+| [`__tests__/`](__tests__/) | Tests for the use case sheets, their search field and the import summary |
 | [`heatmap/`](heatmap/) | Heatmap tab: the ATT&CK matrix coloured by use case scores, and its filters |
 | [`insights/`](insights/) | Insights tab: the MaGMa charts |
+| [`importSummaryContent.ts`](importSummaryContent.ts) | The dialog after loading a MaGMa file with problems: the use cases that were not loaded, and the warnings, as lists |
 | [`listPlacement.ts`](listPlacement.ts) | Where the list of the search field goes: below the field, or above it near the bottom of the window |
 | [`MagmaSummary.vue`](MagmaSummary.vue) | Summary tab: averages and counts |
 | [`OptionPicker.vue`](OptionPicker.vue) | The search field of the L2 and L3 sheets, for the parent use case and the ATT&CK (sub-)technique |

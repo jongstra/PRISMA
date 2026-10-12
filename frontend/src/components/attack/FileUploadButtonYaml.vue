@@ -3,13 +3,16 @@ import { ref } from 'vue';
 import { tacticsStore } from '@/stores/tactics';
 import Swal from 'sweetalert2';
 import { isYamlFile, readYamlFile } from '@/io/readYamlFile';
+import { notifySuccess } from '@/components/common/notify';
+import { domainNames } from '@/domain/domains';
 
 const input = ref<HTMLInputElement>();
 const isLoading = ref(false);
 const store = tacticsStore();
 
-// Load a DeTT&CT data source administration file. When the file has a problem, a message explains it and nothing
-// changes (the previously loaded visibility stays). Data sources that ATT&CK does not know are ignored, with a warning.
+// Load a DeTT&CT data source administration file. A short message confirms it; when the file has a problem, a dialog
+// explains it and nothing changes (the previously loaded visibility stays). Data sources that ATT&CK does not know are
+// ignored, with a warning.
 const uploadFile = async () => {
   const file = input.value?.files?.[0];
   if (input.value) {
@@ -30,8 +33,11 @@ const uploadFile = async () => {
 
   isLoading.value = true;
   try {
-    const { unknownDataSources } = store.processDettectYaml(await readYamlFile(file));
-    if (unknownDataSources.length > 0) {
+    const { unknownDataSources, dataSources } = store.processDettectYaml(await readYamlFile(file));
+    if (unknownDataSources.length === 0) {
+      const count = dataSources === 1 ? '1 data source' : `${dataSources} data sources`;
+      notifySuccess(`DeTT&CT file loaded: ${count} for ${domainNames([store.domain])}`);
+    } else {
       Swal.fire({
         icon: 'warning',
         titleText: 'DeTT&CT file loaded, with unknown data sources',

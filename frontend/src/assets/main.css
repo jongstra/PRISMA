@@ -71,6 +71,30 @@ input[type='number'] {
   border-bottom: 1px solid black;
 }
 
+/* The dialog after loading a MaGMa file with problems (components/magma/importSummaryContent.ts): the counts, then
+   lists of the use cases that were not loaded and of the warnings. */
+.import-summary {
+  text-align: left;
+  font-size: 14px;
+}
+
+.import-summary h3 {
+  margin-top: 14px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.import-summary ul {
+  max-height: 30vh;
+  overflow-y: auto;
+  margin-top: 6px;
+  padding-left: 20px;
+}
+
+.import-summary li {
+  margin-bottom: 4px;
+}
+
 a {
   text-decoration: none;
   color: rgb(32, 248, 176);
