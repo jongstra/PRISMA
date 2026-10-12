@@ -1,6 +1,6 @@
 # Frontend
 
-The PRISMA web application (Vue 3, Pinia, Vite). It runs entirely in the browser.
+The PRISMA web application (Vue 3, Pinia, Vite). It runs entirely in the browser. Its font, Inter, comes with the app (package `@fontsource/inter`, SIL Open Font License), so it looks the same on every computer.
 
 | Name | Description |
 |---|---|
