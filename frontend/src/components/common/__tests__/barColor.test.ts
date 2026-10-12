@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { barColor } from '../barColor';
+import { barColor, COUNT_COLOR, SCORE_COLORS } from '../barColor';
 
 describe('barColor', () => {
   it('goes from red at 0% through olive at 50% to green at 100%', () => {
@@ -11,5 +11,12 @@ describe('barColor', () => {
   it('stays red or green outside 0-100%', () => {
     expect(barColor(-10)).toBe('rgb(255, 0, 0)');
     expect(barColor(120)).toBe('rgb(0, 255, 0)');
+  });
+});
+
+describe('chart colours', () => {
+  it('gives the three MaGMa scores and the counts the colours of the Insights page', () => {
+    expect(SCORE_COLORS).toEqual({ visibility: 'FireBrick', implementation: 'Olive', effectiveness: 'SteelBlue' });
+    expect(COUNT_COLOR).toBe('SteelBlue');
   });
 });

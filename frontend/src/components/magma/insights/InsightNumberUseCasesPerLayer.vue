@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { COUNT_COLOR } from '@/components/common/barColor';
 import { magmaStore } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
 
@@ -17,7 +18,7 @@ const maxCount = computed(() =>
   ),
 );
 
-// One green bar per level.
+// One bar per level.
 const rows = computed(() =>
   (
     [
@@ -25,7 +26,7 @@ const rows = computed(() =>
       ['L2', magma.L2UseCases(store.domain).length],
       ['L3', magma.L3UseCases(store.domain).length],
     ] as [string, number][]
-  ).map(([name, count]) => ({ name, segments: [{ value: count, color: 'green' }], label: count })),
+  ).map(([name, count]) => ({ name, segments: [{ value: count, color: COUNT_COLOR }], label: count })),
 );
 </script>
 

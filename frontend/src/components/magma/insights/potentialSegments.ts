@@ -1,5 +1,7 @@
-// The improvement potential of an L3 use case, split over visibility (red), implementation (green) and effectiveness
-// (blue): each part is in proportion to how far that score is from 100%. Used by the two improvement potential charts.
+// The improvement potential of an L3 use case, split over visibility, implementation and effectiveness (each in its own
+// colour): each part is in proportion to how far that score is from 100%. Used by the two improvement potential charts.
+import { SCORE_COLORS } from '@/components/common/barColor';
+
 export function potentialSegments(useCase: {
   visibility?: unknown;
   implementation?: unknown;
@@ -12,8 +14,8 @@ export function potentialSegments(useCase: {
   const potential = Number(useCase.potential);
   const missing = 300 - visibility - implementation - effectiveness;
   return [
-    { value: ((100 - visibility) / missing) * potential, color: 'red' },
-    { value: ((100 - implementation) / missing) * potential, color: 'green' },
-    { value: ((100 - effectiveness) / missing) * potential, color: 'blue' },
+    { value: ((100 - visibility) / missing) * potential, color: SCORE_COLORS.visibility },
+    { value: ((100 - implementation) / missing) * potential, color: SCORE_COLORS.implementation },
+    { value: ((100 - effectiveness) / missing) * potential, color: SCORE_COLORS.effectiveness },
   ];
 }

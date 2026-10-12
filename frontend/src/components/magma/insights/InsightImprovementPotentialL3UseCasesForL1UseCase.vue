@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import PotentialLegend from './PotentialLegend.vue';
 import { potentialSegments } from './potentialSegments';
+import type { UseCase } from '@/stores/magma';
 
-const props = defineProps(['L1UseCase', 'relatedL3UseCases']);
+const props = defineProps<{ L1UseCase: UseCase; relatedL3UseCases: UseCase[] }>();
 
 // The 15 L3 use cases below this L1 use case with the most improvement potential.
 const rows = computed(() =>
@@ -23,24 +25,11 @@ const rows = computed(() =>
     <template #title>
       Improvement Potential for L3 Use Cases relating to:
       <br />
-      <span style="color: red">[L1] {{ L1UseCase.id }}: {{ L1UseCase.name }}</span>
-      <span v-if="relatedL3UseCases.length >= 15"> (Top 15)</span>
+      <span class="use-case-id">{{ L1UseCase.id }}</span> <span>{{ L1UseCase.name }}</span>
+      <span v-if="relatedL3UseCases.length > 15"> (Top 15)</span>
     </template>
     <template #legend>
-      <div class="legend">
-        <div class="legend-item">
-          <div class="sub-bar red"></div>
-          <span>Visibility Potential</span>
-        </div>
-        <div class="legend-item">
-          <div class="sub-bar green"></div>
-          <span>Implementation Potential</span>
-        </div>
-        <div class="legend-item">
-          <div class="sub-bar blue"></div>
-          <span>Effectiveness Potential</span>
-        </div>
-      </div>
+      <PotentialLegend />
     </template>
   </BarChart>
 </template>
@@ -51,39 +40,8 @@ const rows = computed(() =>
   height: calc(100% - 10px);
 }
 
-.sub-bar {
-  height: 14px;
-  position: relative;
-}
-
-.red {
-  background-color: red;
-}
-
-.green {
-  background-color: green;
-}
-
-.blue {
-  background-color: blue;
-}
-
-.legend {
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px; /* Space between the bar and label */
-  font-size: 11px;
-}
-
-.legend-item .sub-bar {
-  width: 20px; /* Fixed size for legend bars */
+/* The title is bold, but main.css sets every element in it to normal weight: the name stays normal, the ID is bold. */
+.use-case-id {
+  font-weight: bold;
 }
 </style>

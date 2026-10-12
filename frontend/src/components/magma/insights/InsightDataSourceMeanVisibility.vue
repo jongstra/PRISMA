@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { SCORE_COLORS } from '@/components/common/barColor';
 import { magmaStore } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
 import { meanPerDataSource } from '@/domain/magma/dataSources';
@@ -14,7 +15,7 @@ const means = computed(() => meanPerDataSource(magma.L3UseCases(store.domain), '
 const rows = computed(() =>
   means.value.slice(0, 15).map(({ dataSource, mean, count }) => ({
     name: dataSource,
-    segments: [{ value: mean, color: 'red' }],
+    segments: [{ value: mean, color: SCORE_COLORS.visibility }],
     label: `${mean.toFixed(2)}% (${count} UC)`,
   })),
 );
@@ -24,7 +25,7 @@ const rows = computed(() =>
   <BarChart :rows="rows" :max="100" label-space="100px" :name-width="100" label="inside-wide">
     <template #title>
       Data Sources - Mean Visibility
-      <span v-if="means.length >= 15"> (Top 15 Worst)</span>
+      <span v-if="means.length > 15"> (Top 15 Worst)</span>
     </template>
   </BarChart>
 </template>

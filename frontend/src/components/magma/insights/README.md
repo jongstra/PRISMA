@@ -14,4 +14,5 @@ The Insights tab of the MaGMa page: charts about the use cases per level, data s
 | [`InsightNumberOfUseCasesPerDataSource.vue`](InsightNumberOfUseCasesPerDataSource.vue) | Number of use cases per data source |
 | [`InsightNumberUseCasesPerLayer.vue`](InsightNumberUseCasesPerLayer.vue) | Number of use cases per level (L1, L2, L3) |
 | [`MagmaInsights.vue`](MagmaInsights.vue) | The tab itself: all MaGMa charts |
+| [`PotentialLegend.vue`](PotentialLegend.vue) | The legend of the two potential charts: a colour per score, and how a bar is split |
 | [`potentialSegments.ts`](potentialSegments.ts) | Splits an L3 use case's potential over V, I and E, for the charts |
