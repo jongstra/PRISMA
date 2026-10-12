@@ -33,19 +33,19 @@ const averaged = (below: string) => [
     field: 'visibility',
     title: 'Visibility %',
     description: `The average visibility of its ${below} use cases.`,
-    width: 95,
+    width: 105,
   },
   {
     field: 'implementation',
     title: 'Implementation %',
     description: `The average implementation of its ${below} use cases.`,
-    width: 140,
+    width: 150,
   },
   {
     field: 'effectiveness',
     title: 'Effectiveness %',
     description: `The average effectiveness of its ${below} use cases.`,
-    width: 125,
+    width: 135,
   },
   {
     field: 'weight',
@@ -57,7 +57,7 @@ const averaged = (below: string) => [
     field: 'potential',
     title: 'Potential %',
     description: '100% minus the weight: how much the detection can still improve.',
-    width: 95,
+    width: 105,
   },
 ];
 
@@ -85,7 +85,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       field: 'inImpact',
       title: 'IN Impact %',
       description: `For a business risk: the part of an attack in the IN phase (getting in), detected by the cumulative IN use cases. ${IMPACT}`,
-      width: 100,
+      width: 110,
       editable: true,
     },
     {
@@ -160,7 +160,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       field: 'visibilityFromAttackTechniqueOverride',
       title: 'Override',
       description: 'On: use your own visibility instead of the DeTT&CT visibility of the technique.',
-      width: 75,
+      width: 85,
       editable: true,
     },
     {
@@ -168,7 +168,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       title: 'Visibility %',
       description:
         'How much of the data the rule needs is available. Taken from DeTT&CT (yellow) when the rule has a technique and Override is off; otherwise your own value.',
-      width: 95,
+      width: 105,
       editable: true,
     },
     {
@@ -176,7 +176,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       title: 'Implementation %',
       description:
         'How free of false positives the rule is: 100% minus the share of its alerts that are false positives. A rule without alerts in the period may count as 100%.',
-      width: 140,
+      width: 150,
       editable: true,
     },
     {
@@ -184,7 +184,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       title: 'Effectiveness %',
       description:
         'How well the rule is tested, so it does not miss attacks: from 20% (untested) to 100% (tested regularly with attack simulation tools).',
-      width: 125,
+      width: 135,
       editable: true,
     },
     {
@@ -197,7 +197,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       field: 'potential',
       title: 'Potential %',
       description: '100% minus the weight: how much the rule can still improve.',
-      width: 95,
+      width: 105,
     },
   ],
 };
