@@ -284,15 +284,21 @@ const validateAndFormat = (event: Event) => {
               :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
             />
 
-            <textarea
+            <div
               v-else-if="TEXT_FIELDS.includes(column.field)"
-              :value="textValue(useCase, column.field)"
-              @input="
-                (event) => updateObjectField(useCase.uid, column.field, (event.target as HTMLTextAreaElement).value)
-              "
-              :disabled="isLocked(useCase, column.field)"
+              class="text-field"
+              :class="{ 'left-aligned': column.field === 'description' }"
               :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
-            ></textarea>
+              @click="($event.currentTarget as HTMLElement).querySelector('textarea')?.focus()"
+            >
+              <textarea
+                :value="textValue(useCase, column.field)"
+                @input="
+                  (event) => updateObjectField(useCase.uid, column.field, (event.target as HTMLTextAreaElement).value)
+                "
+                :disabled="isLocked(useCase, column.field)"
+              ></textarea>
+            </div>
 
             <OptionPicker
               v-else-if="column.field === 'parentIds'"
@@ -462,13 +468,29 @@ input[type='checkbox'] {
   accent-color: white;
 }
 
-textarea {
-  resize: none;
-  width: 100%;
+/* The name, description and data source: centred vertically (and the name and data source also horizontally, like
+   the other cells). The field is as high as its text, up to the height of the row; longer text scrolls. */
+.text-field {
+  display: flex;
+  align-items: center;
   height: 100%;
-  border: 0px;
-  padding-left: 6px;
-  padding-right: 6px;
-  padding-top: 4px;
+  cursor: text;
+}
+
+.text-field textarea {
+  field-sizing: content;
+  width: 100%;
+  max-height: 55px; /* the height of the other fields in the row */
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  resize: none;
+}
+
+.text-field.left-aligned textarea {
+  text-align: left;
 }
 </style>
