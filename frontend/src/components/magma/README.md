@@ -9,7 +9,7 @@ The MaGMa page: the use case sheets, the heatmap, the insights and the summary.
 | [`insights/`](insights/) | Insights tab: the MaGMa charts |
 | [`importSummaryContent.ts`](importSummaryContent.ts) | The dialog after loading a MaGMa file with problems: the use cases that were not loaded, and the warnings, as lists |
 | [`listPlacement.ts`](listPlacement.ts) | Where the list of the search field goes: below the field, or above it near the bottom of the window |
-| [`MagmaSummary.vue`](MagmaSummary.vue) | Summary tab: averages and counts |
+| [`MagmaSummary.vue`](MagmaSummary.vue) | Summary tab: early detection, the risk per business risk, averages and counts |
 | [`OptionPicker.vue`](OptionPicker.vue) | The search field of the L2 and L3 sheets, for the parent use case and the ATT&CK (sub-)technique |
 | [`optionSearch.ts`](optionSearch.ts) | The searches of the search field: by ID or name, and for techniques by the start of the ID |
 | [`SheetTabs.vue`](SheetTabs.vue) | The tab bar, with the buttons to load and save a MaGMa YAML file |
