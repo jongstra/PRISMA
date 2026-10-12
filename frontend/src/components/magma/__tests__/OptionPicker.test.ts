@@ -98,6 +98,16 @@ describe('OptionPicker', () => {
     expect(options()).toEqual(['FIN-1 Fraud in payments']);
   });
 
+  it('says when there is nothing to choose from', async () => {
+    picker = mount(OptionPicker, {
+      props: { modelValue: 'none', options: [], noun: 'use case' },
+      global: { stubs: { teleport: true } },
+      attachTo: document.body,
+    });
+    await picker.find('.current').trigger('click');
+    expect(picker.find('.no-match').text()).toBe('No use cases to choose from');
+  });
+
   it('clears the value with the × button, which only shows when a value is set', async () => {
     await mountPicker('T1566').find('.clear').trigger('click');
     expect(chosen()).toEqual(['none']);

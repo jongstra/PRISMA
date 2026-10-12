@@ -155,7 +155,8 @@ onUnmounted(close);
           >
             <span class="option-id">{{ option.id }}</span> {{ option.name }}
           </li>
-          <li v-if="matches.length === 0" class="no-match">No {{ noun }} matches "{{ query }}"</li>
+          <li v-if="options.length === 0" class="no-match">No {{ noun }}s to choose from</li>
+          <li v-else-if="matches.length === 0" class="no-match">No {{ noun }} matches "{{ query }}"</li>
         </ul>
       </Teleport>
     </template>
@@ -183,7 +184,8 @@ onUnmounted(close);
   position: relative;
   display: flex;
   align-items: stretch;
-  min-height: 50px;
+  height: 100%; /* fills the cell, like the other fields of the sheet */
+  min-height: 55px;
   background-color: white; /* the sheet can give another colour, e.g. red for a parent that does not exist */
 }
 
