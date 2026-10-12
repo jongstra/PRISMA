@@ -140,6 +140,32 @@ describe('UseCaseTable', () => {
     expect(magma.L2UseCases(domain)[0].parentIds).toEqual(['none']);
   });
 
+  it('explains every column, and the delete buttons, when hovering', async () => {
+    for (const level of ['L1', 'L2', 'L3'] as const) {
+      const { table } = await showTable(level);
+      const [deleteAll, ...headers] = table.findAll('thead th');
+      expect(deleteAll.attributes('aria-description')).toBe(`Delete all ${level} use cases`);
+      for (const header of headers) {
+        expect(header.attributes('aria-description'), `${level} ${header.text()}`).toMatch(/\w{3,}/);
+      }
+      expect(table.find('tbody .remove-button').attributes('aria-description')).toBe('Delete this use case');
+    }
+  });
+
+  it('switches the override with the switch in its cell', async () => {
+    const { magma, cell } = await showTable('L3');
+    const useCase = magma.L3UseCases(domain)[0];
+    magma.updateUseCase(useCase.uid, { attackTechniqueId: 'T1059' }, domain);
+    const toggle = () => cell(0, 'Override').find('.override-toggle input');
+    expect((toggle().element as HTMLInputElement).checked).toBe(false);
+    await toggle().setValue(true);
+    expect(magma.L3UseCases(domain)[0].visibilityFromAttackTechniqueOverride).toBe(true);
+    expect(cell(0, 'Visibility %').find('input').attributes('disabled')).toBeUndefined();
+    await toggle().setValue(false);
+    expect(magma.L3UseCases(domain)[0].visibilityFromAttackTechniqueOverride).toBe(false);
+    expect(cell(0, 'Visibility %').find('input').attributes('disabled')).toBeDefined();
+  });
+
   it('keeps each row with its use case when a row above it is deleted', async () => {
     const { table, magma } = await showTable('L2');
     magma.addNewUseCase(2, domain);

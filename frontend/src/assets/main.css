@@ -28,6 +28,49 @@ input[type='number'] {
   font-family: Inter, sans-serif;
 }
 
+/* The explanation of v-hint (components/common/hint.ts): a pink card with a thin black edge that floats above the
+   sheet, with a small arrow to the mouse (on top, or at the bottom when the card is above its element). */
+.hint {
+  position: fixed;
+  z-index: 1002;
+  max-width: 280px;
+  pointer-events: none;
+  background-color: pink; /* like the Clear buttons of the selection tools */
+  color: rgb(17, 17, 17);
+  border: 1px solid black;
+  border-radius: 6px;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.28),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+  padding: 8px 11px;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.hint::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: var(--arrow-left, 16px);
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+  background-color: inherit;
+  border-left: inherit;
+  border-top: inherit;
+}
+
+.hint.above::before {
+  top: auto;
+  bottom: -7px;
+  border: none;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+}
+
 a {
   text-decoration: none;
   color: rgb(32, 248, 176);

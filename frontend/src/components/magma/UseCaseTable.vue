@@ -8,6 +8,7 @@ import { tacticsStore } from '@/stores/tactics';
 import { USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
 import OptionPicker from './OptionPicker.vue';
 import { searchTechniques } from './optionSearch';
+import { vHint } from '@/components/common/hint';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -239,12 +240,19 @@ const validateAndFormat = (event: Event) => {
         <!-- Deletes all use cases of this level. -->
         <th
           class="remove-col"
+          v-hint="`Delete all ${magma.activeTab} use cases`"
           @click="confirmRemoveUseCaseLevel()"
           style="background-color: #e73030; color: white; cursor: pointer"
         >
           &#10806;
         </th>
-        <th v-for="column in columns" :key="column.field" :style="{ width: `${column.width}px` }">
+        <th
+          v-for="column in columns"
+          :key="column.field"
+          v-hint="column.description"
+          class="explained"
+          :style="{ width: `${column.width}px` }"
+        >
           {{ column.title }}
         </th>
       </tr>
@@ -257,6 +265,7 @@ const validateAndFormat = (event: Event) => {
           <button
             v-if="!useCase.permanent"
             class="remove-button"
+            v-hint="'Delete this use case'"
             @click="confirmRemoveUseCase(useCase)"
             style="background-color: #e73030; color: white; border: none; cursor: pointer; width: 100%; height: 100%"
           >
@@ -318,12 +327,18 @@ const validateAndFormat = (event: Event) => {
               @update:model-value="(id) => updateObjectField(useCase.uid, 'attackTechniqueId', id)"
             />
 
-            <input
+            <label
               v-else-if="column.field === 'visibilityFromAttackTechniqueOverride'"
-              type="checkbox"
-              :checked="useCase.visibilityFromAttackTechniqueOverride"
-              @change="(event) => updateOverride(useCase, event)"
-            />
+              class="override-toggle"
+              v-hint="column.description"
+            >
+              <input
+                type="checkbox"
+                :checked="useCase.visibilityFromAttackTechniqueOverride"
+                @change="(event) => updateOverride(useCase, event)"
+              />
+              <span class="toggle-switch" aria-hidden="true"></span>
+            </label>
           </template>
 
           <!-- Calculated fields -->
@@ -464,8 +479,59 @@ input,
   background-color: lightgoldenrodyellow;
 }
 
-input[type='checkbox'] {
-  accent-color: white;
+th.explained {
+  cursor: help; /* the description shows shortly after the mouse comes on the header (v-hint) */
+}
+
+/* The override: a switch (the same look as the toggles of SelectionTool.vue), and the whole cell can be clicked. */
+.override-toggle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 55px;
+  cursor: pointer;
+}
+
+.override-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  min-height: 0;
+}
+
+.override-toggle:has(input:focus-visible) {
+  outline: auto 1px;
+  outline: -webkit-focus-ring-color auto 1px;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: 0.4s;
+}
+
+.toggle-switch::before {
+  position: absolute;
+  content: '';
+  width: 16px;
+  height: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+.override-toggle input:checked + .toggle-switch {
+  background-color: #2196f3;
+}
+
+.override-toggle input:checked + .toggle-switch::before {
+  transform: translateX(16px);
 }
 
 /* The name, description and data source: centred vertically (and the name and data source also horizontally, like

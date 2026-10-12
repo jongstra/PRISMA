@@ -4,9 +4,10 @@ Components and helpers that several pages use.
 
 | Name | Description |
 |---|---|
-| [`__tests__/`](__tests__/) | Tests for the bar chart, the bar width and the technique tooltip |
+| [`__tests__/`](__tests__/) | Tests for the bar chart, the bar width, the hint and the technique tooltip |
 | [`BarChart.vue`](BarChart.vue) | Horizontal bar chart, used by all charts on the Insights page and the MaGMa Insights tab |
 | [`barWidth.ts`](barWidth.ts) | Width of a bar, so bars and their numbers stay inside the chart |
+| [`hint.ts`](hint.ts) | `v-hint`: a short explanation that appears shortly after the mouse comes on an element, such as a column header |
 | [`notDetectableStyle.ts`](notDetectableStyle.ts) | Striped style for techniques without data components, in the matrix and its legend |
 | [`SelectionTool.vue`](SelectionTool.vue) | Selects groups or data components, on the DeTT&CT page and the MaGMa heatmap |
 | [`TechniqueTooltip.vue`](TechniqueTooltip.vue) | The tooltip of a technique in the DeTT&CT matrix and the MaGMa heatmap |
