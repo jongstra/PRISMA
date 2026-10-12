@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BarChart from '@/components/common/BarChart.vue';
+import { barColor } from '@/components/common/barColor';
 import { computed } from 'vue';
 import { tacticsStore, type Tactic } from '@/stores/tactics';
 import { averageVisibilityPercentage, isDetectable } from '@/domain/attack/visibility';
@@ -31,17 +32,11 @@ const notDetectableCount = computed(
     ).size,
 );
 
-function getBarColor(percentage: number) {
-  const red = Math.max(0, 255 - (255 * percentage) / 100);
-  const green = Math.min(255, (255 * percentage) / 100);
-  return `rgb(${red}, ${green}, 0)`;
-}
-
 // One bar per tactic, from red (0%) to green (100%).
 const rows = computed(() =>
   getTactics().map((tactic) => {
     const percentage = getVisibilityPercentage(tactic);
-    return { name: tactic.name, segments: [{ value: percentage, color: getBarColor(percentage) }], label: percentage };
+    return { name: tactic.name, segments: [{ value: percentage, color: barColor(percentage) }], label: percentage };
   }),
 );
 </script>

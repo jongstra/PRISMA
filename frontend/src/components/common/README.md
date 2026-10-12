@@ -4,8 +4,9 @@ Components and helpers that several pages use.
 
 | Name | Description |
 |---|---|
-| [`__tests__/`](__tests__/) | Tests for the bar chart, the bar width, the hint, the short message and the technique tooltip |
+| [`__tests__/`](__tests__/) | Tests for the bar chart, the bar colour, the bar width, the hint, the short message and the technique tooltip |
 | [`BarChart.vue`](BarChart.vue) | Horizontal bar chart, used by all charts on the Insights page and the MaGMa Insights tab |
+| [`barColor.ts`](barColor.ts) | Colour of a bar, from red (0%) to green (100%) |
 | [`barWidth.ts`](barWidth.ts) | Width of a bar, so bars and their numbers stay inside the chart |
 | [`hint.ts`](hint.ts) | `v-hint`: a short explanation that appears shortly after the mouse comes on an element, such as a column header |
 | [`notDetectableStyle.ts`](notDetectableStyle.ts) | Striped style for techniques without data components, in the matrix and its legend |

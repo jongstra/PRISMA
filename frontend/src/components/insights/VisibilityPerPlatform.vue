@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BarChart from '@/components/common/BarChart.vue';
+import { barColor } from '@/components/common/barColor';
 import { computed } from 'vue';
 import { tacticsStore, type Domain } from '@/stores/tactics';
 import { isDetectable, platformVisibility } from '@/domain/attack/visibility';
@@ -48,17 +49,11 @@ const notDetectableCount = computed(
     ).size,
 );
 
-function getBarColor(percentage: number): string {
-  const red = Math.max(0, 255 - (255 * percentage) / 100);
-  const green = Math.min(255, (255 * percentage) / 100);
-  return `rgb(${red}, ${green}, 0)`;
-}
-
 // One bar per platform, from red (0%) to green (100%).
 const rows = computed(() =>
   calculatePlatformVisibility().map((platform) => ({
     name: platform.name,
-    segments: [{ value: platform.percentage, color: getBarColor(platform.percentage) }],
+    segments: [{ value: platform.percentage, color: barColor(platform.percentage) }],
     label: platform.percentage,
   })),
 );
