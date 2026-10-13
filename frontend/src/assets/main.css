@@ -18,6 +18,11 @@ input[type='number'] {
   -moz-appearance: textfield;
 }
 
+/* Inter everywhere, also for what is shown in the page body outside #app: the messages and dialogs (SweetAlert). */
+body {
+  font-family: Inter, sans-serif;
+}
+
 /* The mount point in index.html (#app) and the page frame in App.vue (.app). */
 #app,
 .app {

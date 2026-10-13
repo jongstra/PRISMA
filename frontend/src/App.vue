@@ -34,18 +34,10 @@ onBeforeUnmount(() => {
 <!-- The page frame: navigation, domain buttons and the current page (the routes are in router/index.ts). -->
 <template>
   <div class="app">
-    <div class="top-row">
-      <div class="navigation">
-        <RouterLink class="nav" to="/" exact-active-class="selected">DeTT&CT</RouterLink>
-        <RouterLink class="nav" to="/insights" exact-active-class="selected">Insights</RouterLink>
-        <RouterLink class="nav" to="/magma" exact-active-class="selected">MaGMa</RouterLink>
-      </div>
-      <span
-        v-if="tactics.attackVersion"
-        class="attack-version"
-        title="The ATT&CK version of the catalog that PRISMA uses"
-        >MITRE ATT&CK v{{ tactics.attackVersion }}</span
-      >
+    <div class="navigation">
+      <RouterLink class="nav" to="/" exact-active-class="selected">DeTT&CT</RouterLink>
+      <RouterLink class="nav" to="/insights" exact-active-class="selected">Insights</RouterLink>
+      <RouterLink class="nav" to="/magma" exact-active-class="selected">MaGMa</RouterLink>
     </div>
 
     <div class="domain-switcher">
@@ -115,26 +107,9 @@ onBeforeUnmount(() => {
   width: 0; /* This makes the navigation buttons and the domain buttons all have the same width. */
 }
 
-/* The navigation, with the ATT&CK version at the top right of the page; in a narrow window, the version goes on its
-   own line below the navigation (still on the right). */
-.top-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  column-gap: 12px;
+/* The navigation is close to the domain buttons below it. */
+.navigation {
   margin-bottom: 3px;
-}
-
-.top-row .navigation {
-  flex: 0 1 960px;
-  margin-bottom: 0;
-}
-
-.attack-version {
-  margin-left: auto;
-  font-size: 11px;
-  font-style: italic;
-  color: #888888;
 }
 
 .selected {

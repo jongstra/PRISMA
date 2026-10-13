@@ -39,7 +39,13 @@ watch(
     </ControlBox>
     <ControlBox label="Platforms"><TechniqueAttributeFilter attribute_type="platforms" /></ControlBox>
     <ControlBox label="Techniques"><SearchBar /></ControlBox>
-    <ControlBox label="Legend: visibility"><VisibilityLegend /></ControlBox>
+    <ControlBox
+      label="Legend: visibility"
+      :value="store.attackVersion ? `MITRE ATT&CK v${store.attackVersion}` : undefined"
+      value-hint="The ATT&CK version of the catalog that PRISMA uses"
+    >
+      <VisibilityLegend />
+    </ControlBox>
     <ControlBox label="Visibility %" :value="visibilityRangeText(store.minVisibilityRatio, store.maxVisibilityRatio)">
       <TechniqueVisibilityPercentageFilter />
     </ControlBox>
@@ -79,12 +85,13 @@ watch(
 
 <style scoped>
 /* Two rows of four boxes; the group and data component boxes keep their own width (SelectionTool.vue) and grow with
-   their selected items. The panel is as wide as the navigation and domain buttons above it (App.vue). */
+   their selected items. The panel is as wide as the navigation and domain buttons above it (App.vue). In a narrower
+   window the boxes go in two columns, and in a very narrow one below each other. */
 .combined-controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 265px 265px;
-  /* Both rows are 60px: room for one line of selected groups or data components; the bottom row grows for a second. */
-  grid-template-rows: minmax(60px, auto) minmax(60px, auto);
+  /* The rows are 60px: room for one line of selected groups or data components; a row grows for a second line. */
+  grid-auto-rows: minmax(60px, auto);
   gap: 3px;
   max-width: 960px;
   margin-bottom: 3px;
@@ -92,6 +99,23 @@ watch(
   border: 2px solid black;
   border-radius: 5px;
   background-color: #ccc;
+}
+
+/* In two columns or one, the group and data component boxes fill their column. */
+@media (max-width: 940px) {
+  .combined-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .combined-controls > .selection-container {
+    width: auto;
+  }
+}
+
+@media (max-width: 580px) {
+  .combined-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .matrix-container {

@@ -101,7 +101,7 @@ export const tacticsStore = defineStore('tactics', {
   state: () => ({
     domain: 'enterprise-attack', // Alternative initial value: 'none'.
     dataLoaded: false,
-    attackVersion: '' as string, // the ATT&CK version of the catalog (from its meta block), shown next to the domain buttons
+    attackVersion: '' as string, // the ATT&CK version of the catalog (from its meta block), shown in the legend of the DeTT&CT page
     enterprise: undefined as Domain | undefined, // the catalog data per domain, once it is loaded
     ics: undefined as Domain | undefined,
     mobile: undefined as Domain | undefined,

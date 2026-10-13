@@ -60,11 +60,13 @@ const legendItems = ref([
 </script>
 
 <style scoped>
-/* The swatches spread over the width of the box (the label is in the ControlBox around the legend). */
+/* The swatches spread over the width of the box, up to the width they have in the four-column panel; in a wider box
+   (a narrow window) they keep that spacing. The label is in the ControlBox around the legend. */
 .legend-items {
   display: flex;
   justify-content: space-between;
   gap: 4px;
+  max-width: 250px;
 }
 
 .legend-button {
