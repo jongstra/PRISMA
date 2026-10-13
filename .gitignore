@@ -18,6 +18,10 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
+# Output of the browser smoke tests (frontend/e2e)
+test-results/
+playwright-report/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
