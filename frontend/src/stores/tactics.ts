@@ -110,6 +110,7 @@ export const tacticsStore = defineStore('tactics', {
     maxVisibilityRatio: 1 as number,
     minTotalOccurrencesBinned: 0 as number,
     pinnedTooltipId: '' as string,
+    dettectFileNames: {} as Record<string, string>, // the name of the loaded DeTT&CT file, per domain
   }),
 
   getters: {
@@ -239,8 +240,9 @@ export const tacticsStore = defineStore('tactics', {
 
     // Load a DeTT&CT data source administration file. The whole file is checked first (see domain/attack/dettect.ts):
     // when it has a problem, an error explains it and nothing changes. Data sources that ATT&CK does not know are ignored
-    // and returned, so they can be reported, together with the number of known data sources that were applied.
-    processDettectYaml(data: unknown): { unknownDataSources: string[]; dataSources: number } {
+    // and returned, so they can be reported, together with the number of known data sources that were applied. The file
+    // name is remembered for the domain of the file, to show on the DeTT&CT page.
+    processDettectYaml(data: unknown, fileName?: string): { unknownDataSources: string[]; dataSources: number } {
       if (!this.enterprise?.tactics) {
         throw new Error('The ATT&CK data is not loaded (yet). Please reload the page.');
       }
@@ -251,6 +253,9 @@ export const tacticsStore = defineStore('tactics', {
       // Switch to the domain of the file, and start from a clean state for that domain.
       this.domain = file.domain;
       this.resetDomainVisibility(file.domain);
+      if (fileName) {
+        this.dettectFileNames[file.domain] = fileName;
+      }
       // readDettectFile only accepts the supported domains, and the catalog has all of them.
       const { tactics, data_components: dataComponents } = domainOf(this, file.domain)!;
 

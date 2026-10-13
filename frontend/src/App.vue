@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
   margin-bottom: 5px;
   border: 3px solid black;
   border-radius: 5px;
-  max-width: 900px;
+  max-width: 960px;
 }
 
 .nav,
@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
 }
 
 .top-row .navigation {
-  flex: 0 1 900px;
+  flex: 0 1 960px;
   margin-bottom: 0;
 }
 

@@ -1,16 +1,17 @@
 <script setup lang="ts">
+// The visibility filter of the DeTT&CT page: two knobs for the lowest and highest visibility to show. The range is
+// kept in the store, so the knobs are where they were when the page is opened again.
 import { ref, watch } from 'vue';
 import '@vueform/slider/themes/default.css';
 import Slider from '@vueform/slider';
 import { tacticsStore } from '@/stores/tactics';
 
 const store = tacticsStore();
-const values = ref([0, 100]); // Default knob positions: 0% and 100%
+const values = ref([Math.round(store.minVisibilityRatio * 100), Math.round(store.maxVisibilityRatio * 100)]);
 
-// Watch the 'values' ref and update the store when they change
 watch(values, (newValues) => {
-  store.minVisibilityRatio = newValues[0] / 100;
-  store.maxVisibilityRatio = newValues[1] / 100;
+  store.minVisibilityRatio = newValues[0]! / 100;
+  store.maxVisibilityRatio = newValues[1]! / 100;
 });
 </script>
 
@@ -21,64 +22,25 @@ watch(values, (newValues) => {
       :min="0"
       :max="100"
       :interval="1"
-      :showTooltip="'always'"
-      :format="{ suffix: '' }"
+      :tooltips="false"
       :options="{ connect: [false, true, false] }"
       :range="true"
+      :aria="{ 'aria-label': 'Visibility percentage' }"
     />
-    <p class="slider-title">Visibility Percentage</p>
   </div>
 </template>
 
 <style scoped>
 .slider-container {
-  margin-top: 0px;
-  margin-bottom: 0px;
-  padding-top: 36px;
-  padding-left: 13px;
-  padding-right: 17px;
-  padding-bottom: 3px;
-  border: 2px solid #555;
-  border-radius: 5px;
-  background-color: #ddd;
-  width: 250px;
-  height: 70px;
-
-  /* Customizing the tooltips */
-  --slider-tooltip-line-height: 0.6rem;
-  --slider-tooltip-font-size: 0.6rem;
-
-  /* Customizing tooltip colors */
-  --slider-tooltip-bg: #333; /* Background color */
-  --slider-tooltip-color: #fff; /* Text color */
-  --slider-tooltip-border-radius: 4px; /* Optional: Border radius */
+  padding: 0 10px;
 }
 
-.slider-title {
-  margin-top: 3px;
-  font-size: 12px;
-  text-align: center;
-}
-
-/* Customizing the background color of the connected part */
+/* The selected range in red, the rest of the track light. */
 .slider-container :deep(.slider-connect) {
   background-color: firebrick;
 }
 
-/* Customizing the unselected parts */
 .slider-container :deep(.slider-base) {
-  background-color: seashell; /* Background color for the unselected track */
-}
-
-/* Customizing tooltip styles more explicitly */
-.slider-container :deep(.slider-tooltip) {
-  background-color: var(--slider-tooltip-bg); /* Use the variable for background */
-  color: var(--slider-tooltip-color); /* Use the variable for text color */
-  border-radius: var(--slider-tooltip-border-radius); /* Optional: use the variable for border-radius */
-}
-
-/* Optional: Customize the tooltip arrow if needed */
-.slider-container :deep(.slider-tooltip:before) {
-  border-top-color: var(--slider-tooltip-bg); /* Arrow color to match the tooltip background */
+  background-color: seashell;
 }
 </style>

@@ -4,6 +4,8 @@ Components of the DeTT&CT page: the ATT&CK matrix with visibility, and its filte
 
 | Name | Description |
 |---|---|
+| [`__tests__/`](__tests__/) | Tests for the texts of the controls and the start positions of the sliders |
+| [`controlValues.ts`](controlValues.ts) | The texts of the controls: the slider values and what the platforms filter lets through |
 | [`FileUploadButtonYaml.vue`](FileUploadButtonYaml.vue) | Loads a DeTT&CT data source file |
 | [`SearchBar.vue`](SearchBar.vue) | Searches techniques by name or ID |
 | [`TacticColumn.vue`](TacticColumn.vue) | One tactic column of the matrix |

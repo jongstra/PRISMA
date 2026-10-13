@@ -62,6 +62,13 @@ describe('tactics store: loading a DeTT&CT file safely', () => {
     store.processDettectYaml(readExample('dettect/enterprise_large.yaml'));
   });
 
+  it('remembers the name of the loaded file per domain, and keeps it when another file has a problem', () => {
+    store.processDettectYaml(readExample('dettect/enterprise.yaml'), 'enterprise.yaml');
+    store.processDettectYaml(readExample('dettect/mobile.yaml'), 'mobile.yaml');
+    expect(() => store.processDettectYaml(null, 'broken.yaml')).toThrow();
+    expect(store.dettectFileNames).toEqual({ 'enterprise-attack': 'enterprise.yaml', 'mobile-attack': 'mobile.yaml' });
+  });
+
   it('changes nothing when a file has a problem', () => {
     const before = ratio('T1595');
     expect(before).toBeGreaterThan(0);

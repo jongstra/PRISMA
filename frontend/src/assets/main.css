@@ -47,6 +47,7 @@ input[type='number'] {
   font-size: 14px;
   font-weight: 500;
   line-height: 1.45;
+  overflow-wrap: anywhere; /* a long name without spaces, such as a file name, wraps too */
   text-align: left;
 }
 

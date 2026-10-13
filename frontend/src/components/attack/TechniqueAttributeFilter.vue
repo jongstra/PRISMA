@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { tacticsStore, type Attribute, type Domain } from '@/stores/tactics';
+import { filterSummary } from './controlValues';
 
 // Define props
 const props = defineProps({
@@ -20,11 +21,6 @@ function toggleCollapse() {
   isCollapsed.value = !isCollapsed.value;
 }
 
-// Capitalize the first letter of a string
-function capitalizeFirstLetter(string: string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
 // Toggle selection functionality
 function toggleAttribute(attribute: Attribute) {
   attribute.active_in_filter = !attribute.active_in_filter;
@@ -39,6 +35,15 @@ const attributes = computed(
 const allSelected = computed(() => {
   return attributes.value.every((attribute) => attribute.active_in_filter);
 });
+
+// What the filter lets through, e.g. 'All platforms' or '3 of 11 platforms'.
+const summary = computed(() =>
+  filterSummary(
+    attributes.value.filter((attribute) => attribute.active_in_filter).length,
+    attributes.value.length,
+    props.attribute_type,
+  ),
+);
 
 const anySelected = computed(() => {
   return attributes.value.some((attribute) => attribute.active_in_filter);
@@ -74,7 +79,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="collapsible-container" ref="containerRef">
     <div class="collapsible-header" @click="toggleCollapse" :class="{ active: !isCollapsed }">
-      <span class="collapsible-title">{{ capitalizeFirstLetter(props.attribute_type) }}</span>
+      <span class="collapsible-title">{{ summary }}</span>
       <span class="collapsible-icon"></span>
     </div>
     <div v-if="!isCollapsed" class="collapsible-content">
@@ -105,7 +110,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .collapsible-container {
   position: relative;
-  width: 150px;
 }
 
 .collapsible-header {
@@ -113,19 +117,20 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8.5px;
-  font-size: 16px;
-  border: 2px solid #333;
+  padding: 0 10px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1.5px solid #333;
   border-radius: 5px;
   background-color: rgba(10, 10, 10, 0.35);
   color: white;
   transition: 0.1s;
-  width: 150px;
-  height: 38px;
+  height: 30px;
 }
 
 .collapsible-title {
   flex-grow: 1;
+  font-weight: 500;
 }
 
 .collapsible-icon::after {
@@ -148,7 +153,7 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 100%;
   left: 0;
-  width: 120%;
+  min-width: 100%;
   background-color: #f0f0f0;
   border: 1px solid #aaa;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);

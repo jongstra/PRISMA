@@ -106,7 +106,7 @@ const onlyShowSelected = computed<boolean>({
         {{ item.name }}
       </div>
     </div>
-    <div class="buttons-wrapper">
+    <div v-if="selectedItems.length" class="buttons-wrapper">
       <button v-for="item in selectedItems" :key="item.name" @click="removeSelection(item)">
         {{ item.name }}
       </button>
@@ -124,7 +124,6 @@ const onlyShowSelected = computed<boolean>({
   border-radius: 5px;
   background-color: #ddd;
   width: 265px;
-  height: 70px;
   position: relative; /* Ensure absolute positioning is relative to this container */
 }
 
@@ -144,7 +143,7 @@ input {
   flex: 1;
   margin: 0px 5px;
   padding: 2px 8px;
-  border: 1px solid #555;
+  border: 1.5px solid #333;
   border-radius: 4px;
   height: 26px;
   font-size: 13.3px;
@@ -154,12 +153,10 @@ input {
 button {
   display: inline-block;
   padding: 0px 3px;
-  margin-right: 2px;
-  margin-bottom: 2px;
   background-color: var(--item-color);
   border-width: 1.5px;
   border-style: solid;
-  border-color: #000;
+  border-color: #333;
   border-radius: 4px;
   cursor: pointer;
   transition:
@@ -181,10 +178,8 @@ button::before {
 }
 
 .clear-all-button {
-  height: 25px;
+  height: 26px; /* as high as the search field */
   background-color: pink;
-  margin-right: 0px;
-  margin-bottom: 0px;
 }
 
 .clear-all-button::before {
@@ -218,15 +213,36 @@ button::before {
   background-color: #f0f0f0;
 }
 
+/* The selected items, below the search field and starting where it starts. The box grows with them up to two lines;
+   more lines scroll, with a thin scroll bar (the same as the text fields of the MaGMa sheets). */
 .buttons-wrapper {
-  position: absolute; /* Make the wrapper take up remaining space */
-  top: 32px; /* Adjusted to account for reduced header height and padding */
-  left: 5px;
-  right: 5px;
-  bottom: 2px;
   display: flex;
-  flex-wrap: wrap; /* Allow buttons to wrap onto the next line */
-  overflow-y: auto; /* Add vertical scrollbar only to this div */
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 2px;
+  max-height: 38px; /* two lines of 18px items */
+  margin: 4px 5px 2px;
+  overflow-y: auto;
+}
+
+.buttons-wrapper::-webkit-scrollbar {
+  width: 3px;
+}
+
+.buttons-wrapper::-webkit-scrollbar-thumb {
+  border-radius: 1.5px;
+  background-color: #888;
+}
+
+.buttons-wrapper::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .buttons-wrapper {
+    scrollbar-width: thin;
+    scrollbar-color: #888 transparent;
+  }
 }
 
 /* Toggle switch styles */

@@ -33,7 +33,7 @@ const uploadFile = async () => {
 
   isLoading.value = true;
   try {
-    const { unknownDataSources, dataSources } = store.processDettectYaml(await readYamlFile(file));
+    const { unknownDataSources, dataSources } = store.processDettectYaml(await readYamlFile(file), file.name);
     if (unknownDataSources.length === 0) {
       const count = dataSources === 1 ? '1 data source' : `${dataSources} data sources`;
       notifySuccess(`DeTT&CT file loaded: ${count} for ${domainNames([store.domain])}`);
@@ -67,7 +67,7 @@ const onFileChange = () => {
   <div>
     <input ref="input" id="fileInput" type="file" @change="onFileChange" style="display: none" />
     <label for="fileInput" class="file-button" :class="{ loading: isLoading }">
-      {{ isLoading ? 'Loading File...' : 'Load DeTT&CT Data Sources YAML' }}
+      {{ isLoading ? 'Loading file...' : 'Load DeTT&CT YAML' }}
     </label>
   </div>
 </template>
@@ -75,19 +75,20 @@ const onFileChange = () => {
 <style scoped>
 .file-button {
   display: flex;
-  padding: 3px;
+  justify-content: center;
+  align-items: center;
+  padding: 0 8px;
   cursor: pointer;
   background-color: #d61b1b;
   color: rgb(255, 255, 255);
-  border: 2px solid black;
+  border: 1.5px solid #333;
   border-radius: 4px;
-  text-align: center;
-  align-items: center;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
   transition: 0.1s;
-  width: 105px;
-  height: 70px;
+  height: 30px;
 }
 
 .file-button:hover {
