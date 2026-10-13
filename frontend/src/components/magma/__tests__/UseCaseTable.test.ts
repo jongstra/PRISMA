@@ -86,9 +86,9 @@ describe('UseCaseTable', () => {
     const { table, magma, cell } = await showTable('L1');
     const rows = table.findAll('tbody tr').filter((row) => row.find('td.remove-col').exists()); // without the averages
     expect(rows.map((row) => row.find('button.remove-button').exists())).toEqual([false, false, true]);
-    expect(cell(0, 'ID').find('input').attributes('disabled')).toBeDefined();
+    expect(cell(0, 'ID').find('textarea').attributes('disabled')).toBeDefined();
     expect(cell(0, 'IN Impact %').find('input').attributes('disabled')).toBeDefined();
-    expect(cell(2, 'ID').find('input').attributes('disabled')).toBeUndefined();
+    expect(cell(2, 'ID').find('textarea').attributes('disabled')).toBeUndefined();
     expect(cell(2, 'Visibility %').find('.uneditable').exists()).toBe(true); // calculated from the levels below
 
     const useCase = magma.L1UseCases(domain).at(-1)!;
@@ -174,12 +174,49 @@ describe('UseCaseTable', () => {
     const rowOf = (id: string) =>
       table
         .findAll('tbody tr')
-        .find((row) => row.find('input').exists() && (row.find('input').element as HTMLInputElement).value === id)
-        ?.element;
+        .find(
+          (row) => row.find('textarea').exists() && (row.find('textarea').element as HTMLTextAreaElement).value === id,
+        )?.element;
     const secondRow = rowOf(second.id);
     magma.removeUseCaseByUid(first.uid);
     await table.vm.$nextTick();
     expect(rowOf(second.id)).toBe(secondRow);
+  });
+
+  it('ends editing with Enter in the ID, name and data source, but adds a line with Enter in the description', async () => {
+    const { cell } = await showTable('L3');
+    const pressEnter = (header: string) => {
+      const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+      cell(0, header).find('textarea').element.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(['ID', 'Use Case Name', 'Data Source', 'Description'].map(pressEnter)).toEqual([true, true, true, false]);
+  });
+
+  it('turns line breaks into spaces in the name and data source, and keeps them in the description', async () => {
+    const { cell, magma } = await showTable('L3');
+    await cell(0, 'Use Case Name').find('textarea').setValue('Pasted\nname');
+    await cell(0, 'Data Source').find('textarea').setValue('Windows\r\nevents');
+    await cell(0, 'Description').find('textarea').setValue('First line\nSecond line');
+    const useCase = magma.L3UseCases(domain)[0];
+    expect([useCase.name, useCase.dataSource, useCase.description]).toEqual([
+      'Pasted name',
+      'Windows events',
+      'First line\nSecond line',
+    ]);
+  });
+
+  it('renames a use case when its ID field is left, and refuses a space in the ID', async () => {
+    const { cell, magma } = await showTable('L2');
+    const uid = magma.L2UseCases(domain)[0].uid;
+    const id = () => cell(0, 'ID').find('textarea');
+    await id().setValue('NEW-1');
+    await id().trigger('change');
+    expect(magma.getUseCaseByUid(uid)!.id).toBe('NEW-1');
+    await id().setValue('NEW 2');
+    await id().trigger('change');
+    expect(magma.getUseCaseByUid(uid)!.id).toBe('NEW-1');
+    expect((id().element as HTMLTextAreaElement).value).toBe('NEW-1');
   });
 
   it('shows the averages only on L1', async () => {

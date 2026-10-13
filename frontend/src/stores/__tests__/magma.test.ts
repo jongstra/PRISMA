@@ -278,6 +278,13 @@ describe('magma store: renaming and deleting use cases', () => {
     expect(parentsOf('DOS-1-1')).toEqual(['DOS-1']);
   });
 
+  it('refuses an ID with a space or a comma inside, because IDs are references (parents, Excel lists)', () => {
+    const uid = magma.getUseCaseById('DOS-1', domain)!.uid;
+    expect(magma.renameUseCase(uid, 'DOS 2')).toBe('An ID cannot contain spaces or commas.');
+    expect(magma.renameUseCase(uid, 'DOS,2')).toBe('An ID cannot contain spaces or commas.');
+    expect(magma.getUseCaseById('DOS-1', domain)).toBeDefined();
+  });
+
   it('trims spaces around a new ID', () => {
     expect(magma.renameUseCase(magma.getUseCaseById('DOS-1', domain)!.uid, '  DOS-B ')).toBeNull();
     expect(parentsOf('DOS-1-1')).toEqual(['DOS-B']);

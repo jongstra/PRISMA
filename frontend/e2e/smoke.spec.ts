@@ -37,11 +37,11 @@ const openTab = (page: Page, name: string) => page.locator('.sheet-tabs').getByR
 const tacticColumns = (page: Page) => page.locator('.button-column-tactic-name');
 const message = (page: Page, text: string) => page.locator('.swal2-container').getByText(text);
 
-// The IDs in the sheet that is open on the MaGMa page.
+// The texts in the sheet that is open on the MaGMa page: IDs, names, descriptions and data sources.
 const sheetIds = (page: Page) =>
   page
-    .locator('table.fixed-table tbody input')
-    .evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value));
+    .locator('table.fixed-table tbody textarea')
+    .evaluateAll((fields) => fields.map((field) => (field as HTMLTextAreaElement).value));
 
 async function loadMagmaFile(page: Page, file: string | { name: string; mimeType: string; buffer: Buffer }) {
   await page.locator('#importYamlFile').setInputFiles(file);

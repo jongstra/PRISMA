@@ -25,7 +25,10 @@ const textValue = (useCase: UseCase, field: string) => String(fieldValue(useCase
 // The percentages that are typed in a number field, and the calculated ones that are only shown.
 const PERCENTAGE_INPUTS = ['visibility', 'implementation', 'effectiveness', 'inImpact', 'thrImpact', 'outImpact'];
 const PERCENTAGES_SHOWN = ['visibility', 'implementation', 'effectiveness', 'weight', 'potential'];
-const TEXT_FIELDS = ['name', 'description', 'dataSource'];
+const TEXT_FIELDS = ['id', 'name', 'description', 'dataSource'];
+// The text fields of one line: Enter ends editing (as in a spreadsheet), and pasted line breaks become spaces. The
+// description can have several lines.
+const SINGLE_LINE_FIELDS = ['id', 'name', 'dataSource'];
 
 // The averages in the row below the L1 sheet.
 const averages = computed(() => {
@@ -108,13 +111,33 @@ const confirmRemoveUseCaseLevel = () => {
 };
 
 // Rename a use case when its ID field is committed (Enter, or leaving the field). Its children move along to the new ID.
-// A refused rename (empty, or an ID that already exists) is explained, and the field shows the current ID again.
+// A refused rename (empty, with a space, or an ID that already exists) is explained, and the field shows the current ID
+// again.
 const renameUseCase = (useCase: UseCase, event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const problem = magma.renameUseCase(useCase.uid, input.value);
+  const field = event.target as HTMLTextAreaElement;
+  const problem = magma.renameUseCase(useCase.uid, field.value);
   if (problem) {
-    input.value = useCase.id;
+    field.value = useCase.id;
     Swal.fire({ icon: 'error', titleText: 'ID not changed', text: problem });
+  }
+};
+
+// Enter in a field of one line ends editing, instead of adding a line.
+const onTextKeydown = (field: string, event: KeyboardEvent) => {
+  if (event.key === 'Enter' && SINGLE_LINE_FIELDS.includes(field) && !event.isComposing) {
+    event.preventDefault();
+    (event.target as HTMLTextAreaElement).blur();
+  }
+};
+
+// A changed text field: line breaks become spaces in a field of one line. The ID is only renamed when the field is left.
+const onTextInput = (useCase: UseCase, field: string, event: Event) => {
+  const textarea = event.target as HTMLTextAreaElement;
+  if (SINGLE_LINE_FIELDS.includes(field) && /[\r\n]/.test(textarea.value)) {
+    textarea.value = textarea.value.replace(/\r?\n|\r/g, ' ');
+  }
+  if (field !== 'id') {
+    updateObjectField(useCase.uid, field, textarea.value);
   }
 };
 
@@ -285,14 +308,6 @@ const validateAndFormat = (event: Event) => {
               :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
             />
 
-            <input
-              v-else-if="column.field === 'id'"
-              :value="useCase.id"
-              @change="(event) => renameUseCase(useCase, event)"
-              :disabled="isLocked(useCase, column.field)"
-              :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
-            />
-
             <div
               v-else-if="TEXT_FIELDS.includes(column.field)"
               class="text-field"
@@ -302,9 +317,9 @@ const validateAndFormat = (event: Event) => {
             >
               <textarea
                 :value="textValue(useCase, column.field)"
-                @input="
-                  (event) => updateObjectField(useCase.uid, column.field, (event.target as HTMLTextAreaElement).value)
-                "
+                @keydown="(event) => onTextKeydown(column.field, event)"
+                @input="(event) => onTextInput(useCase, column.field, event)"
+                @change="(event) => column.field === 'id' && renameUseCase(useCase, event)"
                 :disabled="isLocked(useCase, column.field)"
               ></textarea>
             </div>
@@ -395,7 +410,11 @@ const validateAndFormat = (event: Event) => {
 </template>
 
 <style scoped>
+/* A row is three lines of text high; longer text in a text field scrolls. The search fields (OptionPicker.vue) use the
+   same row height. */
 .fixed-table {
+  --sheet-row-height: 59px; /* three lines of 17px, plus room around them */
+  --sheet-text-max-height: 55px; /* three lines of 17px, plus 2px padding above and below */
   width: 100%;
   table-layout: fixed;
 }
@@ -430,7 +449,7 @@ input {
   font-size: 14px;
   width: 100%;
   border: 0px;
-  min-height: 55px;
+  min-height: var(--sheet-row-height);
 }
 
 th.remove-col {
@@ -489,7 +508,7 @@ th.explained {
   justify-content: center;
   align-items: center;
   height: 100%;
-  min-height: 55px;
+  min-height: var(--sheet-row-height);
   cursor: pointer;
 }
 
@@ -534,8 +553,8 @@ th.explained {
   transform: translateX(16px);
 }
 
-/* The name, description and data source: centred vertically (and the name and data source also horizontally, like
-   the other cells). The field is as high as its text, up to the height of the row; longer text scrolls. */
+/* The ID, name, description and data source: centred vertically (and all but the description also horizontally, like
+   the other cells). The field is as high as its text, up to three lines; longer text scrolls, with a thin scroll bar. */
 .text-field {
   display: flex;
   align-items: center;
@@ -546,14 +565,37 @@ th.explained {
 .text-field textarea {
   field-sizing: content;
   width: 100%;
-  max-height: 55px; /* the height of the other fields in the row */
-  padding: 4px 6px;
+  max-height: var(--sheet-text-max-height);
+  padding: 2px 6px; /* small, so nothing of a fourth line shows below the third */
   border: 0;
   background: transparent;
   font: inherit;
   font-size: 14px;
+  line-height: 17px; /* after font, which would reset it */
   text-align: center;
+  overflow-wrap: anywhere; /* a long ID without spaces wraps too */
   resize: none;
+}
+
+/* A thin grey scroll bar (3px in Chrome, Edge and Safari; Firefox only has a standard thin one). */
+.text-field textarea::-webkit-scrollbar {
+  width: 3px;
+}
+
+.text-field textarea::-webkit-scrollbar-thumb {
+  border-radius: 1.5px;
+  background-color: #888;
+}
+
+.text-field textarea::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .text-field textarea {
+    scrollbar-width: thin;
+    scrollbar-color: #888 transparent;
+  }
 }
 
 .text-field.left-aligned textarea {

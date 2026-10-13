@@ -185,7 +185,7 @@ onUnmounted(close);
   display: flex;
   align-items: stretch;
   height: 100%; /* fills the cell, like the other fields of the sheet */
-  min-height: 55px;
+  min-height: var(--sheet-row-height, 59px); /* the row height of the sheet (UseCaseTable.vue) */
   background-color: white; /* the sheet can give another colour, e.g. red for a parent that does not exist */
 }
 

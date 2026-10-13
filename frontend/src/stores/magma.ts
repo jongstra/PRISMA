@@ -382,6 +382,10 @@ export const magmaStore = defineStore('magma', {
       if (id === '') {
         return 'The ID of a use case cannot be empty.';
       }
+      // IDs are references: in the parent column, and as comma-separated lists in the MaGMa Excel file.
+      if (/[\s,]/.test(id)) {
+        return 'An ID cannot contain spaces or commas.';
+      }
       if (id === useCase.id) {
         return null;
       }
