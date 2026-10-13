@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   align-items: flex-start;
   column-gap: 12px;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 }
 
 .top-row .navigation {

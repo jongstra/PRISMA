@@ -120,10 +120,11 @@ const counts = computed(() => [
 </template>
 
 <style scoped>
-/* Two columns of cards as wide as the charts (450px plus their 10px margin); the wide cards take both. */
+/* Two columns of cards as wide as the charts, 10px apart and 10px below the tabs; the wide cards take both. */
 .magma-summary {
   display: grid;
-  grid-template-columns: repeat(2, 460px);
+  grid-template-columns: repeat(2, 450px);
+  gap: 10px;
   margin-top: 10px;
 }
 
@@ -138,8 +139,6 @@ const counts = computed(() => [
   flex-direction: column;
   border: 2px solid black;
   border-radius: 5px;
-  margin-top: 10px;
-  margin-right: 10px;
 }
 
 .title {

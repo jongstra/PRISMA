@@ -34,9 +34,11 @@ const magma = magmaStore();
 </template>
 
 <style scoped>
+/* The charts in rows, 10px apart and 10px below the tabs. */
 .magma-insights {
   display: flex;
-  flex-wrap: wrap; /* This will allow items to wrap to the next line */
-  justify-content: flex-start; /* Adjust as needed to control spacing */
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
 }
 </style>

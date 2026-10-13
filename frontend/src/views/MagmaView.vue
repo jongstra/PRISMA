@@ -35,7 +35,6 @@ magma.updateAllL3UseCasesBasedOnDettectVisibility();
 
 <style scoped>
 .magma-container {
-  margin-top: 10px;
   text-align: center;
 }
 

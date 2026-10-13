@@ -35,9 +35,9 @@ const rows = computed(() =>
 </template>
 
 <style scoped>
-/* The chart takes the height of its row on the Insights tab (minus its top margin), so charts in the same row are equally high. */
+/* The chart takes the height of its row on the Insights tab, so charts in the same row are equally high. */
 .full-height {
-  height: calc(100% - 10px);
+  height: 100%;
 }
 
 /* The title is bold, but main.css sets every element in it to normal weight: the name stays normal, the ID is bold. */

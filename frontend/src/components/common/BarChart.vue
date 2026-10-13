@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // A framed horizontal bar chart: a title, optionally a legend, one row per item (name, bar, label), optionally a
-// footnote. Used by the charts on the Insights page and on the MaGMa page's Insights tab.
+// footnote. Used by the charts on the Insights page and on the MaGMa page's Insights and Summary tabs; the page around
+// them spaces them (10px).
 import { barWidth } from './barWidth';
 
 export interface BarChartRow {
@@ -65,8 +66,6 @@ withDefaults(
   border: 2px solid black;
   border-radius: 5px;
   width: 450px;
-  margin-top: 10px;
-  margin-right: 10px;
 }
 
 .title {
