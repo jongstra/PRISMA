@@ -110,11 +110,12 @@ watch(
   }
 }
 
-/* The matrix scrolls sideways, up to the right edge of the window (past the 0.5rem padding of #app and of .app in
-   App.vue), so there is no empty strip next to the window's scroll bar. */
+/* The matrix scrolls sideways from window edge to window edge (past the 0.5rem margin of the page, App.vue), starting
+   and ending 0.5rem from the edges. */
 .matrix-container {
   overflow-x: auto;
-  margin-right: -1rem;
+  margin: 0 -0.5rem;
+  padding: 0 0.5rem;
   transform: rotateX(180deg); /* Rotates container upside down so the horizontal scrollbar is at the top. */
 }
 

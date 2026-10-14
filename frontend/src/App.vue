@@ -80,7 +80,13 @@ onBeforeUnmount(() => {
   flex-direction: column;
   justify-content: center;
   width: 100%;
-  padding: 0.5% 0.5rem;
+  padding: 0;
+}
+
+/* The page keeps 0.5rem (8px) free at the left and right. The parts that scroll sideways (the matrix, the heatmap and
+   the MaGMa sheets) run under this margin to the window edges, and start and end 0.5rem from them. */
+.app {
+  padding: 1% 0.5rem;
 }
 
 .navigation,

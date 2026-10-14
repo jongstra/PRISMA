@@ -89,9 +89,11 @@ const legendLabel = computed(() => {
   }
 }
 
+/* The heatmap scrolls sideways from window edge to window edge, like the sheets around it (MagmaView.vue). */
 .heatmap-container {
-  overflow-x: auto; /* Enable horizontal scrollbar */
-  width: 100%; /* Full width of the parent container */
+  overflow-x: auto;
+  margin: 0 -0.5rem;
+  padding: 0 0.5rem;
   transform: rotateX(180deg); /* Rotates container upside down so the horizontal scrollbar is at the top. */
 }
 
