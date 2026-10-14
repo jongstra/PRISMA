@@ -4,7 +4,7 @@ Components and helpers that several pages use.
 
 | Name | Description |
 |---|---|
-| [`__tests__/`](__tests__/) | Tests for the bar chart, the bar colour, the bar width, the hint, the short message, the page's scroll bar and the technique tooltip |
+| [`__tests__/`](__tests__/) | Tests for the bar chart, the bar colour, the bar width, the hint, the short message, the page's scroll bar, the selection tool and the technique tooltip |
 | [`BarChart.vue`](BarChart.vue) | Horizontal bar chart, used by all charts on the Insights page and the MaGMa Insights tab |
 | [`barColor.ts`](barColor.ts) | The chart colours: a scale from red (0%) to green (100%), and a colour per MaGMa score and for counts |
 | [`barWidth.ts`](barWidth.ts) | Width of a bar, so bars and their numbers stay inside the chart |

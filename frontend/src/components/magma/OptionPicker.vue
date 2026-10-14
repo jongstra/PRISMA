@@ -7,6 +7,7 @@
 import { computed, nextTick, onUnmounted, ref, useId } from 'vue';
 import { searchOptions, type Option } from './optionSearch';
 import { listPlacement } from './listPlacement';
+import { vHint } from '@/components/common/hint';
 
 const props = withDefaults(
   defineProps<{
@@ -164,7 +165,7 @@ onUnmounted(close);
       <button
         type="button"
         class="current"
-        :title="current ? `${current.id} ${current.name}` : undefined"
+        v-hint="current ? `${current.id} ${current.name}` : undefined"
         @click="openList()"
         @keydown="onFieldKeydown"
       >
@@ -174,7 +175,7 @@ onUnmounted(close);
         <template v-else-if="hasValue">{{ modelValue }}</template>
         <template v-else>None</template>
       </button>
-      <button v-if="hasValue" type="button" class="clear" :title="`No ${noun}`" @click="choose('none')">×</button>
+      <button v-if="hasValue" type="button" class="clear" v-hint="`No ${noun}`" @click="choose('none')">×</button>
     </template>
   </div>
 </template>

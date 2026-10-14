@@ -4,7 +4,7 @@
       <div v-for="item in legendItems" :key="item.range" class="legend-item">
         <button
           :style="[{ backgroundColor: item.color, color: item.textColor }, item.style]"
-          :title="item.title"
+          v-hint="item.title"
           class="legend-button"
         >
           {{ item.range }}
@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '../common/notDetectableStyle';
+import { vHint } from '../common/hint';
 
 const legendItems = ref([
   {

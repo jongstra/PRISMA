@@ -3,20 +3,21 @@
 // 100% for techniques with use cases (the heatmap colours them continuously; these are samples). The label is in the
 // ControlBox around it (Heatmap.vue).
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '@/components/common/notDetectableStyle';
+import { vHint } from '@/components/common/hint';
 
 const SAMPLES = [0, 25, 50, 75, 100];
 </script>
 
 <template>
   <div class="legend-items">
-    <div class="swatch" :style="NOT_DETECTABLE_STYLE" :title="NOT_DETECTABLE_TEXT">n/a</div>
-    <div class="swatch" title="No use cases: no L3 use case detects this technique">none</div>
+    <div class="swatch" :style="NOT_DETECTABLE_STYLE" v-hint="NOT_DETECTABLE_TEXT">n/a</div>
+    <div class="swatch" v-hint="'No use cases: no L3 use case detects this technique'">none</div>
     <div
       v-for="sample in SAMPLES"
       :key="sample"
       class="swatch"
       :style="{ backgroundColor: `rgba(0, 255, 0, ${sample / 100})` }"
-      :title="`Score ${sample}%`"
+      v-hint="`Score ${sample}%`"
     >
       {{ sample }}
     </div>

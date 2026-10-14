@@ -3,6 +3,7 @@
 // cover. Used on the DeTT&CT page (groups and data components) and on the MaGMa heatmap (groups).
 import Swal from 'sweetalert2';
 import { computed, ref } from 'vue';
+import { vHint } from './hint';
 import { tacticsStore, type TechniqueAttribute } from '@/stores/tactics';
 
 const props = defineProps<{
@@ -96,9 +97,9 @@ const onlyShowSelected = computed<boolean>({
         @keydown.enter="addItemFromSearch"
       />
       <button class="clear-all-button" @click="confirmClearAllSelections">Clear</button>
-      <label class="toggle-label">
+      <label class="toggle-label" v-hint="toggleTitle">
         <input type="checkbox" v-model="onlyShowSelected" />
-        <span class="toggle-switch" :title="toggleTitle"></span>
+        <span class="toggle-switch"></span>
       </label>
     </div>
     <div v-if="filteredItems.length && searchQuery" class="suggestions">
