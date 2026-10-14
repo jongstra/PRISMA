@@ -9,6 +9,7 @@ import { USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
 import OptionPicker from './OptionPicker.vue';
 import { searchTechniques } from './optionSearch';
 import { vHint } from '@/components/common/hint';
+import { NOT_DETECTABLE_STYLE } from '@/components/common/notDetectableStyle';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -168,19 +169,24 @@ const isLocked = (useCase: UseCase, field: string) =>
     ? useCase.visibilityFromAttackTechnique && !useCase.visibilityFromAttackTechniqueOverride
     : useCase.permanent;
 
+// The impacts and the risk do not apply to the permanent IN and THR use cases: their cells are hatched in grey, like
+// 'n/a' in the legends, and empty.
+const notApplicable = (useCase: UseCase, field: string) =>
+  !!useCase.permanent && ['inImpact', 'thrImpact', 'outImpact', 'risk'].includes(field);
+
+const cellStyle = (useCase: UseCase, field: string) =>
+  notApplicable(useCase, field)
+    ? { backgroundImage: NOT_DETECTABLE_STYLE.backgroundImage }
+    : { backgroundColor: getBackgroundColor(useCase, field) };
+
 const getBackgroundColor = (useCase: UseCase, field: string) => {
   if (['inImpact', 'thrImpact', 'outImpact'].includes(field)) {
-    if (useCase.permanent) {
-      return 'black';
-    } else if (Number(useCase.inImpact ?? 0) + Number(useCase.thrImpact ?? 0) + Number(useCase.outImpact ?? 0) == 100) {
-      return 'white';
-    } else {
-      return 'crimson';
-    }
+    const total = Number(useCase.inImpact ?? 0) + Number(useCase.thrImpact ?? 0) + Number(useCase.outImpact ?? 0);
+    return total == 100 ? 'white' : 'crimson';
   }
 
   if (field === 'risk') {
-    return useCase.permanent ? 'black' : 'lightgoldenrodyellow';
+    return 'lightgoldenrodyellow';
   }
 
   if (useCase.permanent) {
@@ -257,164 +263,169 @@ const validateAndFormat = (event: Event) => {
 </script>
 
 <template>
-  <table border="1" class="fixed-table">
-    <thead>
-      <tr>
-        <!-- Deletes all use cases of this level. -->
-        <th
-          class="remove-col"
-          v-hint="`Delete all ${magma.activeTab} use cases`"
-          @click="confirmRemoveUseCaseLevel()"
-          style="background-color: #e73030; color: white; cursor: pointer"
-        >
-          &#10806;
-        </th>
-        <th
-          v-for="column in columns"
-          :key="column.field"
-          v-hint="column.description"
-          class="explained"
-          :style="{ width: `${column.width}px` }"
-        >
-          {{ column.title }}
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Rows for all use cases. -->
-      <tr v-for="useCase in useCases" :key="useCase.uid">
-        <!-- Remove-use-case buttons -->
-        <td class="remove-col">
-          <button
-            v-if="!useCase.permanent"
-            class="remove-button"
-            v-hint="'Delete this use case'"
-            @click="confirmRemoveUseCase(useCase)"
-            style="background-color: #e73030; color: white; border: none; cursor: pointer; width: 100%; height: 100%"
+  <!-- The sheet scrolls sideways; the add button below it does not, so it stays across the page with its text in view. -->
+  <div class="sheet-scroll">
+    <table border="1" class="fixed-table">
+      <thead>
+        <tr>
+          <!-- Deletes all use cases of this level. -->
+          <th
+            class="remove-col"
+            v-hint="`Delete all ${magma.activeTab} use cases`"
+            @click="confirmRemoveUseCaseLevel()"
+            style="background-color: #e73030; color: white; cursor: pointer"
           >
-            &times;
-          </button>
-        </td>
-
-        <td v-for="column in columns" :key="column.field">
-          <!-- Editable fields -->
-          <template v-if="column.editable">
-            <input
-              v-if="PERCENTAGE_INPUTS.includes(column.field)"
-              type="number"
-              :value="fieldValue(useCase, column.field)"
-              @input="(event) => updatePercentage(useCase, column.field, event)"
-              :disabled="isLocked(useCase, column.field)"
-              :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
-            />
-
-            <div
-              v-else-if="TEXT_FIELDS.includes(column.field)"
-              class="text-field"
-              :class="{ 'left-aligned': column.field === 'description' }"
-              :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
-              @click="($event.currentTarget as HTMLElement).querySelector('textarea')?.focus()"
+            &#10806;
+          </th>
+          <th
+            v-for="column in columns"
+            :key="column.field"
+            v-hint="column.description"
+            class="explained"
+            :style="{ width: `${column.width}px` }"
+          >
+            {{ column.title }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows for all use cases. -->
+        <tr v-for="useCase in useCases" :key="useCase.uid">
+          <!-- Remove-use-case buttons -->
+          <td class="remove-col">
+            <button
+              v-if="!useCase.permanent"
+              class="remove-button"
+              v-hint="'Delete this use case'"
+              @click="confirmRemoveUseCase(useCase)"
+              style="background-color: #e73030; color: white; border: none; cursor: pointer; width: 100%; height: 100%"
             >
-              <textarea
-                :value="textValue(useCase, column.field)"
-                @keydown="(event) => onTextKeydown(column.field, event)"
-                @input="(event) => onTextInput(useCase, column.field, event)"
-                @change="(event) => column.field === 'id' && renameUseCase(useCase, event)"
+              &times;
+            </button>
+          </td>
+
+          <td v-for="column in columns" :key="column.field">
+            <!-- Editable fields -->
+            <template v-if="column.editable">
+              <input
+                v-if="PERCENTAGE_INPUTS.includes(column.field)"
+                type="number"
+                :value="notApplicable(useCase, column.field) ? '' : fieldValue(useCase, column.field)"
+                @input="(event) => updatePercentage(useCase, column.field, event)"
                 :disabled="isLocked(useCase, column.field)"
-              ></textarea>
+                :style="cellStyle(useCase, column.field)"
+              />
+
+              <div
+                v-else-if="TEXT_FIELDS.includes(column.field)"
+                class="text-field"
+                :class="{ 'left-aligned': column.field === 'description' }"
+                :style="cellStyle(useCase, column.field)"
+                @click="($event.currentTarget as HTMLElement).querySelector('textarea')?.focus()"
+              >
+                <textarea
+                  :value="textValue(useCase, column.field)"
+                  @keydown="(event) => onTextKeydown(column.field, event)"
+                  @input="(event) => onTextInput(useCase, column.field, event)"
+                  @change="(event) => column.field === 'id' && renameUseCase(useCase, event)"
+                  :disabled="isLocked(useCase, column.field)"
+                ></textarea>
+              </div>
+
+              <OptionPicker
+                v-else-if="column.field === 'parentIds'"
+                :model-value="useCase.parentIds?.[0]"
+                :options="parentLevelUseCases"
+                noun="use case"
+                :style="cellStyle(useCase, column.field)"
+                @update:model-value="(id) => updateObjectField(useCase.uid, 'parentIds', [id])"
+              />
+
+              <OptionPicker
+                v-else-if="column.field === 'attackTechniqueId'"
+                :model-value="useCase.attackTechniqueId"
+                :options="tactics.techniqueOptions"
+                :search="searchTechniques"
+                noun="technique"
+                @update:model-value="(id) => updateObjectField(useCase.uid, 'attackTechniqueId', id)"
+              />
+
+              <label
+                v-else-if="column.field === 'visibilityFromAttackTechniqueOverride'"
+                class="override-toggle"
+                v-hint="column.description"
+              >
+                <input
+                  type="checkbox"
+                  :checked="useCase.visibilityFromAttackTechniqueOverride"
+                  @change="(event) => updateOverride(useCase, event)"
+                />
+                <span class="toggle-switch" aria-hidden="true"></span>
+              </label>
+            </template>
+
+            <!-- Calculated fields -->
+            <div v-else-if="column.field === 'L1nrChildren' || column.field === 'L2nrChildren'" class="uneditable">
+              {{ magma.getChildUseCases(useCase).length }}
             </div>
 
-            <OptionPicker
-              v-else-if="column.field === 'parentIds'"
-              :model-value="useCase.parentIds?.[0]"
-              :options="parentLevelUseCases"
-              noun="use case"
-              :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
-              @update:model-value="(id) => updateObjectField(useCase.uid, 'parentIds', [id])"
+            <div v-else-if="column.field === 'L1nrGrandChildren'" class="uneditable">
+              {{ magma.getGrandChildUseCases(useCase).length }}
+            </div>
+
+            <div v-else-if="PERCENTAGES_SHOWN.includes(column.field)" class="uneditable">
+              {{ formatPercentage(fieldValue(useCase, column.field)) }}
+            </div>
+
+            <input
+              v-else-if="column.field === 'risk'"
+              :value="useCase.permanent ? '' : formatPercentage(useCase.risk || 0)"
+              :style="cellStyle(useCase, column.field)"
+              disabled
             />
 
-            <OptionPicker
-              v-else-if="column.field === 'attackTechniqueId'"
-              :model-value="useCase.attackTechniqueId"
-              :options="tactics.techniqueOptions"
-              :search="searchTechniques"
-              noun="technique"
-              @update:model-value="(id) => updateObjectField(useCase.uid, 'attackTechniqueId', id)"
-            />
+            <template v-else>
+              {{ fieldValue(useCase, column.field) }}
+            </template>
+          </td>
+        </tr>
 
-            <label
-              v-else-if="column.field === 'visibilityFromAttackTechniqueOverride'"
-              class="override-toggle"
-              v-hint="column.description"
-            >
-              <input
-                type="checkbox"
-                :checked="useCase.visibilityFromAttackTechniqueOverride"
-                @change="(event) => updateOverride(useCase, event)"
-              />
-              <span class="toggle-switch" aria-hidden="true"></span>
-            </label>
-          </template>
-
-          <!-- Calculated fields -->
-          <div v-else-if="column.field === 'L1nrChildren' || column.field === 'L2nrChildren'" class="uneditable">
-            {{ magma.getChildUseCases(useCase).length }}
-          </div>
-
-          <div v-else-if="column.field === 'L1nrGrandChildren'" class="uneditable">
-            {{ magma.getGrandChildUseCases(useCase).length }}
-          </div>
-
-          <div v-else-if="PERCENTAGES_SHOWN.includes(column.field)" class="uneditable">
-            {{ formatPercentage(fieldValue(useCase, column.field)) }}
-          </div>
-
-          <input
-            v-else-if="column.field === 'risk'"
-            :value="useCase.permanent ? '' : formatPercentage(useCase.risk || 0)"
-            :style="{ backgroundColor: getBackgroundColor(useCase, column.field) }"
-            disabled
-          />
-
-          <template v-else>
-            {{ fieldValue(useCase, column.field) }}
-          </template>
-        </td>
-      </tr>
-
-      <!-- The empty rows add a little space (the table's border spacing) above and below the averages. -->
-      <tr></tr>
-      <tr v-if="magma.activeTab == 'L1'">
-        <td style="border: none"></td>
-        <td style="border: none"></td>
-        <td style="border: none"></td>
-        <td style="background-color: #eee">Averages &rarr;</td>
-        <td style="border: none"></td>
-        <td style="border: none"></td>
-        <td style="background-color: #eee">{{ averages.visibility }}</td>
-        <td style="background-color: #eee">{{ averages.implementation }}</td>
-        <td style="background-color: #eee">{{ averages.effectiveness }}</td>
-        <td style="background-color: #eee">{{ averages.weight }}</td>
-        <td style="background-color: #eee">{{ averages.potential }}</td>
-      </tr>
-      <tr></tr>
-    </tbody>
-    <tfoot>
-      <tr>
-        <td colspan="10" class="add-button-cell">
-          <button @click="addNewUseCase">+ ADD NEW USE CASE +</button>
-        </td>
-      </tr>
-    </tfoot>
-  </table>
+        <!-- The empty rows add a little space (the table's border spacing) above and below the averages. -->
+        <tr></tr>
+        <tr v-if="magma.activeTab == 'L1'">
+          <td style="border: none"></td>
+          <td style="border: none"></td>
+          <td style="border: none"></td>
+          <td style="background-color: #eee">Averages &rarr;</td>
+          <td style="border: none"></td>
+          <td style="border: none"></td>
+          <td style="background-color: #eee">{{ averages.visibility }}</td>
+          <td style="background-color: #eee">{{ averages.implementation }}</td>
+          <td style="background-color: #eee">{{ averages.effectiveness }}</td>
+          <td style="background-color: #eee">{{ averages.weight }}</td>
+          <td style="background-color: #eee">{{ averages.potential }}</td>
+        </tr>
+        <tr></tr>
+      </tbody>
+    </table>
+  </div>
+  <button type="button" class="add-button" @click="addNewUseCase">+ Add use case</button>
 </template>
 
 <style scoped>
+/* The sheet scrolls sideways from window edge to window edge (past the 0.5rem margin of the page, App.vue), starting
+   and ending 0.5rem from the edges. */
+.sheet-scroll {
+  overflow-x: auto;
+  margin: 0 -0.5rem;
+  padding: 0 0.5rem;
+}
+
 /* A row is three lines of text high; longer text in a text field scrolls. The search fields (OptionPicker.vue) use the
-   same row height. */
+   same row height. The text is 13px, like the controls of the other pages. */
 .fixed-table {
-  --sheet-row-height: 59px; /* three lines of 17px, plus room around them */
-  --sheet-text-max-height: 55px; /* three lines of 17px, plus 2px padding above and below */
+  --sheet-row-height: 52px; /* three lines of 16px, plus 2px padding above and below */
+  --sheet-text-max-height: 52px;
   width: 100%;
   table-layout: fixed;
 }
@@ -425,20 +436,22 @@ td,
 input {
   width: 140px;
   height: 30px;
-  border: 2px solid rgb(42, 42, 42);
+  border: 1.5px solid #333;
   border-radius: 4px;
   background-color: white;
 }
 
+/* The headers fit on one line: each column is as wide as its header needs (useCaseColumns.ts). */
 th {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: bold;
-  padding: 7px;
+  padding: 4px 6px;
+  white-space: nowrap;
   background-color: rgb(196, 213, 234);
 }
 
 tr {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 input {
@@ -446,14 +459,14 @@ input {
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   width: 100%;
   border: 0px;
   min-height: var(--sheet-row-height);
 }
 
 th.remove-col {
-  font-size: 28px;
+  font-size: 17px;
   transform: rotateX(180deg);
   padding: 3px;
 }
@@ -462,28 +475,26 @@ td.remove-col {
   background-color: #e73030;
 }
 button.remove-button {
-  font-size: 30px;
+  font-size: 18px;
 }
 
-.add-button-cell {
-  border: 0px;
-  text-align: center; /* Center the button within the cell */
-}
-
-.add-button-cell button {
-  width: calc(100vw - 40px);
-  padding: 10px;
+/* Across the page below the sheet, in the style of the other buttons. */
+.add-button {
+  display: block;
+  width: 100%;
+  height: 30px;
+  margin-top: 4px;
   background-color: green;
   color: white;
-  border: none;
-  border-radius: 5px;
+  border: 1.5px solid #333;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  float: left;
-  font-size: 14px;
 }
 
 .remove-col {
-  width: 40px;
+  width: 28px;
 }
 
 input,
@@ -570,8 +581,8 @@ th.explained {
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 14px;
-  line-height: 17px; /* after font, which would reset it */
+  font-size: 13px;
+  line-height: 16px; /* after font, which would reset it */
   text-align: center;
   overflow-wrap: anywhere; /* a long ID without spaces wraps too */
   resize: none;

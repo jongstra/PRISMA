@@ -18,8 +18,8 @@ magma.updateAllL3UseCasesBasedOnDettectVisibility();
 <template>
   <div class="magma-container">
     <SheetTabs />
-    <div class="scroll-container">
-      <UseCaseTable v-if="['L1', 'L2', 'L3'].includes(magma.activeTab)" />
+    <UseCaseTable v-if="['L1', 'L2', 'L3'].includes(magma.activeTab)" />
+    <div v-else class="scroll-container">
       <div v-if="magma.activeTab === 'Heatmap'">
         <Heatmap />
       </div>
@@ -38,8 +38,8 @@ magma.updateAllL3UseCasesBasedOnDettectVisibility();
   text-align: center;
 }
 
-/* The sheets scroll sideways from window edge to window edge (past the 0.5rem margin of the page, App.vue), starting
-   and ending 0.5rem from the edges. */
+/* The heatmap, insights and summary tabs (the sheets scroll themselves: UseCaseTable.vue). Wide content scrolls
+   sideways from window edge to window edge (past the 0.5rem margin of the page, App.vue). */
 .scroll-container {
   overflow-x: auto;
   margin: 0 -0.5rem;

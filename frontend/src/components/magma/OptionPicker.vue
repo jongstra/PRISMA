@@ -193,11 +193,13 @@ onUnmounted(close);
 input {
   flex: 1;
   min-width: 0;
-  padding: 4px 6px;
+  padding: 2px 6px;
   border: 0;
   background: none;
   font: inherit;
-  font-size: 14px;
+  /* The text of the sheet (UseCaseTable.vue): three lines fit in a row, like the text fields. */
+  font-size: 13px;
+  line-height: 16px;
 }
 
 input {

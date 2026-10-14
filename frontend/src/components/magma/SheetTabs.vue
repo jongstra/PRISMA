@@ -121,8 +121,8 @@ const importYaml = async (event: Event) => {
 }
 
 .sheet-tab {
-  width: 90px; /* Set the width of each tab */
-  padding: 8px;
+  width: 78px;
+  padding: 5px 8px;
   margin-right: 2px;
   background-color: #ddd;
   border: 2px solid #777;
@@ -130,7 +130,7 @@ const importYaml = async (event: Event) => {
   border-top-right-radius: 5px;
   position: relative;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
   text-align: center; /* Center the text within each tab */
 }

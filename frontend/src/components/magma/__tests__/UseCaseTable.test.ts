@@ -100,6 +100,19 @@ describe('UseCaseTable', () => {
     expect(cell(2, 'IN Impact %').find('input').element.style.backgroundColor).toBe('crimson');
   });
 
+  it('hatches the impacts and the risk of IN and THR in grey, without a value: they do not apply', async () => {
+    const { cell } = await showTable('L1');
+    for (const header of ['IN Impact %', 'THR Impact %', 'OUT Impact %', 'Risk']) {
+      const input = cell(0, header).find('input').element as HTMLInputElement;
+      expect([header, input.style.backgroundImage.startsWith('repeating-linear-gradient'), input.value]).toEqual([
+        header,
+        true,
+        '',
+      ]);
+    }
+    expect((cell(2, 'IN Impact %').find('input').element as HTMLInputElement).style.backgroundImage).toBe('');
+  });
+
   it('lets the visibility of an L3 use case be edited, unless it comes from its technique', async () => {
     const { table, magma, cell } = await showTable('L3');
     const visibility = () => cell(0, 'Visibility %').find('input').attributes('disabled');
