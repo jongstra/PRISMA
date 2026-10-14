@@ -147,7 +147,7 @@ input {
   border-radius: 4px;
   height: 26px;
   font-size: 13.3px;
-  min-width: 165px;
+  min-width: 0; /* the search field shrinks in a narrower box, so Clear and the switch stay inside it */
 }
 
 button {

@@ -10,6 +10,7 @@ import VisibilityLegend from '@/components/attack/VisibilityLegend.vue';
 import SearchBar from '@/components/attack/SearchBar.vue';
 import SelectionTool from '@/components/common/SelectionTool.vue';
 import ControlBox from '@/components/common/ControlBox.vue';
+import ControlPanel from '@/components/common/ControlPanel.vue';
 import { occurrenceLevel, visibilityRangeText } from '@/components/attack/controlValues';
 const store = tacticsStore();
 
@@ -33,7 +34,7 @@ watch(
 <template>
   <!-- The controls: the file, the platforms, the technique search and the legend; below them the filters and the
        group and data component selections. The columns of the two rows line up. -->
-  <div class="combined-controls">
+  <ControlPanel class="dettect-controls">
     <ControlBox label="DeTT&CT file" :value="dettectFileName ?? 'No file loaded'" :value-hint="dettectFileName">
       <FileUploadButtonYaml />
     </ControlBox>
@@ -68,7 +69,7 @@ watch(
       toggle-title="Only show techniques covered by selected components."
       color="green"
     />
-  </div>
+  </ControlPanel>
 
   <div class="matrix-container">
     <div class="attack-matrix">
@@ -84,36 +85,27 @@ watch(
 </template>
 
 <style scoped>
-/* Two rows of four boxes; the group and data component boxes keep their own width (SelectionTool.vue) and grow with
-   their selected items. The panel is as wide as the navigation and domain buttons above it (App.vue). In a narrower
-   window the boxes go in two columns, and in a very narrow one below each other. */
-.combined-controls {
-  display: grid;
+/* Two rows of four boxes (ControlPanel.vue); the group and data component boxes keep their own width (SelectionTool.vue)
+   and grow with their selected items. In a narrower window the boxes go in two columns, and in a very narrow one below
+   each other. */
+.dettect-controls {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 265px 265px;
-  /* The rows are 60px: room for one line of selected groups or data components; a row grows for a second line. */
-  grid-auto-rows: minmax(60px, auto);
-  gap: 3px;
-  max-width: 960px;
   margin-bottom: 3px;
-  padding: 3px;
-  border: 2px solid black;
-  border-radius: 5px;
-  background-color: #ccc;
 }
 
 /* In two columns or one, the group and data component boxes fill their column. */
 @media (max-width: 940px) {
-  .combined-controls {
+  .dettect-controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .combined-controls > .selection-container {
+  .dettect-controls > .selection-container {
     width: auto;
   }
 }
 
 @media (max-width: 580px) {
-  .combined-controls {
+  .dettect-controls {
     grid-template-columns: minmax(0, 1fr);
   }
 }

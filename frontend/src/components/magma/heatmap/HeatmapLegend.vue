@@ -1,0 +1,47 @@
+<script setup lang="ts">
+// The legend of the MaGMa heatmap: not detectable (striped), no use cases (white), and the green of a score from 0 to
+// 100% for techniques with use cases (the heatmap colours them continuously; these are samples). The label is in the
+// ControlBox around it (Heatmap.vue).
+import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '@/components/common/notDetectableStyle';
+
+const SAMPLES = [0, 25, 50, 75, 100];
+</script>
+
+<template>
+  <div class="legend-items">
+    <div class="swatch" :style="NOT_DETECTABLE_STYLE" :title="NOT_DETECTABLE_TEXT">n/a</div>
+    <div class="swatch" title="No use cases: no L3 use case detects this technique">none</div>
+    <div
+      v-for="sample in SAMPLES"
+      :key="sample"
+      class="swatch"
+      :style="{ backgroundColor: `rgba(0, 255, 0, ${sample / 100})` }"
+      :title="`Score ${sample}%`"
+    >
+      {{ sample }}
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.legend-items {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  max-width: 222px;
+}
+
+/* The same swatches as the DeTT&CT legend (VisibilityLegend.vue), with slightly smaller text, so 'none' fits. */
+.swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid #333;
+  border-radius: 5px;
+  background-color: white;
+  font-size: 10px;
+  font-weight: bold;
+}
+</style>

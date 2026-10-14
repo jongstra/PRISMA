@@ -111,8 +111,11 @@ const importYaml = async (event: Event) => {
 </template>
 
 <style scoped>
+/* The tabs, and at the right the Load and Save buttons, which end where the control panels end (960px wide). */
 .sheet-tabs {
   display: flex;
+  align-items: center;
+  padding-right: max(0px, calc(100% - 960px));
   background-color: #f8f9fa;
   border-bottom: 1px solid #777;
 }
@@ -142,24 +145,29 @@ const importYaml = async (event: Event) => {
   border-bottom-color: transparent;
 }
 
+/* The same look as the Load button of the DeTT&CT page (FileUploadButtonYaml.vue). */
 .load-button,
 .save-button {
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
   background-color: #d61b1b;
-  border: 2px solid black;
+  border: 1.5px solid #333;
   border-radius: 4px;
   color: rgb(255, 255, 255);
-  padding: 7.5px 7.5px;
-  margin-bottom: 1px;
   cursor: pointer;
 }
 
 .load-button {
-  margin-left: 53px;
+  margin-left: auto;
 }
 
 .save-button {
-  margin-left: 5px;
+  margin-left: 3px;
 }
 
 .load-button:hover,

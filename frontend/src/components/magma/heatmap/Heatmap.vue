@@ -1,11 +1,28 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { tacticsStore } from '@/stores/tactics';
+import { magmaStore } from '@/stores/magma';
 import HeatmapButtonColumn from './HeatmapButtonColumn.vue';
-import HeatmapStyleCheckboxes from './HeatmapStyleCheckboxes.vue';
+import HeatmapScoreFilter from './HeatmapScoreFilter.vue';
 import HeatmapSliderFilter from './HeatmapSliderFilter.vue';
 import HeatmapSearchBar from './HeatmapSearchBar.vue';
+import HeatmapLegend from './HeatmapLegend.vue';
 import SelectionTool from '@/components/common/SelectionTool.vue';
+import ControlPanel from '@/components/common/ControlPanel.vue';
+import ControlBox from '@/components/common/ControlBox.vue';
+import { scoreName } from './scoreName';
 const store = tacticsStore();
+const magma = magmaStore();
+
+// The legend is labelled with the score the heatmap colours by, such as 'Legend: weight %'.
+const legendLabel = computed(() => {
+  const metrics = {
+    visibility: magma.heatmapVisibility,
+    implementation: magma.heatmapImplementation,
+    effectiveness: magma.heatmapEffectiveness,
+  };
+  return Object.values(metrics).some(Boolean) ? `Legend: ${scoreName(metrics).short} %` : 'Legend';
+});
 
 // The matrix columns are keyed by domain and tactic, so switching domains creates new columns: each column and
 // technique button keeps the domain it was created for.
@@ -13,11 +30,13 @@ const store = tacticsStore();
 
 <template>
   <div>
-    <div class="heatmap-settings">
-      <HeatmapStyleCheckboxes />
-      <HeatmapSliderFilter />
+    <!-- The controls in one row, in the style of the DeTT&CT page: the score, the minimum score, the technique search,
+         the groups and the legend. -->
+    <ControlPanel class="heatmap-controls">
+      <ControlBox label="Score"><HeatmapScoreFilter /></ControlBox>
+      <ControlBox label="Min. score %" :value="String(magma.heatmapFilterValue)"><HeatmapSliderFilter /></ControlBox>
+      <ControlBox label="Techniques"><HeatmapSearchBar /></ControlBox>
       <SelectionTool
-        class="heatmap-selection"
         list="groups"
         selected-field="selectedInMagmaHeatmap"
         only-show-field="only_show_selected_groups_magma_heatmap"
@@ -25,8 +44,8 @@ const store = tacticsStore();
         toggle-title="Only show techniques used by selected groups."
         color="red"
       />
-      <HeatmapSearchBar />
-    </div>
+      <ControlBox class="legend-box" :label="legendLabel"><HeatmapLegend /></ControlBox>
+    </ControlPanel>
     <div class="heatmap-container">
       <div class="heatmap">
         <div
@@ -42,16 +61,32 @@ const store = tacticsStore();
 </template>
 
 <style scoped>
-.heatmap-selection {
-  margin: 0px 5px;
+/* One row, wide enough for every text: the score button fits 'Implementation', the legend fits 'none'. In a narrower
+   window the boxes go in two columns (the legend over both), and in a very narrow one below each other. */
+.heatmap-controls {
+  grid-template-columns: 170px 116px minmax(0, 1fr) 240px 238px;
+  margin: 5px 0 3px;
 }
 
-div.heatmap-settings {
-  display: flex;
-  direction: row;
-  justify-content: start;
-  margin-top: 3px;
-  margin-bottom: 2px;
+/* The group box fills its column (it is 265px on the DeTT&CT page). */
+.heatmap-controls > .selection-container {
+  width: auto;
+}
+
+@media (max-width: 940px) {
+  .heatmap-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .heatmap-controls > .legend-box {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 580px) {
+  .heatmap-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .heatmap-container {

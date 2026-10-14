@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// The minimum score filter of the MaGMa heatmap: hides the techniques with a lower score. The value is shown in the
+// ControlBox around it (Heatmap.vue), and kept in the store.
 import { ref, watch } from 'vue';
 import '@vueform/slider/themes/default.css';
 import Slider from '@vueform/slider';
@@ -7,7 +9,6 @@ import { magmaStore } from '@/stores/magma';
 const magma = magmaStore();
 const value = ref(magma.heatmapFilterValue);
 
-// Watch the 'value' ref and update the store when it changes
 watch(value, (newValue) => {
   magma.heatmapFilterValue = newValue;
 });
@@ -15,48 +16,28 @@ watch(value, (newValue) => {
 
 <template>
   <div class="slider-container">
-    <Slider v-model="value" :min="0" :max="100" :interval="1" :showTooltip="'always'" />
-    <p class="slider-title">Filter Percentage</p>
+    <Slider
+      v-model="value"
+      :min="0"
+      :max="100"
+      :interval="1"
+      :tooltips="false"
+      :aria="{ 'aria-label': 'Minimum score' }"
+    />
   </div>
 </template>
 
 <style scoped>
+/* The same look as the sliders of the DeTT&CT page. */
 .slider-container {
-  margin-top: 0px;
-  margin-bottom: 0px;
-  padding-top: 36px;
-  padding-left: 13px;
-  padding-right: 17px;
-  padding-bottom: 3px;
-  border: 2px solid #555;
-  border-radius: 5px;
-  background-color: #ddd;
-  width: 250px;
-  height: 70px;
-
-  /* Customizing the tooltips */
-  --slider-tooltip-line-height: 0.6rem;
-  --slider-tooltip-font-size: 0.6rem;
-
-  /* Customizing tooltip colors */
-  --slider-tooltip-bg: #333; /* Background color */
-  --slider-tooltip-color: #fff; /* Text color */
-  --slider-tooltip-border-radius: 4px; /* Border radius */
+  padding: 0 10px;
 }
 
-.slider-title {
-  margin-top: 3px;
-  font-size: 12px;
-  text-align: center;
-}
-
-/* Customizing the background color of the connected part */
 .slider-container :deep(.slider-connect) {
   background-color: firebrick;
 }
 
-/* Customizing the unselected parts */
 .slider-container :deep(.slider-base) {
-  background-color: seashell; /* Background color for the unselected track */
+  background-color: seashell;
 }
 </style>
