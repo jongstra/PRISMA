@@ -18,6 +18,16 @@ input[type='number'] {
   -moz-appearance: textfield;
 }
 
+/* The browser's scroll bar of the page is hidden: PageScrollbar.vue draws a thin one over the page instead, so every
+   page is equally wide, whether it scrolls or not. The page still scrolls with the wheel, trackpad and keyboard. */
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
 /* Inter everywhere, also for what is shown in the page body outside #app: the messages and dialogs (SweetAlert). */
 body {
   font-family: Inter, sans-serif;

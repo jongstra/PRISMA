@@ -118,9 +118,11 @@ watch(
   }
 }
 
+/* The matrix scrolls sideways, up to the right edge of the window (past the 0.5rem padding of #app and of .app in
+   App.vue), so there is no empty strip next to the window's scroll bar. */
 .matrix-container {
-  overflow-x: auto; /* Enable horizontal scrollbar */
-  width: 100%; /* Full width of the parent container */
+  overflow-x: auto;
+  margin-right: -1rem;
   transform: rotateX(180deg); /* Rotates container upside down so the horizontal scrollbar is at the top. */
 }
 

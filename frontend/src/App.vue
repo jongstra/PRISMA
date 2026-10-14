@@ -3,6 +3,7 @@ import { onMounted, onBeforeUnmount } from 'vue';
 import Swal from 'sweetalert2';
 import { tacticsStore } from '@/stores/tactics';
 import { magmaStore } from '@/stores/magma';
+import PageScrollbar from '@/components/common/PageScrollbar.vue';
 const tactics = tacticsStore();
 const magma = magmaStore();
 // Load the ATT&CK catalog (public/tactics_and_techniques_by_domain.json) into the Pinia store.
@@ -66,6 +67,8 @@ onBeforeUnmount(() => {
         <RouterView />
       </div>
     </main>
+
+    <PageScrollbar />
   </div>
 </template>
 

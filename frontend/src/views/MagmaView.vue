@@ -34,7 +34,10 @@ magma.updateAllL3UseCasesBasedOnDettectVisibility();
 </template>
 
 <style scoped>
+/* The sheets and the heatmap scroll sideways, up to the right edge of the window (past the 0.5rem padding of #app and
+   of .app in App.vue), so there is no empty strip next to the window's scroll bar. */
 .magma-container {
+  margin-right: -1rem;
   text-align: center;
 }
 
