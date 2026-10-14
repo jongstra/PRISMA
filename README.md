@@ -30,16 +30,16 @@ If you do not have Node.js installed, please [download](https://nodejs.org/en/do
 
 ### Clone this Repository
 ```sh
-git clone git@github.com:jongstra/prisma.git
+git clone git@github.com:jongstra/PRISMA.git
 ```
 If you don't have SSH keys set up for GitHub, clone via HTTPS instead:
 ```sh
-git clone https://github.com/jongstra/prisma.git
+git clone https://github.com/jongstra/PRISMA.git
 ```
 
 ### Enter Project Frontend Directory
 ```sh
-cd prisma/frontend
+cd PRISMA/frontend
 ```
 
 ### Install Application and Dependencies
