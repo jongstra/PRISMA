@@ -64,7 +64,11 @@ const counts = computed(() => [
 
 <template>
   <div class="magma-summary">
-    <BarChart :rows="earlyRows" :max="100">
+    <BarChart
+      hint="The weight of the two cumulative use cases: detecting an attacker getting in (IN) and moving through (THR)."
+      :rows="earlyRows"
+      :max="100"
+    >
       <template #title>Early detection (cumulative weight)</template>
       <template #name="{ index }">
         <span class="use-case-id">{{ cumulative[index]!.id }}</span> {{ cumulative[index]!.name }}
@@ -74,7 +78,7 @@ const counts = computed(() => [
       </template>
     </BarChart>
 
-    <ChartCard>
+    <ChartCard hint="The mean scores of the business risks: the L1 use cases other than IN and THR.">
       <template #title>Business risks: averages</template>
       <dl class="averages">
         <template v-for="score in averages" :key="score.label">
@@ -87,7 +91,13 @@ const counts = computed(() => [
       </div>
     </ChartCard>
 
-    <BarChart class="wide" :rows="riskRows" :max="100" empty="No business risks yet. Add one on the L1 tab.">
+    <BarChart
+      class="wide"
+      hint="Risk = 100% − (IN weight × IN impact + THR weight × THR impact + own weight × OUT impact)."
+      :rows="riskRows"
+      :max="100"
+      empty="No business risks yet. Add one on the L1 tab."
+    >
       <template #title>Business risks: chance of missing an attack (highest first)</template>
       <template #name="{ index }">
         <span class="use-case-id">{{ risks[index]!.id }}</span> {{ risks[index]!.name }}
@@ -97,7 +107,10 @@ const counts = computed(() => [
       </template>
     </BarChart>
 
-    <ChartCard class="wide">
+    <ChartCard
+      class="wide"
+      hint="The number of use cases per sheet, and the different techniques and data sources in the L3 sheet."
+    >
       <template #title>Counts</template>
       <div class="counts">
         <div v-for="count in counts" :key="count.label">

@@ -60,7 +60,11 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="100">
+  <BarChart
+    hint="How well the data components in use cover each platform's techniques, lowest first. Techniques without data components are left out."
+    :rows="rows"
+    :max="100"
+  >
     <template #title> Visibility % per Platform </template>
     <template #footnote>
       <div v-if="notDetectableCount > 0" class="footnote">

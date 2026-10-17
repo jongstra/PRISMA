@@ -22,7 +22,13 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart class="full-height" :rows="rows" :max="100" empty="No L3 use cases below this one yet.">
+  <BarChart
+    hint="The L3 use cases under this L1 use case (through its L2 use cases) with the most room to improve. Potential = 100% − weight."
+    class="full-height"
+    :rows="rows"
+    :max="100"
+    empty="No L3 use cases below this one yet."
+  >
     <template #title>
       L3 Potential:
       <span class="use-case-id">{{ L1UseCase.id }}</span> <span>{{ L1UseCase.name }}</span>

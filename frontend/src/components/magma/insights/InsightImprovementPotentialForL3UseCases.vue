@@ -26,7 +26,12 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="100" empty="No L3 use cases yet.">
+  <BarChart
+    hint="The L3 use cases with the most room to improve. Potential = 100% − weight, and weight = visibility × implementation × effectiveness."
+    :rows="rows"
+    :max="100"
+    empty="No L3 use cases yet."
+  >
     <template #title>
       L3 Improvement Potential
       <span v-if="useCases.length > 15"> (Top 15)</span>

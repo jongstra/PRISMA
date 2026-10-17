@@ -54,7 +54,11 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount">
+  <BarChart
+    hint="The threat groups in ATT&CK known to use the most techniques and sub-techniques."
+    :rows="rows"
+    :max="maxCount"
+  >
     <template #title>
       (Sub)Techniques per Group
       <span v-if="getTechniqueCountPerGroup().length >= 15"> (Top 15)</span>

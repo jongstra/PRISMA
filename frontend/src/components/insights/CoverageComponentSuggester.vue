@@ -66,7 +66,12 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount" :empty="emptyText">
+  <BarChart
+    hint="Data components in use, but with less than full device completeness, most (sub-)techniques first. 'Covered' is the completeness as a percentage (5 of 5 = 100%)."
+    :rows="rows"
+    :max="maxCount"
+    :empty="emptyText"
+  >
     <template #title>
       Suggested Coverage Improvements
       <span v-if="getTopCoverageComponents().length >= 15"> (Top 15)</span>

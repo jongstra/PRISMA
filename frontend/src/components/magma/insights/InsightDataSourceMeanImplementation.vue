@@ -22,7 +22,12 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="100" empty="No data sources in the L3 sheet yet.">
+  <BarChart
+    hint="The mean implementation of the L3 use cases with each data source, lowest first. An empty score counts as 0%."
+    :rows="rows"
+    :max="100"
+    empty="No data sources in the L3 sheet yet."
+  >
     <template #title>
       Implementation per Data Source
       <span v-if="means.length > 15"> (Lowest 15)</span>

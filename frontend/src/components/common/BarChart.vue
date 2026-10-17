@@ -18,11 +18,12 @@ defineProps<{
   rows: BarChartRow[];
   max: number; // the value of a bar that fills the track
   empty?: string; // shown when there are no rows, so an empty chart does not look broken
+  hint?: string; // the pink hint on the title: what the chart shows and where its numbers come from
 }>();
 </script>
 
 <template>
-  <ChartCard>
+  <ChartCard :hint="hint">
     <template #title><slot name="title" /></template>
     <div v-if="rows.length === 0 && empty" class="empty">{{ empty }}</div>
     <div v-for="(row, index) in rows" :key="index" v-hint="row.hint" class="item-row">

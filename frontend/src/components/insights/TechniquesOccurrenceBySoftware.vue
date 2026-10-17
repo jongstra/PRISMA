@@ -28,7 +28,7 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount">
+  <BarChart hint="The techniques used by the most malware and tools in ATT&CK." :rows="rows" :max="maxCount">
     <template #title>
       Technique Occurrence: Software
       <span v-if="getTopTechniquesBySoftware().length >= 15"> (Top 15)</span>

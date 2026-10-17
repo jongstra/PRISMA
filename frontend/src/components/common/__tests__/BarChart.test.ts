@@ -56,6 +56,11 @@ describe('BarChart', () => {
     expect(items[1]!.attributes('aria-description') ?? '').toBe(''); // no hint text, so nothing shows
   });
 
+  it('passes its hint on to the title of the card', () => {
+    const chart = mount(BarChart, { props: { rows, max: 40, hint: 'What the bars count.' } });
+    expect(chart.find('.title').attributes('aria-description')).toBe('What the bars count.');
+  });
+
   it('says why it is empty when it has no rows', () => {
     const empty = mount(BarChart, { props: { rows: [], max: 0, empty: 'No data sources yet.' } });
     expect(empty.find('.empty').text()).toBe('No data sources yet.');

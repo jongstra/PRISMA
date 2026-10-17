@@ -51,7 +51,7 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount">
+  <BarChart hint="How many techniques and sub-techniques ATT&CK lists for each platform." :rows="rows" :max="maxCount">
     <template #title> (Sub)Techniques per Platform </template>
     <template #legend><ChartLegend :items="TECHNIQUE_LEGEND" /></template>
   </BarChart>

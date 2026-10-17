@@ -35,7 +35,11 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount">
+  <BarChart
+    hint="The techniques used most by groups and software together: both counts added up."
+    :rows="rows"
+    :max="maxCount"
+  >
     <template #title>
       Technique Occurrence: Total
       <span v-if="getTopTechniques().length >= 15"> (Top 15)</span>

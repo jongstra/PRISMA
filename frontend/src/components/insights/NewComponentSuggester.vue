@@ -56,7 +56,11 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount">
+  <BarChart
+    hint="Data components not in use yet, most (sub-)techniques first: the ones that would help detect the most."
+    :rows="rows"
+    :max="maxCount"
+  >
     <template #title>
       Suggested New Components
       <span v-if="getTopNewComponents().length >= 15"> (Top 15)</span>

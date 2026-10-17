@@ -1,12 +1,15 @@
 <script setup lang="ts">
 // The frame of a chart or summary card: a grey title strip, like the control boxes, above the content. Used by
 // BarChart and the cards on the MaGMa page's Summary tab; the page around them spaces them (10px). Three cards and their
-// two gaps are as wide as the menu bars (960px).
+// two gaps are as wide as the menu bars (960px). The title can explain the card with the pink hint.
+import { vHint } from './hint';
+
+defineProps<{ hint?: string }>(); // what the card shows and where its numbers come from
 </script>
 
 <template>
   <div class="chart-card">
-    <div class="title">
+    <div v-hint="hint" class="title" :class="{ 'has-hint': hint }">
       <slot name="title" />
     </div>
     <slot />
@@ -34,5 +37,10 @@
   font-size: 13px;
   line-height: 16px;
   font-weight: bold;
+}
+
+/* The help cursor says there is more to read on the title. */
+.title.has-hint {
+  cursor: help;
 }
 </style>

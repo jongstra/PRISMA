@@ -31,7 +31,7 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount">
+  <BarChart hint="How many use cases each sheet has: L1, L2 and L3." :rows="rows" :max="maxCount">
     <template #title> Use Cases per Layer </template>
   </BarChart>
 </template>

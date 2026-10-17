@@ -23,7 +23,12 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="counts[0]?.count ?? 0" empty="No ATT&CK techniques in the L3 sheet yet.">
+  <BarChart
+    hint="The ATT&CK techniques with the most L3 use cases. A sub-technique counts on its own."
+    :rows="rows"
+    :max="counts[0]?.count ?? 0"
+    empty="No ATT&CK techniques in the L3 sheet yet."
+  >
     <template #title>
       Most Linked Techniques
       <span v-if="counts.length > 15"> (Top 15)</span>

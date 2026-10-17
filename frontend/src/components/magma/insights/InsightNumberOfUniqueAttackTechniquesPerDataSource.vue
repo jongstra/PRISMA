@@ -22,7 +22,12 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="counts[0]?.count ?? 0" empty="No data sources in the L3 sheet yet.">
+  <BarChart
+    hint="How many different ATT&CK techniques the L3 use cases of each data source detect, most first."
+    :rows="rows"
+    :max="counts[0]?.count ?? 0"
+    empty="No data sources in the L3 sheet yet."
+  >
     <template #title>
       Techniques per Data Source
       <span v-if="counts.length > 15"> (Top 15)</span>
