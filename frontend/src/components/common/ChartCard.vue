@@ -24,15 +24,15 @@ defineProps<{ hint?: string }>(); // what the card shows and where its numbers c
   width: calc((960px - 2 * 10px) / 3);
   padding-bottom: 4px;
   overflow: hidden;
-  border: 2px solid black;
+  border: var(--border-frame);
   border-radius: 5px;
 }
 
 .title {
   margin-bottom: 4px;
   padding: 5px 6px;
-  border-bottom: 1.5px solid #333;
-  background: #ddd;
+  border-bottom: var(--border-control);
+  background: var(--color-box);
   text-align: center;
   font-size: 13px;
   line-height: 16px;

@@ -79,9 +79,9 @@ const onFileChange = () => {
   align-items: center;
   padding: 0 8px;
   cursor: pointer;
-  background-color: #d61b1b;
+  background-color: var(--color-action);
   color: rgb(255, 255, 255);
-  border: 1.5px solid #333;
+  border: var(--border-control);
   border-radius: 4px;
   text-decoration: none;
   font-size: 13px;
@@ -92,7 +92,7 @@ const onFileChange = () => {
 }
 
 .file-button:hover {
-  background-color: rgb(214, 133, 27);
+  background-color: var(--color-action-hover);
   color: rgb(255, 255, 255);
 }
 </style>

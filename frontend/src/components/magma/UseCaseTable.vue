@@ -436,7 +436,7 @@ td,
 input {
   width: 140px;
   height: 30px;
-  border: 1.5px solid #333;
+  border: var(--border-control);
   border-radius: 4px;
   background-color: white;
 }
@@ -447,7 +447,7 @@ th {
   font-weight: bold;
   padding: 4px 6px;
   white-space: nowrap;
-  background-color: rgb(196, 213, 234);
+  background-color: var(--color-sheet-header);
 }
 
 tr {
@@ -472,7 +472,7 @@ th.remove-col {
 }
 
 td.remove-col {
-  background-color: #e73030;
+  background-color: var(--color-remove);
 }
 button.remove-button {
   font-size: 18px;
@@ -486,7 +486,7 @@ button.remove-button {
   margin-top: 4px;
   background-color: green;
   color: white;
-  border: 1.5px solid #333;
+  border: var(--border-control);
   border-radius: 4px;
   font-size: 13px;
   font-weight: 500;
@@ -539,7 +539,7 @@ th.explained {
   position: relative;
   width: 36px;
   height: 20px;
-  background-color: #ccc;
+  background-color: var(--color-switch-off);
   border-radius: 34px;
   transition: 0.4s;
 }
@@ -557,7 +557,7 @@ th.explained {
 }
 
 .override-toggle input:checked + .toggle-switch {
-  background-color: #2196f3;
+  background-color: var(--color-switch-on);
 }
 
 .override-toggle input:checked + .toggle-switch::before {

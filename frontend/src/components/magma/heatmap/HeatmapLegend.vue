@@ -39,7 +39,7 @@ const SAMPLES = [0, 25, 50, 75, 100];
   justify-content: center;
   width: 30px;
   height: 30px;
-  border: 1.5px solid #333;
+  border: var(--border-control);
   border-radius: 5px;
   background-color: white;
   font-size: 10px;

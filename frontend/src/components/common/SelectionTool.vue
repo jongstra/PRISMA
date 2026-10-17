@@ -129,9 +129,9 @@ const onlyShowSelected = computed<boolean>({
   --item-hover-color: rgb(225, 52, 52);
   padding: 2px;
   font-size: 14px;
-  border: 2px solid #555;
+  border: var(--border-box);
   border-radius: 5px;
-  background-color: #ddd;
+  background-color: var(--color-box);
   width: 265px;
   position: relative; /* Ensure absolute positioning is relative to this container */
 }
@@ -152,7 +152,7 @@ input {
   flex: 1;
   margin: 0px 5px;
   padding: 2px 8px;
-  border: 1.5px solid #333;
+  border: var(--border-control);
   border-radius: 4px;
   height: 26px;
   font-size: 13.3px;
@@ -165,7 +165,7 @@ button {
   background-color: var(--item-color);
   border-width: 1.5px;
   border-style: solid;
-  border-color: #333;
+  border-color: var(--color-control-border);
   border-radius: 4px;
   cursor: pointer;
   transition:
@@ -188,7 +188,7 @@ button::before {
 
 .clear-all-button {
   height: 26px; /* as high as the search field */
-  background-color: pink;
+  background-color: var(--color-hint);
 }
 
 .clear-all-button::before {
@@ -268,7 +268,7 @@ button::before {
   left: 3px;
   width: 36px;
   height: 20px;
-  background-color: #ccc;
+  background-color: var(--color-switch-off);
   border-radius: 34px;
   transition: 0.4s;
 }
@@ -292,7 +292,7 @@ button::before {
 }
 
 .toggle-label input:checked + .toggle-switch {
-  background-color: #2196f3;
+  background-color: var(--color-switch-on);
 }
 
 .toggle-label input:checked + .toggle-switch:before {

@@ -222,7 +222,7 @@ input {
 }
 
 .clear:hover {
-  color: #e73030;
+  color: var(--color-remove);
 }
 
 .option-id {
@@ -251,7 +251,7 @@ input {
 }
 
 .options li.active {
-  background-color: rgb(196, 213, 234);
+  background-color: var(--color-highlight);
 }
 
 .options li.chosen {

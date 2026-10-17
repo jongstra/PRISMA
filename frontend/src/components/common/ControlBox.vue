@@ -26,9 +26,9 @@ defineProps<{ label: string; value?: string; valueHint?: string }>();
   gap: 3px;
   min-width: 0;
   padding: 3px 6px 4px;
-  border: 2px solid #555;
+  border: var(--border-box);
   border-radius: 5px;
-  background-color: #ddd;
+  background-color: var(--color-box);
 }
 
 .control-label {
@@ -53,7 +53,7 @@ defineProps<{ label: string; value?: string; valueHint?: string }>();
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500;
-  color: #555;
+  color: var(--color-text-muted);
 }
 
 /* The control fills the rest of the box, vertically centred (a slider is lower than a button). */

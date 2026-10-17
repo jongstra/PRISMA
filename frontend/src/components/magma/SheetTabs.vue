@@ -116,7 +116,7 @@ const importYaml = async (event: Event) => {
   display: flex;
   align-items: center;
   padding-right: max(0px, calc(100% - 960px));
-  background-color: #f8f9fa;
+  background-color: var(--color-tab-bar);
   border-bottom: 1px solid #777;
 }
 
@@ -124,7 +124,7 @@ const importYaml = async (event: Event) => {
   width: 78px;
   padding: 5px 8px;
   margin-right: 2px;
-  background-color: #ddd;
+  background-color: var(--color-box);
   border: 2px solid #777;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
@@ -140,7 +140,7 @@ const importYaml = async (event: Event) => {
 }
 
 .sheet-tab.active {
-  background-color: rgb(57, 55, 139);
+  background-color: var(--color-accent);
   color: white;
   border-bottom-color: transparent;
 }
@@ -155,8 +155,8 @@ const importYaml = async (event: Event) => {
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  background-color: #d61b1b;
-  border: 1.5px solid #333;
+  background-color: var(--color-action);
+  border: var(--border-control);
   border-radius: 4px;
   color: rgb(255, 255, 255);
   cursor: pointer;
@@ -172,7 +172,7 @@ const importYaml = async (event: Event) => {
 
 .load-button:hover,
 .save-button:hover {
-  background-color: rgb(214, 133, 27);
+  background-color: var(--color-action-hover);
   color: rgb(255, 255, 255);
 }
 </style>

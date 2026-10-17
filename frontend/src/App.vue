@@ -93,9 +93,9 @@ onBeforeUnmount(() => {
 .domain-switcher {
   display: flex;
   justify-content: space-around;
-  background-color: #eeeeee;
+  background-color: var(--color-menu-bar);
   margin-bottom: 5px;
-  border: 3px solid black;
+  border: 3px solid var(--color-frame);
   border-radius: 5px;
   max-width: 960px;
 }
@@ -105,11 +105,11 @@ onBeforeUnmount(() => {
   cursor: pointer;
   flex-grow: 1;
   text-align: center;
-  background-color: #cccccc;
+  background-color: var(--color-panel);
   color: #000000;
   font-size: 18px;
   font-weight: bold;
-  border: 2px solid black;
+  border: var(--border-frame);
   margin: 2px;
   border-radius: 5px;
   transition: 0.1s;
@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
 }
 
 .selected {
-  background-color: rgb(57, 55, 139);
+  background-color: var(--color-accent);
   color: white;
 }
 </style>

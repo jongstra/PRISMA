@@ -15,9 +15,9 @@
   gap: 3px;
   max-width: 960px;
   padding: 3px;
-  border: 2px solid black;
+  border: var(--border-frame);
   border-radius: 5px;
-  background-color: #ccc;
+  background-color: var(--color-panel);
   text-align: left;
 }
 </style>

@@ -23,7 +23,7 @@ input[type='text'] {
   width: 100%;
   padding: 0 9px;
   font-size: 13.3px;
-  border: 1.5px solid #333;
+  border: var(--border-control);
   border-radius: 5px;
   height: 30px;
 }

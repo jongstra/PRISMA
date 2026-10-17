@@ -74,7 +74,7 @@ const legendItems = ref([
   width: 29px;
   height: 30px;
   padding: 0;
-  border: 1.5px solid #333;
+  border: var(--border-control);
   display: flex;
   align-items: center;
   justify-content: center;

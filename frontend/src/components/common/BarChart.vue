@@ -76,7 +76,7 @@ defineProps<{
   height: 6px;
   overflow: hidden;
   border-radius: 3px;
-  background: #e6e6e6;
+  background: var(--color-track);
 }
 
 .bar {
@@ -93,7 +93,7 @@ defineProps<{
 .empty {
   margin: 6px 8px;
   font-size: 13px;
-  color: #555555;
+  color: var(--color-text-muted);
   text-align: center;
 }
 </style>

@@ -1,3 +1,38 @@
+/* The colours and borders of the app's frames, panels, controls and buttons, by what they are for: change the look
+   here. The colours that carry meaning (the visibility scale of the matrix, the heatmap greens and the chart colours in
+   components/common/barColor.ts) are not here. */
+:root {
+  /* Lines */
+  --color-frame: black; /* menu bars, control panels, chart cards */
+  --color-box-border: #555; /* control boxes and selection tools */
+  --color-control-border: #333; /* buttons, fields, legend swatches, sheet cells */
+  --border-frame: 2px solid var(--color-frame);
+  --border-box: 2px solid var(--color-box-border);
+  --border-control: 1.5px solid var(--color-control-border);
+
+  /* Surfaces */
+  --color-menu-bar: #eee; /* the two menu bars */
+  --color-panel: #ccc; /* control panels and menu buttons */
+  --color-box: #ddd; /* control boxes, chart card titles, sheet tabs */
+  --color-tab-bar: #f8f9fa; /* the bar with the sheet tabs */
+  --color-sheet-header: rgb(196, 213, 234); /* the column headers of the sheets */
+  --color-list: #f0f0f0; /* drop-down lists with checkboxes */
+  --color-track: #e6e6e6; /* the line behind a chart bar */
+
+  /* Accents */
+  --color-accent: rgb(57, 55, 139); /* the chosen menu button and sheet tab */
+  --color-action: #d61b1b; /* Load and Save buttons */
+  --color-action-hover: rgb(214, 133, 27);
+  --color-hint: pink; /* pink hints and Clear buttons */
+  --color-switch-off: #ccc;
+  --color-switch-on: #2196f3;
+  --color-remove: #e73030; /* remove a use case, clear a sheet field */
+  --color-highlight: rgb(196, 213, 234); /* the option under the mouse or keyboard in a sheet list */
+
+  /* Text */
+  --color-text-muted: #555; /* footnotes, legend notes, empty charts, control values */
+}
+
 *,
 *::before,
 *::after {
@@ -50,7 +85,7 @@ body {
   z-index: 1002;
   max-width: 280px;
   pointer-events: none;
-  background-color: pink; /* like the Clear buttons of the selection tools */
+  background-color: var(--color-hint); /* like the Clear buttons of the selection tools */
   color: rgb(17, 17, 17);
   border: 1px solid black;
   border-radius: 6px;

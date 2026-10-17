@@ -71,7 +71,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnClickOutside)
   width: 100%;
   height: 30px;
   padding: 0 10px;
-  border: 1.5px solid #333;
+  border: var(--border-control);
   border-radius: 5px;
   background-color: rgba(10, 10, 10, 0.35);
   color: white;
@@ -113,7 +113,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnClickOutside)
   margin: 0;
   padding: 0;
   list-style: none;
-  background-color: #f0f0f0;
+  background-color: var(--color-list);
   border: 1px solid #aaa;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   white-space: nowrap;

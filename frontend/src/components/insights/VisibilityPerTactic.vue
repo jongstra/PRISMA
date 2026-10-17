@@ -61,7 +61,7 @@ const rows = computed(() =>
 .footnote {
   margin: 2px 8px 2px;
   font-size: 11px;
-  color: #555555;
+  color: var(--color-text-muted);
   text-align: center;
 }
 </style>
