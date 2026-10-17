@@ -12,7 +12,7 @@ The PRISMA web application (Vue 3, Pinia, Vite). It runs entirely in the browser
 | [`eslint.config.js`](eslint.config.js) | Code check settings (`npm run lint`) |
 | [`index.html`](index.html) | The page the application starts from |
 | [`package-lock.json`](package-lock.json) | Exact versions of all dependencies |
-| [`package.json`](package.json) | Dependencies and npm scripts |
+| [`package.json`](package.json) | Dependencies and npm scripts. Dependabot proposes new versions each month (settings in [`.github/dependabot.yml`](../.github/dependabot.yml)) |
 | [`playwright.config.ts`](playwright.config.ts) | Browser smoke test settings |
 | [`tsconfig.app.json`](tsconfig.app.json) | TypeScript settings for the application |
 | [`tsconfig.json`](tsconfig.json) | TypeScript settings, combining the other three and the one in `e2e/` |

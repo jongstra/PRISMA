@@ -12,7 +12,6 @@ The figure below shows the overview of how MaGMa 2.0 and DeTT&CT are combined to
 
 | Name | Description |
 |---|---|
-| [`.github/`](.github/) | Dependabot settings: monthly pull requests for new versions of the dependencies |
 | [`docs/`](docs/) | MaGMa 2.0 functional documentation, and guides to PRISMA's calculations, structure and files |
 | [`examples/`](examples/) | Example DeTT&CT and MaGMa files to try the app |
 | [`frontend/`](frontend/) | The PRISMA web application |
