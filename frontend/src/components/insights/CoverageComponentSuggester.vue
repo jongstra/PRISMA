@@ -34,6 +34,13 @@ function getTopCoverageComponents(): Component[] {
     }));
 }
 
+// Why the chart is empty: no data component is in use (no DeTT&CT file is loaded), or all of them have full coverage.
+const emptyText = computed(() =>
+  store.currentDomain?.data_components?.some((component) => component.visibility)
+    ? 'Every data component in use has full coverage.'
+    : 'Load a DeTT&CT file on the DeTT&CT page to see this suggestion.',
+);
+
 // The longest bar in this chart fills the box.
 const maxCount = computed(() =>
   Math.max(0, ...getTopCoverageComponents().map((x) => x.technique_count + x.subtechnique_count)),
@@ -53,7 +60,7 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount" wrap-long-names>
+  <BarChart :rows="rows" :max="maxCount" wrap-long-names :empty="emptyText">
     <template #title>
       Suggestion: Improve Coverage of Existing Components
       <span v-if="getTopCoverageComponents().length >= 15"> (Top 15)</span>

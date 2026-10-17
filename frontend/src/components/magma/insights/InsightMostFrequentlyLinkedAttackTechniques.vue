@@ -23,7 +23,13 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="counts[0]?.count ?? 0" :name-width="100" label="inside">
+  <BarChart
+    :rows="rows"
+    :max="counts[0]?.count ?? 0"
+    :name-width="100"
+    label="inside"
+    empty="No ATT&CK techniques in the L3 sheet yet."
+  >
     <template #title>
       Most Frequently Linked ATT&CK Techniques
       <span v-if="counts.length > 15"> (Top 15)</span>

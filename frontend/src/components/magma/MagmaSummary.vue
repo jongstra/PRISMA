@@ -3,6 +3,7 @@
 // missing an attack per business risk, the averages over the business risks, and the counts (see domain/magma/summary.ts).
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import ChartCard from '@/components/common/ChartCard.vue';
 import { barColor } from '@/components/common/barColor';
 import { average, businessRisks, cumulativeUseCases, distinctCount } from '@/domain/magma/summary';
 import { magmaStore } from '@/stores/magma';
@@ -73,9 +74,8 @@ const counts = computed(() => [
       </template>
     </BarChart>
 
-    <div class="card">
-      <div class="title">Business risks: averages</div>
-      <hr />
+    <ChartCard>
+      <template #title>Business risks: averages</template>
       <dl class="averages">
         <template v-for="score in averages" :key="score.label">
           <dt>{{ score.label }}</dt>
@@ -85,7 +85,7 @@ const counts = computed(() => [
       <div class="footnote">
         Over the {{ risks.length }} business risk{{ risks.length === 1 ? '' : 's' }}; IN and THR are left out.
       </div>
-    </div>
+    </ChartCard>
 
     <BarChart
       class="wide"
@@ -95,57 +95,45 @@ const counts = computed(() => [
       label-space="55px"
       :name-width="230"
       wrap-long-names
+      empty="No business risks yet. Add one on the L1 tab."
     >
       <template #title>Business risks: chance of missing an attack (highest first)</template>
       <template #name="{ index }">
         <span class="use-case-id">{{ risks[index]!.id }}</span> {{ risks[index]!.name }}
       </template>
       <template #footnote>
-        <div v-if="risks.length === 0" class="empty">No business risks yet. Add one on the L1 tab.</div>
         <div class="footnote">The Risk column of the L1 sheet.</div>
       </template>
     </BarChart>
 
-    <div class="card wide">
-      <div class="title">Counts</div>
-      <hr />
+    <ChartCard class="wide">
+      <template #title>Counts</template>
       <div class="counts">
         <div v-for="count in counts" :key="count.label">
           <div class="count">{{ count.value }}</div>
           {{ count.label }}
         </div>
       </div>
-    </div>
+    </ChartCard>
   </div>
 </template>
 
 <style scoped>
-/* Two columns of cards as wide as the charts, 10px apart and 10px below the tabs; the wide cards take both. */
+/* Two columns of cards, 10px apart and 10px below the tabs, together as wide as the menu bars (960px), so they end
+   where the Load and Save buttons end. The cards fill their column; the wide cards take both. */
 .magma-summary {
   display: grid;
-  grid-template-columns: repeat(2, 450px);
+  grid-template-columns: repeat(2, 475px);
   gap: 10px;
   margin-top: 10px;
 }
 
-.magma-summary .wide {
-  grid-column: 1 / -1;
+.magma-summary > * {
   width: auto;
 }
 
-/* The same frame and title as the charts (see BarChart.vue). */
-.card {
-  display: flex;
-  flex-direction: column;
-  border: 2px solid black;
-  border-radius: 5px;
-}
-
-.title {
-  text-align: center;
-  margin: 5px;
-  font-size: 16px;
-  font-weight: bold;
+.magma-summary .wide {
+  grid-column: 1 / -1;
 }
 
 .averages {
@@ -165,7 +153,7 @@ const counts = computed(() => [
 .counts {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  margin: 5px 5px 10px;
+  margin: 2px 5px 6px;
   font-size: 13px;
   text-align: center;
 }
@@ -181,15 +169,9 @@ const counts = computed(() => [
 }
 
 .footnote {
-  margin: auto 8px 6px;
+  margin: auto 8px 2px;
   font-size: 11px;
   color: #555555;
-  text-align: center;
-}
-
-.empty {
-  margin: 10px 8px;
-  font-size: 13px;
   text-align: center;
 }
 </style>

@@ -55,7 +55,7 @@ const rows = computed(() =>
 
 <style scoped>
 .footnote {
-  margin: 2px 8px 6px;
+  margin: 2px 8px 2px;
   font-size: 11px;
   color: #555555;
   text-align: center;

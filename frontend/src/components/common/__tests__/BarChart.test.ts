@@ -51,6 +51,13 @@ describe('BarChart', () => {
     expect(end.find('.item-row > .item-count').text()).toBe('40');
   });
 
+  it('says why it is empty when it has no rows', () => {
+    const empty = mount(BarChart, { props: { rows: [], max: 0, empty: 'No data sources yet.' } });
+    expect(empty.find('.empty').text()).toBe('No data sources yet.');
+    const filled = mount(BarChart, { props: { rows, max: 40, empty: 'No data sources yet.' } });
+    expect(filled.find('.empty').exists()).toBe(false);
+  });
+
   it('sets the width of the name column, and lets long names wrap when asked', () => {
     const chart = mount(BarChart, { props: { rows, max: 40, nameWidth: 100, wrapLongNames: true } });
     expect(chart.find('.item-name').attributes('style')).toBe('min-width: 100px;');

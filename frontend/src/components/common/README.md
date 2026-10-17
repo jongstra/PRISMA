@@ -5,9 +5,10 @@ Components and helpers that several pages use.
 | Name | Description |
 |---|---|
 | [`__tests__/`](__tests__/) | Tests for the bar chart, the bar colour, the bar width, the hint, the short message, the page's scroll bar, the selection tool and its list, and the technique tooltip |
-| [`BarChart.vue`](BarChart.vue) | Horizontal bar chart, used by all charts on the Insights page and the MaGMa Insights tab |
+| [`BarChart.vue`](BarChart.vue) | Horizontal bar chart in a chart card, used by all charts on the Insights page and the MaGMa Insights and Summary tabs; says why it is empty when it has no rows |
 | [`barColor.ts`](barColor.ts) | The chart colours: a scale from red (0%) to green (100%), and a colour per MaGMa score and for counts |
 | [`barWidth.ts`](barWidth.ts) | Width of a bar, so bars and their numbers stay inside the chart |
+| [`ChartCard.vue`](ChartCard.vue) | The frame of a chart or summary card, with a grey title strip like the control boxes |
 | [`CheckboxDropdown.vue`](CheckboxDropdown.vue) | A button that says what a filter lets through, with a list of checkboxes (the platforms and the heatmap score) |
 | [`ControlBox.vue`](ControlBox.vue) | A box in a control panel: a label, optionally a value, and the control |
 | [`ControlPanel.vue`](ControlPanel.vue) | The grey frame with the control boxes, on the DeTT&CT page and the MaGMa heatmap |

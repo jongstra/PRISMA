@@ -21,7 +21,15 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart class="full-height" :rows="rows" :max="100" label-space="0px" :name-width="100" label="end">
+  <BarChart
+    class="full-height"
+    :rows="rows"
+    :max="100"
+    label-space="0px"
+    :name-width="100"
+    label="end"
+    empty="No L3 use cases below this one yet."
+  >
     <template #title>
       Improvement Potential for L3 Use Cases relating to:
       <br />

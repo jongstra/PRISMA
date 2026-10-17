@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// A framed horizontal bar chart: a title, optionally a legend, one row per item (name, bar, label), optionally a
-// footnote. Used by the charts on the Insights page and on the MaGMa page's Insights and Summary tabs; the page around
-// them spaces them (10px).
+// A horizontal bar chart in a ChartCard: a title, optionally a legend, one row per item (name, bar, label), optionally a
+// footnote. Used by the charts on the Insights page and on the MaGMa page's Insights and Summary tabs.
+import ChartCard from './ChartCard.vue';
 import { barWidth } from './barWidth';
 
 export interface BarChartRow {
@@ -18,6 +18,7 @@ withDefaults(
     nameWidth?: number; // minimum width of the name column, in pixels
     label?: 'after' | 'inside' | 'inside-wide' | 'end'; // after the bar, in the bar, in the bar and 90px wide, or at the row's end
     wrapLongNames?: boolean; // let long names wrap, instead of making the bars shorter
+    empty?: string; // shown when there are no rows, so an empty chart does not look broken
   }>(),
   {
     labelSpace: '40px',
@@ -29,12 +30,10 @@ withDefaults(
 </script>
 
 <template>
-  <div class="item-visualization">
-    <div class="title">
-      <slot name="title" />
-    </div>
-    <hr />
+  <ChartCard>
+    <template #title><slot name="title" /></template>
     <slot name="legend" />
+    <div v-if="rows.length === 0 && empty" class="empty">{{ empty }}</div>
     <div v-for="(row, index) in rows" :key="index" class="item-row">
       <div class="item-name" :style="{ minWidth: `${nameWidth}px` }">
         <slot name="name" :row="row" :index="index">{{ row.name }}</slot>
@@ -56,29 +55,21 @@ withDefaults(
       <span v-if="label === 'end'" class="item-count">{{ row.label }}</span>
     </div>
     <slot name="footnote" />
-  </div>
+  </ChartCard>
 </template>
 
 <style scoped>
-.item-visualization {
-  display: flex;
-  flex-direction: column;
-  border: 2px solid black;
-  border-radius: 5px;
-  width: 450px;
-}
-
-.title {
-  text-align: center;
-  margin: 5px;
-  font-size: 16px;
-  font-weight: bold;
-}
-
 .item-row {
   display: flex;
   align-items: center;
-  margin: 5px;
+  margin: 3px 6px;
+}
+
+.empty {
+  margin: 6px 8px;
+  font-size: 13px;
+  color: #555555;
+  text-align: center;
 }
 
 .item-name {

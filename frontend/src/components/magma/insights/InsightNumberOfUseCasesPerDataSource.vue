@@ -22,7 +22,13 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="counts[0]?.count ?? 0" :name-width="100" label="inside">
+  <BarChart
+    :rows="rows"
+    :max="counts[0]?.count ?? 0"
+    :name-width="100"
+    label="inside"
+    empty="No data sources in the L3 sheet yet."
+  >
     <template #title>
       Number of Use Cases per Data Source
       <span v-if="counts.length > 15"> (Top 15)</span>

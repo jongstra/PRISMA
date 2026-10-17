@@ -25,7 +25,7 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="100" label-space="0px" :name-width="100" label="end">
+  <BarChart :rows="rows" :max="100" label-space="0px" :name-width="100" label="end" empty="No L3 use cases yet.">
     <template #title>
       Improvement Potential for L3 Use Cases
       <span v-if="useCases.length > 15"> (Top 15)</span>

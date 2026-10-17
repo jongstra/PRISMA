@@ -22,7 +22,14 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="100" label-space="100px" :name-width="100" label="inside-wide">
+  <BarChart
+    :rows="rows"
+    :max="100"
+    label-space="100px"
+    :name-width="100"
+    label="inside-wide"
+    empty="No data sources in the L3 sheet yet."
+  >
     <template #title>
       Data Sources - Mean Effectiveness
       <span v-if="means.length > 15"> (Top 15 Worst)</span>
