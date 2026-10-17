@@ -27,7 +27,7 @@ defineProps<{ label: string; value?: string; valueHint?: string }>();
   min-width: 0;
   padding: 3px 6px 4px;
   border: var(--border-box);
-  border-radius: 5px;
+  border-radius: var(--radius-box);
   background-color: var(--color-box);
 }
 

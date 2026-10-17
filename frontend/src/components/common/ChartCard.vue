@@ -25,7 +25,7 @@ defineProps<{ hint?: string }>(); // what the card shows and where its numbers c
   padding-bottom: 4px;
   overflow: hidden;
   border: var(--border-frame);
-  border-radius: 5px;
+  border-radius: var(--radius-frame);
 }
 
 .title {

@@ -16,7 +16,7 @@
   max-width: 960px;
   padding: 3px;
   border: var(--border-frame);
-  border-radius: 5px;
+  border-radius: var(--radius-frame);
   background-color: var(--color-panel);
   text-align: left;
 }

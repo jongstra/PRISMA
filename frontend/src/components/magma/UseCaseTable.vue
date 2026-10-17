@@ -298,7 +298,6 @@ const validateAndFormat = (event: Event) => {
               class="remove-button"
               v-hint="'Delete this use case'"
               @click="confirmRemoveUseCase(useCase)"
-              style="background-color: #e73030; color: white; border: none; cursor: pointer; width: 100%; height: 100%"
             >
               &times;
             </button>
@@ -475,7 +474,13 @@ td.remove-col {
   background-color: var(--color-remove);
 }
 button.remove-button {
+  width: 100%;
+  height: 100%;
   font-size: 18px;
+  background-color: var(--color-remove);
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
 /* Across the page below the sheet, in the style of the other buttons. */

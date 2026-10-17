@@ -81,8 +81,8 @@ const onFileChange = () => {
   cursor: pointer;
   background-color: var(--color-action);
   color: rgb(255, 255, 255);
-  border: var(--border-control);
-  border-radius: 4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;

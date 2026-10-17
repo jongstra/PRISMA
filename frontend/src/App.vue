@@ -35,32 +35,34 @@ onBeforeUnmount(() => {
 <!-- The page frame: navigation, domain buttons and the current page (the routes are in router/index.ts). -->
 <template>
   <div class="app">
-    <div class="navigation">
-      <RouterLink class="nav" to="/" exact-active-class="selected">DeTT&CT</RouterLink>
-      <RouterLink class="nav" to="/insights" exact-active-class="selected">Insights</RouterLink>
-      <RouterLink class="nav" to="/magma" exact-active-class="selected">MaGMa</RouterLink>
-    </div>
+    <header class="app-header">
+      <div class="navigation">
+        <RouterLink class="nav" to="/" exact-active-class="selected">DeTT&CT</RouterLink>
+        <RouterLink class="nav" to="/insights" exact-active-class="selected">Insights</RouterLink>
+        <RouterLink class="nav" to="/magma" exact-active-class="selected">MaGMa</RouterLink>
+      </div>
 
-    <div class="domain-switcher">
-      <button
-        :class="{ dom: true, selected: tactics.domain === 'enterprise-attack' }"
-        @click="tactics.setDomain('enterprise-attack')"
-      >
-        Enterprise
-      </button>
-      <button
-        :class="{ dom: true, selected: tactics.domain === 'mobile-attack' }"
-        @click="tactics.setDomain('mobile-attack')"
-      >
-        Mobile
-      </button>
-      <button
-        :class="{ dom: true, selected: tactics.domain === 'ics-attack' }"
-        @click="tactics.setDomain('ics-attack')"
-      >
-        ICS
-      </button>
-    </div>
+      <div class="domain-switcher">
+        <button
+          :class="{ dom: true, selected: tactics.domain === 'enterprise-attack' }"
+          @click="tactics.setDomain('enterprise-attack')"
+        >
+          Enterprise
+        </button>
+        <button
+          :class="{ dom: true, selected: tactics.domain === 'mobile-attack' }"
+          @click="tactics.setDomain('mobile-attack')"
+        >
+          Mobile
+        </button>
+        <button
+          :class="{ dom: true, selected: tactics.domain === 'ics-attack' }"
+          @click="tactics.setDomain('ics-attack')"
+        >
+          ICS
+        </button>
+      </div>
+    </header>
 
     <main>
       <div class="content">
@@ -86,34 +88,27 @@ onBeforeUnmount(() => {
 /* The page keeps 0.5rem (8px) free at the left and right. The parts that scroll sideways (the matrix, the heatmap and
    the MaGMa sheets) run under this margin to the window edges, and start and end 0.5rem from them. */
 .app {
-  padding: 1% 0.5rem;
+  padding: 0 0.5rem 1%;
+}
+
+/* The header: a band across the whole window with the two menu bars in it, and a thin line below it. The page content
+   starts 5px below it. */
+.app-header {
+  margin: 0 -0.5rem 5px;
+  padding: 8px 0.5rem 5px; /* with the line below it, the band ends 6px below the menu bars */
+  background-color: var(--color-header);
+  border-bottom: 1px solid var(--color-header-line);
 }
 
 .navigation,
 .domain-switcher {
   display: flex;
   justify-content: space-around;
-  background-color: var(--color-menu-bar);
-  margin-bottom: 5px;
-  border: 3px solid var(--color-frame);
-  border-radius: 5px;
   max-width: 960px;
-}
-
-.nav,
-.dom {
-  cursor: pointer;
-  flex-grow: 1;
-  text-align: center;
-  background-color: var(--color-panel);
-  color: #000000;
-  font-size: 18px;
-  font-weight: bold;
-  border: var(--border-frame);
-  margin: 2px;
-  border-radius: 5px;
-  transition: 0.1s;
-  width: 0; /* This makes the navigation buttons and the domain buttons all have the same width. */
+  padding: 2px;
+  background-color: var(--color-menu-bar);
+  border: 1px solid var(--color-header-line);
+  border-radius: var(--radius-frame);
 }
 
 /* The navigation is close to the domain buttons below it. */
@@ -121,8 +116,50 @@ onBeforeUnmount(() => {
   margin-bottom: 3px;
 }
 
-.selected {
+/* The buttons of a menu bar are joined; a thin line separates them, except next to the chosen one. */
+.nav,
+.dom {
+  position: relative;
+  flex-grow: 1;
+  width: 0; /* This makes the navigation buttons and the domain buttons all have the same width. */
+  margin: 2px;
+  padding: 4px 0;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-box);
+  color: var(--color-menu-text);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.nav:hover,
+.dom:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.nav + .nav::before,
+.dom + .dom::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 3px;
+  bottom: 3px;
+  border-left: 1px solid var(--color-header-line);
+}
+
+.nav.selected,
+.dom.selected {
   background-color: var(--color-accent);
   color: white;
+}
+
+.nav.selected::before,
+.dom.selected::before,
+.selected + .nav::before,
+.selected + .dom::before {
+  display: none;
 }
 </style>

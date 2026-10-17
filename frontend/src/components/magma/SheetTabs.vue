@@ -125,9 +125,9 @@ const importYaml = async (event: Event) => {
   padding: 5px 8px;
   margin-right: 2px;
   background-color: var(--color-box);
-  border: 2px solid #777;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
+  border: 1px solid var(--color-box-border);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
   position: relative;
   cursor: pointer;
   font-size: 13px;
@@ -156,8 +156,8 @@ const importYaml = async (event: Event) => {
   font-weight: 500;
   white-space: nowrap;
   background-color: var(--color-action);
-  border: var(--border-control);
-  border-radius: 4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
   color: rgb(255, 255, 255);
   cursor: pointer;
 }

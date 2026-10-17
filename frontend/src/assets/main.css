@@ -3,26 +3,35 @@
    components/common/barColor.ts) are not here. */
 :root {
   /* Lines */
-  --color-frame: black; /* menu bars, control panels, chart cards */
-  --color-box-border: #555; /* control boxes and selection tools */
-  --color-control-border: #333; /* buttons, fields, legend swatches, sheet cells */
-  --border-frame: 2px solid var(--color-frame);
-  --border-box: 2px solid var(--color-box-border);
-  --border-control: 1.5px solid var(--color-control-border);
+  --color-frame: #8a919c; /* control panels, chart cards */
+  --color-box-border: #a7adb6; /* control boxes, selection tools, sheet tabs */
+  --color-control-border: #6b7280; /* buttons, fields, legend swatches, sheet cells */
+  --border-frame: 1px solid var(--color-frame);
+  --border-box: 1px solid var(--color-box-border);
+  --border-control: 1px solid var(--color-control-border);
+
+  /* The header: a band across the window with the two menu bars in it */
+  --color-header: #d9dde3;
+  --color-header-line: #9aa1aa; /* the line below the band, the frames of the menu bars and the dividers */
+  --color-menu-bar: #eceef1;
+  --color-menu-text: #2b2f36;
 
   /* Surfaces */
-  --color-menu-bar: #eee; /* the two menu bars */
-  --color-panel: #ccc; /* control panels and menu buttons */
-  --color-box: #ddd; /* control boxes, chart card titles, sheet tabs */
-  --color-tab-bar: #f8f9fa; /* the bar with the sheet tabs */
+  --color-panel: #dde1e6; /* control panels */
+  --color-box: #eceef2; /* control boxes, chart card titles, sheet tabs */
+  --color-tab-bar: #f4f5f7; /* the bar with the sheet tabs */
   --color-sheet-header: rgb(196, 213, 234); /* the column headers of the sheets */
-  --color-list: #f0f0f0; /* drop-down lists with checkboxes */
-  --color-track: #e6e6e6; /* the line behind a chart bar */
+  --color-list: #f6f7f9; /* drop-down lists with checkboxes */
+  --color-track: #e9ecf0; /* the line behind a chart bar */
+
+  /* Corners */
+  --radius-frame: 8px; /* menu bars, control panels, chart cards */
+  --radius-box: 6px; /* menu buttons, control boxes */
 
   /* Accents */
   --color-accent: rgb(57, 55, 139); /* the chosen menu button and sheet tab */
-  --color-action: #d61b1b; /* Load and Save buttons */
-  --color-action-hover: rgb(214, 133, 27);
+  --color-action: #b8322a; /* Load and Save buttons */
+  --color-action-hover: #96261f;
   --color-hint: pink; /* pink hints and Clear buttons */
   --color-switch-off: #ccc;
   --color-switch-on: #2196f3;
@@ -30,7 +39,7 @@
   --color-highlight: rgb(196, 213, 234); /* the option under the mouse or keyboard in a sheet list */
 
   /* Text */
-  --color-text-muted: #555; /* footnotes, legend notes, empty charts, control values */
+  --color-text-muted: #5b6370; /* footnotes, legend notes, empty charts, control values */
 }
 
 *,
