@@ -287,12 +287,17 @@ const occursInSelectedComponents = () => {
 </template>
 
 <style scoped>
+/* A button can have an inner red line (selected group) and an outer ring (hover, or a group or data component hovered
+   in the tooltip) at the same time: each is a variable, and box-shadow shows both. */
 button {
+  --inner-line: 0 0 transparent;
+  --outer-ring: 0 0 transparent;
   margin-top: 0px;
   margin-bottom: 3px;
-  background-color: rgb(246, 246, 246);
-  border: 2px solid rgb(42, 42, 42);
+  background-color: var(--color-technique);
+  border: 1.5px solid var(--color-control-border);
   border-radius: 4px; /* Slightly rounded corners */
+  box-shadow: var(--inner-line), var(--outer-ring);
   transition:
     transform 0.1s ease,
     box-shadow 0.1s ease; /* Smooth transition for hover effects */
@@ -306,25 +311,26 @@ button.pinned,
 button.occurs-in-hovered-groups.pinned,
 button.occurs-in-hovered-components.pinned {
   transform: translate(0px, -2px) scale(1.04); /* On hover, move the button slightly to the right and upwards, and enlarge it slightly. */
-  box-shadow:
-    rgba(0, 0, 0, 0.16) 0px 1px 3px,
-    rgb(51, 51, 51) 0px 0px 0px 3px; /* On hover, add a thick black 'outline' to the button. */
+  --outer-ring:
+    rgba(0, 0, 0, 0.16) 0px 1px 3px, rgb(51, 51, 51) 0px 0px 0px 2.5px; /* On hover, a dark ring around the button. */
   filter: brightness(0.88); /* Slightly darken the button on hover */
   z-index: 1001;
 }
 
 button.occurs-in-hovered-groups,
 button.occurs-in-hovered-components {
-  box-shadow: 0px 0px 3px 3px rgba(255, 174, 0, 1);
+  --outer-ring: 0px 0px 3px 3px rgba(255, 174, 0, 1);
 }
 
+/* A selected group: a red border with a thin red line inside it, 2px together. */
 button.occurs-in-selected-groups {
-  border: 2px solid red; /* Change the border color on group select */
+  border-color: red;
+  --inner-line: inset 0 0 0 0.5px red;
 }
 
 button.occurs-in-selected-components {
-  outline: 2px solid #03c03cd2; /* Change the outline color and style on component select */
-  outline-offset: -5px;
+  outline: 2px solid #03c03cd2; /* A selected data component: a green line just inside the border. */
+  outline-offset: -4px;
 }
 
 .buttontext {

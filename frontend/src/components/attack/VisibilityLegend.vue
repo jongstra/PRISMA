@@ -75,6 +75,7 @@ const legendItems = ref([
   height: 30px;
   padding: 0;
   border: var(--border-control);
+  background-color: var(--color-technique); /* like a technique without visibility in the matrix */
   display: flex;
   align-items: center;
   justify-content: center;

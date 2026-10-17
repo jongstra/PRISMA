@@ -165,11 +165,15 @@ const occursInSelectedGroups = () => {
 </template>
 
 <style scoped>
+/* Like the DeTT&CT matrix buttons (TechniqueButton.vue): an inner red line and an outer ring as variables. */
 button {
+  --inner-line: 0 0 transparent;
+  --outer-ring: 0 0 transparent;
   margin-top: 0px;
   margin-bottom: 3px;
   background-color: rgb(255, 255, 255);
-  border: 2px solid rgb(42, 42, 42);
+  border: 1.5px solid var(--color-control-border);
+  box-shadow: var(--inner-line), var(--outer-ring);
   border-radius: 4px; /* Slightly rounded corners */
   transition:
     transform 0.1s ease,
@@ -179,21 +183,23 @@ button {
 
 button:hover,
 button.pinned {
-  box-shadow:
-    rgba(0, 0, 0, 0.16) 0px 1px 3px,
-    rgb(51, 51, 51) 0px 0px 0px 2.5px; /* On hover, add a thick black 'outline' to the button. */
+  --outer-ring:
+    rgba(0, 0, 0, 0.16) 0px 1px 3px, rgb(51, 51, 51) 0px 0px 0px 2.5px; /* On hover, a dark ring around the button. */
   z-index: 1001;
 }
 
-/* Techniques with L3 use cases get a thicker (4px) dark border, so a technique with use cases at 0% still stands out from
-   techniques without use cases. The extra 2px is drawn outside the normal border, so the button keeps its size, and the
-   red border of a selected group (below) stays visible inside it. */
+/* Techniques with L3 use cases get a thicker (3.5px) dark border, so a technique with use cases at 0% still stands out
+   from techniques without use cases. The extra 2px is drawn outside the normal border, so the button keeps its size,
+   and the red border of a selected group (below) stays visible inside it. */
 button.has-use-cases {
-  box-shadow: 0 0 0 2px rgb(42, 42, 42);
+  border-color: rgb(42, 42, 42);
+  --outer-ring: 0 0 0 2px rgb(42, 42, 42);
 }
 
+/* A selected group: a red border with a thin red line inside it, 2px together. */
 button.occurs-in-selected-groups {
-  border: 2px solid red; /* Change the border color on group select */
+  border-color: red;
+  --inner-line: inset 0 0 0 0.5px red;
 }
 
 .buttontext {

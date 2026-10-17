@@ -23,6 +23,7 @@
   --color-sheet-header: rgb(196, 213, 234); /* the column headers of the sheets */
   --color-list: #f6f7f9; /* drop-down lists with checkboxes */
   --color-track: #e9ecf0; /* the line behind a chart bar */
+  --color-technique: #f3f4f6; /* a technique without visibility in the DeTT&CT matrix and its legend */
 
   /* Corners */
   --radius-frame: 8px; /* menu bars, control panels, chart cards */
