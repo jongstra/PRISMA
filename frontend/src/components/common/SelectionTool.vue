@@ -4,6 +4,7 @@
 import Swal from 'sweetalert2';
 import { computed, ref } from 'vue';
 import { vHint } from './hint';
+import { suggestedItems } from './selectionSearch';
 import { tacticsStore, type TechniqueAttribute } from '@/stores/tactics';
 
 const props = defineProps<{
@@ -58,12 +59,14 @@ const confirmClearAllSelections = () => {
   });
 };
 
-// Search field: suggestions while typing; Enter selects an item with exactly that name.
+// Search field: clicking it opens a list of the items that are not selected yet, which narrows while typing (see
+// selectionSearch.ts). Choosing an item keeps the list open, to choose more; Esc or clicking elsewhere closes it.
+// Enter selects the item with exactly the typed name.
 const searchQuery = ref('');
-const filteredItems = computed(() => {
-  if (!searchQuery.value) return [];
-  return items.value.filter((item) => item.name.toLowerCase().includes(searchQuery.value.toLowerCase()));
-});
+const listOpen = ref(false);
+const suggestions = computed(() =>
+  suggestedItems(items.value, searchQuery.value, (item) => item[props.selectedField] === true),
+);
 
 const selectItem = (item: TechniqueAttribute) => {
   item[props.selectedField] = true;
@@ -94,7 +97,11 @@ const onlyShowSelected = computed<boolean>({
         class="search-box"
         v-model="searchQuery"
         :placeholder="`Search ${noun}s...`"
+        @focus="listOpen = true"
+        @input="listOpen = true"
+        @blur="listOpen = false"
         @keydown.enter="addItemFromSearch"
+        @keydown.escape="listOpen = false"
       />
       <button class="clear-all-button" @click="confirmClearAllSelections">Clear</button>
       <label class="toggle-label" v-hint="toggleTitle">
@@ -102,8 +109,9 @@ const onlyShowSelected = computed<boolean>({
         <span class="toggle-switch"></span>
       </label>
     </div>
-    <div v-if="filteredItems.length && searchQuery" class="suggestions">
-      <div v-for="item in filteredItems" :key="item.name" class="suggestion-item" @click="selectItem(item)">
+    <!-- mousedown.prevent: choosing an item keeps the focus (and the list) in the search field. -->
+    <div v-if="listOpen && suggestions.length" class="suggestions" @mousedown.prevent>
+      <div v-for="item in suggestions" :key="item.name" class="suggestion-item" @click="selectItem(item)">
         {{ item.name }}
       </div>
     </div>
