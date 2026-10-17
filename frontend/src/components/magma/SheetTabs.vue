@@ -120,9 +120,14 @@ const importYaml = async (event: Event) => {
   border-bottom: 1px solid #777;
 }
 
+/* As high as the Load and Save buttons, so the tabs start at the top, where the content of the other pages starts. */
 .sheet-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 78px;
-  padding: 5px 8px;
+  height: 30px;
+  padding: 0 8px;
   margin-right: 2px;
   background-color: var(--color-box);
   border: 1px solid var(--color-box-border);
