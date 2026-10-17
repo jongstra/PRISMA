@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
 import PotentialLegend from './PotentialLegend.vue';
-import { potentialSegments } from './potentialSegments';
+import { potentialHint, potentialSegments } from './potentialSegments';
 import { magmaStore } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
 
@@ -20,14 +20,15 @@ const rows = computed(() =>
     name: useCase.id,
     segments: potentialSegments(useCase),
     label: `${(useCase.potential ?? 100).toFixed(2)}%`,
+    hint: potentialHint(useCase),
   })),
 );
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="100" label-space="0px" :name-width="100" label="end" empty="No L3 use cases yet.">
+  <BarChart :rows="rows" :max="100" empty="No L3 use cases yet.">
     <template #title>
-      Improvement Potential for L3 Use Cases
+      L3 Improvement Potential
       <span v-if="useCases.length > 15"> (Top 15)</span>
     </template>
     <template #legend>

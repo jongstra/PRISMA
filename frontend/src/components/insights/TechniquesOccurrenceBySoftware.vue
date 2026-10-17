@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { OCCURRENCE_COLORS } from '@/components/common/barColor';
 import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 
@@ -20,18 +21,17 @@ const rows = computed(() =>
     .slice(0, 15)
     .map((technique) => ({
       name: technique.name,
-      segments: [{ value: technique.software_occurrence, color: 'Olive' }],
+      segments: [{ value: technique.software_occurrence, color: OCCURRENCE_COLORS.software }],
       label: technique.software_occurrence,
     })),
 );
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount" wrap-long-names>
+  <BarChart :rows="rows" :max="maxCount">
     <template #title>
-      Techniques
+      Technique Occurrence: Software
       <span v-if="getTopTechniquesBySoftware().length >= 15"> (Top 15)</span>
-      - Occurrence by Software
     </template>
   </BarChart>
 </template>

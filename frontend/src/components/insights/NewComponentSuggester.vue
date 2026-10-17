@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { splitHint } from '@/components/common/splitHint';
+import ChartLegend from '@/components/common/ChartLegend.vue';
+import { TECHNIQUE_COLORS, TECHNIQUE_LEGEND } from '@/components/common/barColor';
 import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 
@@ -36,24 +39,28 @@ const maxCount = computed(() =>
   Math.max(0, ...getTopNewComponents().map((x) => x.technique_count + x.subtechnique_count)),
 );
 
-// Blue: techniques; light blue: sub-techniques.
 const rows = computed(() =>
   getTopNewComponents().map((component) => ({
     name: component.name,
     segments: [
-      { value: component.technique_count, color: 'SteelBlue' },
-      { value: component.subtechnique_count, color: '#89AFCF' },
+      { value: component.technique_count, color: TECHNIQUE_COLORS.techniques },
+      { value: component.subtechnique_count, color: TECHNIQUE_COLORS.subtechniques },
     ],
     label: component.technique_count + component.subtechnique_count,
+    hint: splitHint([
+      [component.technique_count, 'technique', 'techniques'],
+      [component.subtechnique_count, 'sub-technique', 'sub-techniques'],
+    ]),
   })),
 );
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount" wrap-long-names>
+  <BarChart :rows="rows" :max="maxCount">
     <template #title>
-      Suggestion: Add New Components
+      Suggested New Components
       <span v-if="getTopNewComponents().length >= 15"> (Top 15)</span>
     </template>
+    <template #legend><ChartLegend :items="TECHNIQUE_LEGEND" /></template>
   </BarChart>
 </template>

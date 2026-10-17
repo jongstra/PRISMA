@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { splitHint } from '@/components/common/splitHint';
+import ChartLegend from '@/components/common/ChartLegend.vue';
+import { TECHNIQUE_COLORS, TECHNIQUE_LEGEND } from '@/components/common/barColor';
 import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 
@@ -31,21 +34,25 @@ const maxCount = computed(() =>
   Math.max(0, ...getTechniqueCountPerPlatform().map((x) => x.technique_count + x.subtechnique_count)),
 );
 
-// Blue: techniques; light blue: sub-techniques.
 const rows = computed(() =>
   getTechniqueCountPerPlatform().map((platform) => ({
     name: platform.name,
     segments: [
-      { value: platform.technique_count, color: 'SteelBlue' },
-      { value: platform.subtechnique_count, color: '#89AFCF' },
+      { value: platform.technique_count, color: TECHNIQUE_COLORS.techniques },
+      { value: platform.subtechnique_count, color: TECHNIQUE_COLORS.subtechniques },
     ],
     label: platform.technique_count + platform.subtechnique_count,
+    hint: splitHint([
+      [platform.technique_count, 'technique', 'techniques'],
+      [platform.subtechnique_count, 'sub-technique', 'sub-techniques'],
+    ]),
   })),
 );
 </script>
 
 <template>
   <BarChart :rows="rows" :max="maxCount">
-    <template #title> Platforms - Number of (Sub)Techniques </template>
+    <template #title> (Sub)Techniques per Platform </template>
+    <template #legend><ChartLegend :items="TECHNIQUE_LEGEND" /></template>
   </BarChart>
 </template>

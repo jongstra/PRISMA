@@ -31,7 +31,7 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount" :name-width="100" label="inside">
-    <template #title> Number of Use Cases per Layer </template>
+  <BarChart :rows="rows" :max="maxCount">
+    <template #title> Use Cases per Layer </template>
   </BarChart>
 </template>

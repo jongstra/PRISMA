@@ -42,8 +42,8 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="100" label="inside">
-    <template #title> Tactics - Visibility Percentage </template>
+  <BarChart :rows="rows" :max="100">
+    <template #title> Visibility % per Tactic </template>
     <template #footnote>
       <div v-if="notDetectableCount > 0" class="footnote">
         Not counted: {{ notDetectableCount }} technique(s) for which ATT&CK lists no data components (not detectable via

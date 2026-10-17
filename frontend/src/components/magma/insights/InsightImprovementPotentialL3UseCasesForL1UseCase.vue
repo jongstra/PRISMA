@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
 import PotentialLegend from './PotentialLegend.vue';
-import { potentialSegments } from './potentialSegments';
+import { potentialHint, potentialSegments } from './potentialSegments';
 import type { UseCase } from '@/stores/magma';
 
 const props = defineProps<{ L1UseCase: UseCase; relatedL3UseCases: UseCase[] }>();
@@ -16,23 +16,15 @@ const rows = computed(() =>
       name: useCase.id,
       segments: potentialSegments(useCase),
       label: `${(useCase.potential ?? 100).toFixed(2)}%`,
+      hint: potentialHint(useCase),
     })),
 );
 </script>
 
 <template>
-  <BarChart
-    class="full-height"
-    :rows="rows"
-    :max="100"
-    label-space="0px"
-    :name-width="100"
-    label="end"
-    empty="No L3 use cases below this one yet."
-  >
+  <BarChart class="full-height" :rows="rows" :max="100" empty="No L3 use cases below this one yet.">
     <template #title>
-      Improvement Potential for L3 Use Cases relating to:
-      <br />
+      L3 Potential:
       <span class="use-case-id">{{ L1UseCase.id }}</span> <span>{{ L1UseCase.name }}</span>
       <span v-if="relatedL3UseCases.length > 15"> (Top 15)</span>
     </template>

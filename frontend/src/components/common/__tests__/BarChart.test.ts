@@ -1,14 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
 import BarChart from '../BarChart.vue';
-import { barWidth } from '../barWidth';
-
-// A width as the browser stores it in a style (it may rewrite calc() expressions).
-const styleWidth = (width: string) => {
-  const element = document.createElement('div');
-  element.style.width = width;
-  return element.style.width;
-};
 
 const rows = [
   {
@@ -35,20 +27,33 @@ describe('BarChart', () => {
     expect(chart.find('.title').text()).toBe('Platforms');
     const items = chart.findAll('.item-row');
     expect(items.map((item) => item.find('.item-name').text())).toEqual(['Windows', 'Linux']);
-    const bars = items[0].findAll('.bar').map((bar) => (bar.element as HTMLElement).style);
-    expect(bars.map((style) => style.width)).toEqual([styleWidth(barWidth(30, 40)), styleWidth(barWidth(10, 40))]);
+    const bars = items[0].findAll('.track > .bar').map((bar) => (bar.element as HTMLElement).style);
+    expect(bars.map((style) => style.width)).toEqual(['75%', '25%']);
     expect(bars.map((style) => style.backgroundColor)).toEqual(['steelblue', 'rgb(137, 175, 207)']);
   });
 
-  it('puts the label after the bar, in the bar, or at the end of the row', () => {
-    const after = mount(BarChart, { props: { rows, max: 40 } });
-    expect(after.find('.bar-container > .item-count').text()).toBe('40');
-    const inside = mount(BarChart, { props: { rows, max: 40, label: 'inside' } });
-    expect(inside.findAll('.bar')[1].find('.item-count.inside').text()).toBe('40'); // in the last part of the bar
-    const wide = mount(BarChart, { props: { rows, max: 40, label: 'inside-wide' } });
-    expect(wide.findAll('.bar')[1].find('.item-val').text()).toBe('40');
-    const end = mount(BarChart, { props: { rows, max: 40, label: 'end' } });
-    expect(end.find('.item-row > .item-count').text()).toBe('40');
+  it('shows the value at the end of the name line', () => {
+    const chart = mount(BarChart, { props: { rows, max: 40 } });
+    expect(chart.findAll('.item-row > .item-value').map((value) => value.text())).toEqual(['40', '20']);
+  });
+
+  it('puts the legend and the footnote together below the rows, at the bottom of the card', () => {
+    const chart = mount(BarChart, {
+      props: { rows, max: 40 },
+      slots: { legend: '<div class="legend">Key</div>', footnote: '<div class="note">Note</div>' },
+    });
+    const foot = chart.find('.chart-foot');
+    expect(foot.findAll('.chart-foot > *').map((part) => part.text())).toEqual(['Key', 'Note']);
+    expect(chart.findAll('.chart-card > *').at(-1)?.classes()).toContain('chart-foot'); // after the rows
+  });
+
+  it('explains a row with the pink hint when it has one', () => {
+    const chart = mount(BarChart, {
+      props: { rows: [{ ...rows[0]!, hint: '30 techniques + 10 sub-techniques' }, rows[1]!], max: 40 },
+    });
+    const items = chart.findAll('.item-row');
+    expect(items[0]!.attributes('aria-description')).toBe('30 techniques + 10 sub-techniques');
+    expect(items[1]!.attributes('aria-description') ?? '').toBe(''); // no hint text, so nothing shows
   });
 
   it('says why it is empty when it has no rows', () => {
@@ -56,11 +61,5 @@ describe('BarChart', () => {
     expect(empty.find('.empty').text()).toBe('No data sources yet.');
     const filled = mount(BarChart, { props: { rows, max: 40, empty: 'No data sources yet.' } });
     expect(filled.find('.empty').exists()).toBe(false);
-  });
-
-  it('sets the width of the name column, and lets long names wrap when asked', () => {
-    const chart = mount(BarChart, { props: { rows, max: 40, nameWidth: 100, wrapLongNames: true } });
-    expect(chart.find('.item-name').attributes('style')).toBe('min-width: 100px;');
-    expect(chart.find('.bar-container').classes()).toContain('wrap-names');
   });
 });

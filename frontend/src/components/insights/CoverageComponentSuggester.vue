@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { splitHint } from '@/components/common/splitHint';
+import ChartLegend from '@/components/common/ChartLegend.vue';
+import { TECHNIQUE_COLORS, TECHNIQUE_LEGEND } from '@/components/common/barColor';
 import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 
@@ -46,28 +49,38 @@ const maxCount = computed(() =>
   Math.max(0, ...getTopCoverageComponents().map((x) => x.technique_count + x.subtechnique_count)),
 );
 
-// Blue: techniques; light blue: sub-techniques.
 const rows = computed(() =>
   getTopCoverageComponents().map((component) => ({
     name: component.name,
     segments: [
-      { value: component.technique_count, color: 'SteelBlue' },
-      { value: component.subtechnique_count, color: '#89AFCF' },
+      { value: component.technique_count, color: TECHNIQUE_COLORS.techniques },
+      { value: component.subtechnique_count, color: TECHNIQUE_COLORS.subtechniques },
     ],
     label: component.technique_count + component.subtechnique_count,
+    hint: splitHint([
+      [component.technique_count, 'technique', 'techniques'],
+      [component.subtechnique_count, 'sub-technique', 'sub-techniques'],
+    ]),
   })),
 );
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount" wrap-long-names :empty="emptyText">
+  <BarChart :rows="rows" :max="maxCount" :empty="emptyText">
     <template #title>
-      Suggestion: Improve Coverage of Existing Components
+      Suggested Coverage Improvements
       <span v-if="getTopCoverageComponents().length >= 15"> (Top 15)</span>
     </template>
-    <template #name="{ row, index }"
-      >{{ row.name }} <br />
-      [Current Coverage: {{ getTopCoverageComponents()[index].coverage }}%]</template
-    >
+    <template #name="{ row, index }">
+      {{ row.name }} <span class="coverage">· {{ getTopCoverageComponents()[index].coverage }}% covered</span>
+    </template>
+    <template #legend><ChartLegend :items="TECHNIQUE_LEGEND" /></template>
   </BarChart>
 </template>
+
+<style scoped>
+/* The current coverage after the name, quieter than the name. */
+.coverage {
+  color: #666666;
+}
+</style>

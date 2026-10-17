@@ -91,8 +91,8 @@ test('the Insights page shows its charts for the loaded DeTT&CT file', async ({ 
   await expect(message(page, 'DeTT&CT file loaded:')).toBeVisible();
 
   await openPage(page, 'Insights');
-  await expect(page.getByText('Tactics - Visibility Percentage')).toBeVisible();
-  await expect(page.getByText('Platforms - Visibility Percentage')).toBeVisible();
+  await expect(page.getByText('Visibility % per Tactic')).toBeVisible();
+  await expect(page.getByText('Visibility % per Platform')).toBeVisible();
 });
 
 test('the MaGMa page loads the example file and shows it on every tab', async ({ page }) => {
@@ -111,7 +111,7 @@ test('the MaGMa page loads the example file and shows it on every tab', async ({
   await openTab(page, 'Heatmap');
   await expect(tacticColumns(page)).toHaveCount(14);
   await openTab(page, 'Insights');
-  await expect(page.getByText('Number of Use Cases per Layer')).toBeVisible();
+  await expect(page.getByText('Use Cases per Layer')).toBeVisible();
   await openTab(page, 'Summary');
   await expect(page.locator('.magma-summary').getByText('FIN Financial Loss')).toBeVisible();
   await expect(page.locator('.magma-summary .averages')).toContainText('Implementation74.8%');

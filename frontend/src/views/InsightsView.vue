@@ -29,10 +29,12 @@ import TechniquesOccurrenceTotal from '@/components/insights/TechniquesOccurrenc
 </template>
 
 <style scoped>
-/* The charts in rows, 10px apart; the first row starts right below the menu bars, like the other pages. */
+/* The charts in rows of three, 10px apart and as wide as the menu bars; the first row starts right below the menu bars,
+   like the other pages. */
 .horizontal-container {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  max-width: 960px;
 }
 </style>

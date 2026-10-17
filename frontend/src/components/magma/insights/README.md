@@ -4,6 +4,7 @@ The Insights tab of the MaGMa page: charts about the use cases per level, data s
 
 | Name | Description |
 |---|---|
+| [`__tests__/`](__tests__/) | Tests for the hint on the improvement potential bars |
 | [`InsightDataSourceMeanEffectiveness.vue`](InsightDataSourceMeanEffectiveness.vue) | Mean effectiveness per data source |
 | [`InsightDataSourceMeanImplementation.vue`](InsightDataSourceMeanImplementation.vue) | Mean implementation per data source |
 | [`InsightDataSourceMeanVisibility.vue`](InsightDataSourceMeanVisibility.vue) | Mean visibility per data source |
@@ -14,5 +15,5 @@ The Insights tab of the MaGMa page: charts about the use cases per level, data s
 | [`InsightNumberOfUseCasesPerDataSource.vue`](InsightNumberOfUseCasesPerDataSource.vue) | Number of use cases per data source |
 | [`InsightNumberUseCasesPerLayer.vue`](InsightNumberUseCasesPerLayer.vue) | Number of use cases per level (L1, L2, L3) |
 | [`MagmaInsights.vue`](MagmaInsights.vue) | The tab itself: all MaGMa charts |
-| [`PotentialLegend.vue`](PotentialLegend.vue) | The legend of the two potential charts: a colour per score, and how a bar is split |
-| [`potentialSegments.ts`](potentialSegments.ts) | Splits an L3 use case's potential over V, I and E, for the charts |
+| [`PotentialLegend.vue`](PotentialLegend.vue) | The legend of the potential charts (on ChartLegend): a colour per score, and how a bar is split |
+| [`potentialSegments.ts`](potentialSegments.ts) | Splits an L3 use case's potential over V, I and E, for the charts, and the hint with the three scores |

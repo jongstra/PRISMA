@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { barColor, COUNT_COLOR, SCORE_COLORS } from '../barColor';
+import {
+  barColor,
+  COUNT_COLOR,
+  OCCURRENCE_COLORS,
+  OCCURRENCE_LEGEND,
+  SCORE_COLORS,
+  TECHNIQUE_COLORS,
+  TECHNIQUE_LEGEND,
+} from '../barColor';
 
 describe('barColor', () => {
   it('goes from red at 0% through olive at 50% to green at 100%', () => {
@@ -18,5 +26,13 @@ describe('chart colours', () => {
   it('gives the three MaGMa scores and the counts the colours of the Insights page', () => {
     expect(SCORE_COLORS).toEqual({ visibility: 'FireBrick', implementation: 'Olive', effectiveness: 'SteelBlue' });
     expect(COUNT_COLOR).toBe('SteelBlue');
+  });
+
+  it('gives the legends the colours of the bar parts they explain', () => {
+    expect(TECHNIQUE_LEGEND.map((item) => item.color)).toEqual([
+      TECHNIQUE_COLORS.techniques,
+      TECHNIQUE_COLORS.subtechniques,
+    ]);
+    expect(OCCURRENCE_LEGEND.map((item) => item.color)).toEqual([OCCURRENCE_COLORS.groups, OCCURRENCE_COLORS.software]);
   });
 });

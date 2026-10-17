@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { splitHint } from '@/components/common/splitHint';
+import ChartLegend from '@/components/common/ChartLegend.vue';
+import { TECHNIQUE_COLORS, TECHNIQUE_LEGEND } from '@/components/common/barColor';
 import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 
@@ -34,15 +37,18 @@ const maxCount = computed(() =>
   Math.max(0, ...getTechniqueCountPerGroup().map((x) => x.technique_count + x.subtechnique_count)),
 );
 
-// Blue: techniques; light blue: sub-techniques.
 const rows = computed(() =>
   getTechniqueCountPerGroup().map((group) => ({
     name: group.name,
     segments: [
-      { value: group.technique_count, color: 'SteelBlue' },
-      { value: group.subtechnique_count, color: '#89AFCF' },
+      { value: group.technique_count, color: TECHNIQUE_COLORS.techniques },
+      { value: group.subtechnique_count, color: TECHNIQUE_COLORS.subtechniques },
     ],
     label: group.technique_count + group.subtechnique_count,
+    hint: splitHint([
+      [group.technique_count, 'technique', 'techniques'],
+      [group.subtechnique_count, 'sub-technique', 'sub-techniques'],
+    ]),
   })),
 );
 </script>
@@ -50,9 +56,9 @@ const rows = computed(() =>
 <template>
   <BarChart :rows="rows" :max="maxCount">
     <template #title>
-      Groups
+      (Sub)Techniques per Group
       <span v-if="getTechniqueCountPerGroup().length >= 15"> (Top 15)</span>
-      - Number (Sub)Techniques
     </template>
+    <template #legend><ChartLegend :items="TECHNIQUE_LEGEND" /></template>
   </BarChart>
 </template>

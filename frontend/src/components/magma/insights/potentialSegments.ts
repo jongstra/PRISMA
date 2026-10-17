@@ -19,3 +19,16 @@ export function potentialSegments(useCase: {
     { value: ((100 - effectiveness) / missing) * potential, color: SCORE_COLORS.effectiveness },
   ];
 }
+
+// The pink hint on an improvement potential bar: the three scores behind it, so the parts can be read as numbers.
+export function potentialHint(useCase: { visibility?: unknown; implementation?: unknown; effectiveness?: unknown }) {
+  const score = (value: unknown) => {
+    const number = value === null || value === undefined || value === '' ? NaN : Number(value);
+    return Number.isNaN(number) ? '–' : `${Number(number.toFixed(2))}%`;
+  };
+  return [
+    `Visibility ${score(useCase.visibility)}`,
+    `Implementation ${score(useCase.implementation)}`,
+    `Effectiveness ${score(useCase.effectiveness)}`,
+  ].join(' · ');
+}

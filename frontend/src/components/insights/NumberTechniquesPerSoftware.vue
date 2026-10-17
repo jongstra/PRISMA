@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { splitHint } from '@/components/common/splitHint';
+import ChartLegend from '@/components/common/ChartLegend.vue';
+import { TECHNIQUE_COLORS, TECHNIQUE_LEGEND } from '@/components/common/barColor';
 import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 
@@ -34,15 +37,18 @@ const maxCount = computed(() =>
   Math.max(0, ...getTechniqueCountPerSoftware().map((x) => x.technique_count + x.subtechnique_count)),
 );
 
-// Blue: techniques; light blue: sub-techniques.
 const rows = computed(() =>
   getTechniqueCountPerSoftware().map((software) => ({
     name: software.name,
     segments: [
-      { value: software.technique_count, color: 'SteelBlue' },
-      { value: software.subtechnique_count, color: '#89AFCF' },
+      { value: software.technique_count, color: TECHNIQUE_COLORS.techniques },
+      { value: software.subtechnique_count, color: TECHNIQUE_COLORS.subtechniques },
     ],
     label: software.technique_count + software.subtechnique_count,
+    hint: splitHint([
+      [software.technique_count, 'technique', 'techniques'],
+      [software.subtechnique_count, 'sub-technique', 'sub-techniques'],
+    ]),
   })),
 );
 </script>
@@ -50,9 +56,9 @@ const rows = computed(() =>
 <template>
   <BarChart :rows="rows" :max="maxCount">
     <template #title>
-      Software
+      (Sub)Techniques per Software
       <span v-if="getTechniqueCountPerSoftware().length >= 15"> (Top 15)</span>
-      - Number (Sub)Techniques
     </template>
+    <template #legend><ChartLegend :items="TECHNIQUE_LEGEND" /></template>
   </BarChart>
 </template>

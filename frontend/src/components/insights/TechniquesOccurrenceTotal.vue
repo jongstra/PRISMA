@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
+import { splitHint } from '@/components/common/splitHint';
+import ChartLegend from '@/components/common/ChartLegend.vue';
+import { OCCURRENCE_COLORS, OCCURRENCE_LEGEND } from '@/components/common/barColor';
 import { tacticsStore } from '@/stores/tactics';
 const store = tacticsStore();
 
@@ -19,20 +22,24 @@ const rows = computed(() =>
     .map((technique) => ({
       name: technique.name,
       segments: [
-        { value: technique.group_occurrence, color: 'FireBrick' },
-        { value: technique.software_occurrence, color: 'Olive' },
+        { value: technique.group_occurrence, color: OCCURRENCE_COLORS.groups },
+        { value: technique.software_occurrence, color: OCCURRENCE_COLORS.software },
       ],
       label: technique.total_occurrence,
+      hint: splitHint([
+        [technique.group_occurrence, 'group', 'groups'],
+        [technique.software_occurrence, 'software', 'software'],
+      ]),
     })),
 );
 </script>
 
 <template>
-  <BarChart :rows="rows" :max="maxCount" wrap-long-names>
+  <BarChart :rows="rows" :max="maxCount">
     <template #title>
-      Techniques
+      Technique Occurrence: Total
       <span v-if="getTopTechniques().length >= 15"> (Top 15)</span>
-      - Total Occurrence
     </template>
+    <template #legend><ChartLegend :items="OCCURRENCE_LEGEND" /></template>
   </BarChart>
 </template>

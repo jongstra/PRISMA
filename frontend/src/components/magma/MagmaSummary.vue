@@ -64,7 +64,7 @@ const counts = computed(() => [
 
 <template>
   <div class="magma-summary">
-    <BarChart :rows="earlyRows" :max="100" label="inside" label-space="55px" :name-width="210" wrap-long-names>
+    <BarChart :rows="earlyRows" :max="100">
       <template #title>Early detection (cumulative weight)</template>
       <template #name="{ index }">
         <span class="use-case-id">{{ cumulative[index]!.id }}</span> {{ cumulative[index]!.name }}
@@ -87,16 +87,7 @@ const counts = computed(() => [
       </div>
     </ChartCard>
 
-    <BarChart
-      class="wide"
-      :rows="riskRows"
-      :max="100"
-      label="inside"
-      label-space="55px"
-      :name-width="230"
-      wrap-long-names
-      empty="No business risks yet. Add one on the L1 tab."
-    >
+    <BarChart class="wide" :rows="riskRows" :max="100" empty="No business risks yet. Add one on the L1 tab.">
       <template #title>Business risks: chance of missing an attack (highest first)</template>
       <template #name="{ index }">
         <span class="use-case-id">{{ risks[index]!.id }}</span> {{ risks[index]!.name }}
