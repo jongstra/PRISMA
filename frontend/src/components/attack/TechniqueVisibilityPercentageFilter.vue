@@ -35,12 +35,12 @@ watch(values, (newValues) => {
   padding: 0 10px;
 }
 
-/* The selected range in red, the rest of the track light. */
+/* The selected range in red, the rest of the track in light red. */
 .slider-container :deep(.slider-connect) {
-  background-color: firebrick;
+  background-color: var(--color-slider-range);
 }
 
 .slider-container :deep(.slider-base) {
-  background-color: seashell;
+  background-color: var(--color-slider-track);
 }
 </style>

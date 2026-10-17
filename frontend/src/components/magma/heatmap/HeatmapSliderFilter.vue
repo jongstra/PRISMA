@@ -34,10 +34,10 @@ watch(value, (newValue) => {
 }
 
 .slider-container :deep(.slider-connect) {
-  background-color: firebrick;
+  background-color: var(--color-slider-range);
 }
 
 .slider-container :deep(.slider-base) {
-  background-color: seashell;
+  background-color: var(--color-slider-track);
 }
 </style>

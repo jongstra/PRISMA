@@ -36,6 +36,8 @@
   --color-hint: pink; /* pink hints and Clear buttons */
   --color-switch-off: #ccc;
   --color-switch-on: #2196f3;
+  --color-slider-range: firebrick; /* the chosen part of a slider */
+  --color-slider-track: #e5b5b0; /* the rest of the slider */
   --color-remove: #e73030; /* remove a use case, clear a sheet field */
   --color-highlight: rgb(196, 213, 234); /* the option under the mouse or keyboard in a sheet list */
 
