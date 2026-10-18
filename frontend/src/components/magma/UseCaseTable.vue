@@ -263,9 +263,13 @@ const validateAndFormat = (event: Event) => {
 </script>
 
 <template>
-  <!-- The sheet scrolls sideways; the add button below it does not, so it stays across the page with its text in view. -->
+  <!-- The sheet scrolls sideways; the add button below it (in the caption, above the scroll bar) stays across the page
+       with its text in view. -->
   <div class="sheet-scroll">
     <table border="1" class="fixed-table">
+      <caption class="add-row">
+        <button type="button" class="add-button" @click="addNewUseCase">+ Add use case</button>
+      </caption>
       <thead>
         <tr>
           <!-- Deletes all use cases of this level. -->
@@ -408,7 +412,6 @@ const validateAndFormat = (event: Event) => {
       </tbody>
     </table>
   </div>
-  <button type="button" class="add-button" @click="addNewUseCase">+ Add use case</button>
 </template>
 
 <style scoped>
@@ -427,6 +430,7 @@ const validateAndFormat = (event: Event) => {
   --sheet-text-max-height: 52px;
   width: 100%;
   table-layout: fixed;
+  border: 0; /* no frame around the sheet: the cells have their own borders, and the add button follows the rows */
 }
 
 /* Default cell settings, will be overwritten later. But gives more consistent feel. */
@@ -483,19 +487,31 @@ button.remove-button {
   cursor: pointer;
 }
 
-/* Across the page below the sheet, in the style of the other buttons. */
+/* Below the sheet: the caption is as wide as the table, so the button can stay at the left of the visible part (sticky)
+   while the sheet scrolls sideways. It is as wide as the window minus the page margins. */
+.add-row {
+  caption-side: bottom;
+  text-align: left;
+}
+
 .add-button {
+  position: sticky;
+  left: 0;
   display: block;
-  width: 100%;
+  width: calc(100vw - 1rem);
   height: 30px;
-  margin-top: 4px;
-  background-color: green;
-  color: white;
-  border: var(--border-control);
+  margin: 4px 0;
+  background-color: var(--color-add);
+  color: var(--color-add-text);
+  border: 1.5px solid var(--color-add-border);
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: var(--color-add-hover);
 }
 
 .remove-col {

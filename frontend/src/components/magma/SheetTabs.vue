@@ -117,7 +117,7 @@ const importYaml = async (event: Event) => {
   align-items: center;
   padding-right: max(0px, calc(100% - 960px));
   background-color: var(--color-tab-bar);
-  border-bottom: 1px solid #777;
+  border-bottom: 1px solid var(--color-box-border);
 }
 
 /* As high as the Load and Save buttons, so the tabs start at the top, where the content of the other pages starts. */

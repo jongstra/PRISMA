@@ -39,6 +39,10 @@
   --color-slider-range: firebrick; /* the chosen part of a slider */
   --color-slider-track: #b9bfc8; /* the rest of the slider */
   --color-remove: #e73030; /* remove a use case, clear a sheet field */
+  --color-add: #3d9a4f; /* the add use case button */
+  --color-add-hover: #338a44;
+  --color-add-border: #1f6b31;
+  --color-add-text: white;
   --color-highlight: rgb(196, 213, 234); /* the option under the mouse or keyboard in a sheet list */
 
   /* Text */
