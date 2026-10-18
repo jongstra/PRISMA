@@ -35,7 +35,7 @@ watch(values, (newValues) => {
   padding: 0 10px;
 }
 
-/* The selected range in red, the rest of the track in light red. */
+/* The selected range in red, the rest of the track grey. */
 .slider-container :deep(.slider-connect) {
   background-color: var(--color-slider-range);
 }
