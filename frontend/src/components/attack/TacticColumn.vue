@@ -3,6 +3,10 @@ import { onMounted, onUnmounted } from 'vue';
 import TechniqueButton from './TechniqueButton.vue';
 import { tacticsStore, type Tactic, type Technique } from '@/stores/tactics';
 import { averageVisibilityPercentage } from '@/domain/attack/visibility';
+import { vHint } from '../common/hint';
+
+const TACTIC_VISIBILITY_HINT =
+  "The average visibility of this tactic's techniques; techniques that ATT&CK lists no data components for are left out.";
 const store = tacticsStore();
 
 defineProps<{ tactic: Tactic; techniques: Technique[] }>();
@@ -58,7 +62,7 @@ onUnmounted(() => {
       <p class="button-column-stat-1">{{ tactic.techniques.length }} techniques</p>
 
       <!-- Compute the tactic-visibility based on the technique visibility_ratio value. -->
-      <p class="button-column-stat-2">{{ tacticVisibility(tactic) }} visibility</p>
+      <p v-hint="TACTIC_VISIBILITY_HINT" class="button-column-stat-2">{{ tacticVisibility(tactic) }} visibility</p>
     </div>
 
     <!-- Techniques column -->

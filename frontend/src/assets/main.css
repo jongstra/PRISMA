@@ -114,7 +114,16 @@ body {
   font-weight: 500;
   line-height: 1.45;
   overflow-wrap: anywhere; /* a long name without spaces, such as a file name, wraps too */
+  white-space: pre-line; /* a hint can have several lines, such as how a visibility percentage comes about */
   text-align: left;
+}
+
+/* A hint of several lines, such as how a visibility percentage comes about: wider and a little smaller, so its lines
+   do not wrap. */
+.hint.long {
+  max-width: 400px;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .hint::before {

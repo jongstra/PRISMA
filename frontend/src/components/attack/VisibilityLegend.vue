@@ -2,11 +2,7 @@
   <div class="legend-container">
     <div class="legend-items">
       <div v-for="item in legendItems" :key="item.range" class="legend-item">
-        <button
-          :style="[{ backgroundColor: item.color, color: item.textColor }, item.style]"
-          v-hint="item.title"
-          class="legend-button"
-        >
+        <button :style="item.style" v-hint="item.title" class="legend-button">
           {{ item.range }}
         </button>
       </div>
@@ -15,49 +11,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+// The legend of the DeTT&CT matrix: a swatch per visibility band, in the colours of the technique buttons
+// (visibilityColour.ts), and one for techniques that cannot be detected via data sources.
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '../common/notDetectableStyle';
 import { vHint } from '../common/hint';
+import { visibilityColour } from './visibilityColour';
 
-const legendItems = ref([
-  {
-    range: 'n/a',
-    color: '',
-    textColor: '#666666',
-    style: NOT_DETECTABLE_STYLE,
-    title: NOT_DETECTABLE_TEXT,
-  },
-  {
-    range: '<= 1%',
-    color: '',
-    textColor: 'black',
-  },
-  {
-    range: '<= 25%',
-    color: '#E1BEE7',
-    textColor: 'black',
-  },
-  {
-    range: '<= 50%',
-    color: '#CE93D8',
-    textColor: 'black',
-  },
-  {
-    range: '<= 75%',
-    color: '#AB47BC',
-    textColor: 'black',
-  },
-  {
-    range: '<= 99%',
-    color: '#7B1FA2',
-    textColor: 'white',
-  },
-  {
-    range: '> 99%',
-    color: '#4A148C',
-    textColor: 'white',
-  },
-]);
+const bands: [string, number][] = [
+  ['<= 1%', 0.01],
+  ['<= 25%', 0.25],
+  ['<= 50%', 0.5],
+  ['<= 75%', 0.75],
+  ['<= 99%', 0.99],
+  ['> 99%', 1],
+];
+const legendItems: { range: string; style: Record<string, string>; title?: string }[] = [
+  { range: 'n/a', style: NOT_DETECTABLE_STYLE, title: NOT_DETECTABLE_TEXT },
+  ...bands.map(([range, ratio]) => ({ range, style: visibilityColour(ratio) })),
+];
 </script>
 
 <style scoped>

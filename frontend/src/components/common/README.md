@@ -4,7 +4,7 @@ Components and helpers that several pages use.
 
 | Name | Description |
 |---|---|
-| [`__tests__/`](__tests__/) | Tests for the bar chart, its legend and hint text, the bar colour, the bar width, the hint, the short message, the page's scroll bar, the selection tool and its list, and the technique tooltip |
+| [`__tests__/`](__tests__/) | Tests for the bar chart, its legend and hint text, the bar colour, the bar width, the technique tag and tooltip, the hint, the short message, the page's scroll bar, the selection tool and its list, and the technique tooltip |
 | [`BarChart.vue`](BarChart.vue) | Horizontal bar chart in a chart card (name and value on one line, the bar on a grey track below), used by all charts on the Insights page and the MaGMa Insights and Summary tabs; says why it is empty when it has no rows |
 | [`barColor.ts`](barColor.ts) | The chart colours: a scale from red (0%) to green (100%), a colour per MaGMa score, for counts, and for the parts of technique and occurrence bars (with their legends) |
 | [`barWidth.ts`](barWidth.ts) | Width of a bar as a share of its grey track |
@@ -21,6 +21,7 @@ Components and helpers that several pages use.
 | [`selectionSearch.ts`](selectionSearch.ts) | Which items the list of a selection tool suggests: all that are not selected yet, narrowed by the typed text |
 | [`SelectionTool.vue`](SelectionTool.vue) | Selects groups or data components, on the DeTT&CT page and the MaGMa heatmap |
 | [`splitHint.ts`](splitHint.ts) | The pink hint on a chart row with a bar in several parts, such as "77 techniques + 220 sub-techniques" |
-| [`TechniqueTooltip.vue`](TechniqueTooltip.vue) | The tooltip of a technique in the DeTT&CT matrix and the MaGMa heatmap |
+| [`TechniqueTag.vue`](TechniqueTag.vue) | A group or data component in a technique's tooltip: white, red or green with a check mark when selected, a purple dot when in use |
+| [`TechniqueTooltip.vue`](TechniqueTooltip.vue) | The tooltip of a technique in the DeTT&CT matrix and the MaGMa heatmap: a light card with the name and ID in an indigo title strip |
 | [`tooltipPlacement.ts`](tooltipPlacement.ts) | Where a technique's tooltip goes: next to its button, inside the window |
 | [`useTechniqueTooltip.ts`](useTechniqueTooltip.ts) | When a technique's tooltip is shown: on hover, or pinned by a click |

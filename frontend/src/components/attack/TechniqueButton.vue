@@ -3,7 +3,16 @@ import { computed, ref } from 'vue';
 import { tacticsStore, type Technique } from '@/stores/tactics';
 import { hasDataComponents, isDetectable } from '@/domain/attack/visibility';
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '../common/notDetectableStyle';
+import TechniqueTag from '../common/TechniqueTag.vue';
+import { vHint } from '../common/hint';
 import TechniqueTooltip from '../common/TechniqueTooltip.vue';
+import { visibilityColour } from './visibilityColour';
+import {
+  ownVisibilityExplanation,
+  ownVisibilityRatio,
+  techniqueVisibilityExplanation,
+  type ScoreOf,
+} from './visibilityExplanation';
 import { useTechniqueTooltip } from '../common/useTechniqueTooltip';
 
 const store = tacticsStore();
@@ -47,56 +56,29 @@ const toggleComponentSelected = (componentName: string) => {
   });
 };
 
-const getTooltipText = () => {
-  const subtechniques_string = props.technique.sub_techniques
-    ? `Subtechniques:\n${props.technique.sub_techniques
-        .map(
-          (sub) =>
-            `<a href='https://attack.mitre.org/techniques/${sub.external_id.split('.')[0]}/${sub.external_id.split('.')[1]}/' target="_blank">• ${sub.name}</a> - Vis: ${hasDataComponents(sub) ? `${(sub.visibility_ratio * 100).toFixed(0)}%` : 'n/a'}`,
-        )
-        .join('\n')}`
-    : 'No Subtechniques';
+// A visibility percentage for the tooltip, in the colour of the matrix; 'n/a' (striped) when ATT&CK lists no data
+// components for the (sub-)technique.
+function visibilityChip(ratio: number, detectable: boolean) {
+  if (!detectable) {
+    return { text: 'n/a', style: NOT_DETECTABLE_STYLE };
+  }
+  return { text: `${(ratio * 100).toFixed(0)}%`, style: visibilityColour(ratio) };
+}
 
-  return `<a href='https://attack.mitre.org/techniques/${props.technique.external_id}/' target="_blank">${props.technique.name}</a> (${props.technique.external_id})
-
-      Visibility: ${isDetectable(props.technique) ? `${(props.technique.visibility_ratio * 100).toFixed(0)}%` : NOT_DETECTABLE_TEXT}
-
-      <hr>
-      ${subtechniques_string}
-      
-      <hr>
-      Nr groups using: ${props.technique.occurrence_groups}
-      Nr software using: ${props.technique.occurrence_software}
-      Total occurrence: ${props.technique.occurrence_total}
-
-  `;
+// How each visibility percentage in the tooltip comes about, in the pink hint on its chip (once the tooltip is pinned):
+// from the device completeness (0-5) of the data components in use, as loaded from the DeTT&CT file.
+const scoreOf: ScoreOf = (name) => {
+  const component = domain.data_components.find((c) => c.name === name);
+  return component?.visibility ? (component.quality.device_completeness ?? 0) : null;
 };
 
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+const isGroupSelected = (name: string) => !!domain.groups.find((group) => group.name === name)?.selected;
+const isComponentSelected = (name: string) => !!domain.data_components.find((c) => c.name === name)?.selected;
+const isComponentInUse = (name: string) => !!domain.data_components.find((c) => c.name === name)?.visibility;
+
 function getButtonStyles(visibility_ratio: number, detectable = true) {
-  if (!detectable) {
-    return NOT_DETECTABLE_STYLE;
-  }
-
-  let backgroundColor = '';
-  let color = 'black'; // Default text color
-
-  if (visibility_ratio <= 0.01) {
-    backgroundColor = '';
-  } else if (visibility_ratio <= 0.25) {
-    backgroundColor = '#E1BEE7';
-  } else if (visibility_ratio <= 0.5) {
-    backgroundColor = '#CE93D8';
-  } else if (visibility_ratio <= 0.75) {
-    backgroundColor = '#AB47BC';
-  } else if (visibility_ratio <= 0.99) {
-    backgroundColor = '#7B1FA2';
-    color = 'white'; // White text color for high visibility ratios
-  } else {
-    backgroundColor = '#4A148C';
-    color = 'white'; // White text color for highest visibility ratio
-  }
-
-  return { backgroundColor, color };
+  return detectable ? visibilityColour(visibility_ratio) : NOT_DETECTABLE_STYLE;
 }
 
 const showButton = computed(() => {
@@ -205,84 +187,106 @@ const occursInSelectedComponents = () => {
   </button>
 
   <!-- The tooltip, shown next to the button -->
-  <TechniqueTooltip v-if="tooltipOpen" :anchor="buttonRef" :pinned="pinned" @unpin="unpin">
-    <div v-html="getTooltipText()"></div>
-
-    <!-- Show which groups use this technique. -->
-    <div v-if="props.technique.groups.length > 0">
-      <hr />
-      <br />
-      Groups:<br />
-      <!-- Group buttons -->
-      <label
-        v-for="group in props.technique.groups"
-        :key="group"
-        for="${group}-${Math.random()}"
-        style="display: inline-flex; align-items: center; margin-right: 5px"
-      >
+  <TechniqueTooltip
+    v-if="tooltipOpen"
+    :anchor="buttonRef"
+    :pinned="pinned"
+    :name="technique.name"
+    :external-id="technique.external_id"
+    @unpin="unpin"
+  >
+    <div class="tt-section">
+      <div class="tt-row">
+        <span class="tt-strong">Visibility</span>
         <span
-          class="group-box"
-          :style="{
-            display: 'inline-block',
-            padding: '5px 5px',
-            marginLeft: '1px',
-            marginTop: '2px',
-            marginBottom: '2px',
-            backgroundColor: 'gray',
-            borderColor: domain.groups.find((g) => g.name === group)?.selected ? 'rgb(230, 0, 0)' : '#ccc',
-            borderWidth: '1.5px',
-            borderStyle: 'solid',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s, border-color 0.2s',
-            fontSize: '11px',
-          }"
-          @mouseover="hoverGroup(group)"
-          @click="toggleGroupSelected(group)"
+          class="tt-chip"
+          v-hint="isDetectable(technique) ? techniqueVisibilityExplanation(technique, scoreOf) : NOT_DETECTABLE_TEXT"
+          :style="visibilityChip(technique.visibility_ratio, isDetectable(technique)).style"
+          >{{ visibilityChip(technique.visibility_ratio, isDetectable(technique)).text }}</span
         >
-          {{ group }}
-        </span>
-      </label>
+      </div>
+      <div v-if="!isDetectable(technique)" class="tt-note">{{ NOT_DETECTABLE_TEXT }}</div>
     </div>
-    <div v-else>No Groups</div>
-    <br />
-    <hr />
-    <br />
-    <div v-if="props.technique.data_components.length > 0">
-      Components:<br />
-      <!-- Component buttons -->
-      <label
-        v-for="component in props.technique.data_components"
-        :key="component"
-        for="${component}-${Math.random()}"
-        style="display: inline-flex; align-items: center; margin-right: 5px"
-      >
+
+    <div class="tt-section">
+      <!-- With sub-techniques: the parts of the visibility above, the technique's own value first. -->
+      <div class="tt-label">
+        <template v-if="technique.sub_techniques?.length"
+          >The technique and its
+          {{ plural(technique.sub_techniques.length, 'sub-technique', 'sub-techniques') }}</template
+        >
+        <template v-else>Sub-techniques</template>
+      </div>
+      <div v-if="technique.sub_techniques?.length" class="tt-row">
+        <span class="tt-itself">The technique itself</span>
         <span
-          class="component-box"
-          :style="{
-            display: 'inline-block',
-            padding: '5px 5px',
-            marginLeft: '1px',
-            marginTop: '2px',
-            marginBottom: '2px',
-            backgroundColor: 'gray',
-            borderColor: domain.data_components.find((c) => c.name === component)?.selected ? 'rgb(0, 230, 0)' : '#ccc',
-            borderWidth: '1.5px',
-            borderStyle: 'solid',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s, border-color 0.2s',
-            fontSize: '11px',
-          }"
+          class="tt-chip"
+          v-hint="
+            hasDataComponents(technique)
+              ? ownVisibilityExplanation(technique, scoreOf)
+              : 'n/a: ATT&CK lists no data components for the technique itself, so it is left out of the average.'
+          "
+          :style="visibilityChip(ownVisibilityRatio(technique, scoreOf), hasDataComponents(technique)).style"
+          >{{ visibilityChip(ownVisibilityRatio(technique, scoreOf), hasDataComponents(technique)).text }}</span
+        >
+      </div>
+      <div v-for="sub in technique.sub_techniques" :key="sub.external_id" class="tt-row">
+        <a
+          :href="`https://attack.mitre.org/techniques/${sub.external_id.replace('.', '/')}/`"
+          target="_blank"
+          rel="noopener"
+          >{{ sub.name }}</a
+        >
+        <span
+          class="tt-chip"
+          v-hint="hasDataComponents(sub) ? ownVisibilityExplanation(sub, scoreOf) : NOT_DETECTABLE_TEXT"
+          :style="visibilityChip(sub.visibility_ratio ?? 0, hasDataComponents(sub)).style"
+          >{{ visibilityChip(sub.visibility_ratio ?? 0, hasDataComponents(sub)).text }}</span
+        >
+      </div>
+      <span v-if="!technique.sub_techniques?.length" class="tt-none">None</span>
+    </div>
+
+    <!-- The data components first: they explain the visibility. Hovering one highlights its techniques; a click selects it. -->
+    <div class="tt-section">
+      <div class="tt-label">Data components ({{ technique.data_components.length }})</div>
+      <div v-if="technique.data_components.length" class="tt-tags">
+        <TechniqueTag
+          v-for="component in technique.data_components"
+          :key="component"
+          :name="component"
+          kind="component"
+          :selected="isComponentSelected(component)"
+          :in-use="isComponentInUse(component)"
           @mouseover="hoverComponent(component)"
           @click="toggleComponentSelected(component)"
-        >
-          {{ component }} {{ domain.data_components.find((c) => c.name === component)?.visibility ? '[VISIBLE]' : '' }}
-        </span>
-      </label>
+        />
+      </div>
+      <span v-else class="tt-none">None</span>
     </div>
-    <div v-else>No Components</div>
-    <br />
+
+    <div class="tt-section">
+      <div class="tt-label">Used by</div>
+      {{ plural(technique.occurrence_groups, 'group', 'groups') }} · {{ technique.occurrence_software }} software ·
+      {{ technique.occurrence_total }} in total
+    </div>
+
+    <!-- Hovering a group highlights its techniques; a click selects it. -->
+    <div class="tt-section">
+      <div class="tt-label">Groups ({{ technique.groups.length }})</div>
+      <div v-if="technique.groups.length" class="tt-tags">
+        <TechniqueTag
+          v-for="group in technique.groups"
+          :key="group"
+          :name="group"
+          kind="group"
+          :selected="isGroupSelected(group)"
+          @mouseover="hoverGroup(group)"
+          @click="toggleGroupSelected(group)"
+        />
+      </div>
+      <span v-else class="tt-none">None</span>
+    </div>
   </TechniqueTooltip>
 </template>
 

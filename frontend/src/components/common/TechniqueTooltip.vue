@@ -1,15 +1,21 @@
 <script setup lang="ts">
-// The tooltip of a technique button in the DeTT&CT matrix or the MaGMa heatmap; the button gives the content. It is
-// shown in the page body, not inside the scrolling matrix, and placed next to its button (see tooltipPlacement.ts).
+// The tooltip of a technique button in the DeTT&CT matrix or the MaGMa heatmap: a light card with the technique's name
+// (linked to ATT&CK) and ID in an indigo title strip; the button gives the sections below it. It is shown in the page
+// body, not inside the scrolling matrix, and placed next to its button (see tooltipPlacement.ts).
 // The mouse passes through a hovered tooltip, so moving quickly over the matrix never gets stuck on it. A pinned
 // tooltip can be used (links, groups, components), and asks to be unpinned with Esc or a click elsewhere.
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { tooltipPlacement } from './tooltipPlacement';
 
 const props = defineProps<{
   anchor: HTMLElement | null; // the technique button
   pinned: boolean;
+  name: string; // of the technique
+  externalId: string; // such as T1566 or T1566.002
 }>();
+
+// The technique's page on the ATT&CK website; a sub-technique has its own page below its technique's.
+const attackUrl = computed(() => `https://attack.mitre.org/techniques/${props.externalId.replace('.', '/')}/`);
 const emit = defineEmits<{ unpin: [] }>();
 
 const tooltip = ref<HTMLElement | null>(null);
@@ -81,6 +87,10 @@ onUnmounted(() => {
         maxHeight: position.maxHeight === undefined ? undefined : `${position.maxHeight}px`,
       }"
     >
+      <div class="tt-head">
+        <a :href="attackUrl" target="_blank" rel="noopener">{{ name }}</a>
+        <span class="tt-id">{{ externalId }}</span>
+      </div>
       <slot />
     </div>
   </Teleport>
@@ -90,21 +100,126 @@ onUnmounted(() => {
 .tooltip {
   position: fixed;
   z-index: 1002;
-  width: 300px;
+  width: 320px;
   overflow-y: auto; /* a tooltip taller than the window scrolls inside (once it is pinned) */
   pointer-events: none; /* the mouse passes through a hovered tooltip, to the techniques below it */
-  background-color: rgba(93, 125, 152, 0.9);
-  color: white;
-  border: 1px solid black;
-  padding: 4px 4px;
-  border-radius: 4px;
+  background-color: #f6f8fb; /* a very light cool grey, with white tags */
+  color: #1f2328;
+  border: var(--border-frame);
+  border-radius: var(--radius-frame);
+  box-shadow:
+    0 6px 18px rgba(16, 24, 40, 0.18),
+    0 1px 3px rgba(16, 24, 40, 0.12);
   font-family: Inter, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 17px;
   text-align: left;
-  white-space: pre-line;
 }
 
 .tooltip.pinned {
   pointer-events: auto;
+}
+
+.tt-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background-color: var(--color-accent);
+  border-bottom: 1px solid rgb(40, 38, 105);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tt-head a {
+  color: white;
+  text-decoration: none;
+}
+
+.tt-head a:hover {
+  text-decoration: underline;
+}
+
+.tt-id {
+  color: #c9c8f0;
+  font-weight: 600;
+}
+</style>
+
+<!-- The parts of the sections, which the buttons put in the tooltip (TechniqueButton.vue, HeatmapButton.vue). -->
+<style>
+.tooltip .tt-section {
+  padding: 6px 10px;
+}
+
+.tooltip .tt-section + .tt-section {
+  border-top: 1px solid #e3e7ec;
+}
+
+.tooltip .tt-label {
+  margin-bottom: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.tooltip .tt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 1px 0;
+}
+
+.tooltip .tt-row a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tooltip .tt-row a:hover {
+  text-decoration: underline;
+}
+
+/* The technique's own row in the list of its parts, apart from the names of its sub-techniques. */
+.tooltip .tt-itself {
+  font-style: italic;
+}
+
+.tooltip .tt-strong {
+  font-weight: 700;
+}
+
+/* A visibility percentage, in the colour of the matrix. */
+.tooltip .tt-chip {
+  flex: none;
+  min-width: 40px;
+  padding: 0 5px;
+  border: var(--border-control);
+  border-radius: 4px;
+  background-color: var(--color-technique);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.tooltip .tt-number {
+  font-weight: 600;
+}
+
+.tooltip .tt-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.tooltip .tt-none,
+.tooltip .tt-note {
+  color: var(--color-text-muted);
+}
+
+.tooltip .tt-note {
+  margin-top: 3px;
+  font-size: 11px;
 }
 </style>

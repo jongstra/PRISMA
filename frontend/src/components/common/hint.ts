@@ -52,6 +52,7 @@ const hints = new WeakMap<HTMLElement, Hint>();
 function show(element: HTMLElement, hint: Hint) {
   const shown = document.createElement('div');
   shown.className = 'hint';
+  shown.classList.toggle('long', hint.text.includes('\n')); // several lines, such as a calculation: a wider card
   shown.setAttribute('role', 'tooltip');
   shown.textContent = hint.text;
   document.body.appendChild(shown);

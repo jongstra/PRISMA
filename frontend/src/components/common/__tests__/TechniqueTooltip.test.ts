@@ -13,7 +13,7 @@ function showTooltip(pinned: boolean) {
   document.body.innerHTML = '<button id="anchor">Technique</button><div id="elsewhere">Elsewhere</div>';
   const anchor = document.getElementById('anchor')!;
   wrapper = mount(TechniqueTooltip, {
-    props: { anchor, pinned },
+    props: { anchor, pinned, name: 'Phishing', externalId: 'T1566' },
     slots: { default: '<a href="#" id="link">Link</a>' },
     attachTo: document.body,
   });
@@ -25,7 +25,31 @@ describe('TechniqueTooltip', () => {
   it('is shown in the page body, outside the matrix', () => {
     const { tooltip } = showTooltip(false);
     expect(tooltip().parentElement).toBe(document.body);
-    expect(tooltip().textContent).toBe('Link');
+    expect(tooltip().querySelector('#link')).not.toBeNull();
+  });
+
+  it('starts with the technique name, linked to ATT&CK, and its ID', () => {
+    const { tooltip } = showTooltip(false);
+    const name = tooltip().querySelector('.tt-head a') as HTMLAnchorElement;
+    expect(name.textContent).toBe('Phishing');
+    expect(name.href).toBe('https://attack.mitre.org/techniques/T1566/');
+    expect(tooltip().querySelector('.tt-head .tt-id')!.textContent).toBe('T1566');
+  });
+
+  it('links a sub-technique to its own ATT&CK page', () => {
+    document.body.innerHTML = '<button id="anchor">Technique</button>';
+    wrapper = mount(TechniqueTooltip, {
+      props: {
+        anchor: document.getElementById('anchor'),
+        pinned: false,
+        name: 'Spearphishing Link',
+        externalId: 'T1566.002',
+      },
+      attachTo: document.body,
+    });
+    expect((document.body.querySelector('.tt-head a') as HTMLAnchorElement).href).toBe(
+      'https://attack.mitre.org/techniques/T1566/002/',
+    );
   });
 
   it('lets the mouse pass through, unless it is pinned', async () => {

@@ -4,7 +4,7 @@ Components of the DeTT&CT page: the ATT&CK matrix with visibility, and its filte
 
 | Name | Description |
 |---|---|
-| [`__tests__/`](__tests__/) | Tests for the texts of the controls and the start positions of the sliders |
+| [`__tests__/`](__tests__/) | Tests for the texts of the controls, the start positions of the sliders and the visibility colours |
 | [`controlValues.ts`](controlValues.ts) | The texts of the controls: the slider values and what the platforms filter lets through |
 | [`FileUploadButtonYaml.vue`](FileUploadButtonYaml.vue) | Loads a DeTT&CT data source file |
 | [`SearchBar.vue`](SearchBar.vue) | Searches techniques by name or ID |
@@ -13,4 +13,5 @@ Components of the DeTT&CT page: the ATT&CK matrix with visibility, and its filte
 | [`TechniqueButton.vue`](TechniqueButton.vue) | One technique in the matrix, with its tooltip |
 | [`TechniqueTotalOccurrenceFilterBinned.vue`](TechniqueTotalOccurrenceFilterBinned.vue) | Filters techniques by how often they are used |
 | [`TechniqueVisibilityPercentageFilter.vue`](TechniqueVisibilityPercentageFilter.vue) | Filters techniques by visibility percentage |
+| [`visibilityColour.ts`](visibilityColour.ts) | The purple of a visibility percentage, for the matrix buttons and their tooltip |
 | [`VisibilityLegend.vue`](VisibilityLegend.vue) | Colour legend for visibility |

@@ -30,6 +30,21 @@ describe('v-hint', () => {
     expect(hint()).toBeNull();
   });
 
+  it('uses a wider card for a hint of several lines, such as a calculation', async () => {
+    text.value = 'One line.';
+    const short = mount(Header, { attachTo: document.body });
+    await short.trigger('mouseenter');
+    vi.advanceTimersByTime(300);
+    expect(hint()?.classList.contains('long')).toBe(false);
+    short.unmount();
+    text.value = '18% is the average of:\n\n• the technique itself: 20%';
+    const long = mount(Header, { attachTo: document.body });
+    await long.trigger('mouseenter');
+    vi.advanceTimersByTime(300);
+    expect(hint()?.classList.contains('long')).toBe(true);
+    long.unmount();
+  });
+
   it('hides the text when the mouse leaves or clicks, and never shows it after a quick pass', async () => {
     const header = mount(Header, { attachTo: document.body });
     await header.trigger('mouseenter');
