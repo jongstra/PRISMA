@@ -296,6 +296,7 @@ const occursInSelectedComponents = () => {
 button {
   --inner-line: 0 0 transparent;
   --outer-ring: 0 0 transparent;
+  display: block; /* not on a line of text: Safari places a button's text baseline differently, which shifted the columns */
   margin-top: 0px;
   margin-bottom: 3px;
   background-color: var(--color-technique);
