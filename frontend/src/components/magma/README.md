@@ -4,7 +4,7 @@ The MaGMa page: the use case sheets, the heatmap, the insights and the summary.
 
 | Name | Description |
 |---|---|
-| [`__tests__/`](__tests__/) | Tests for the use case sheets, their sorting, their search field and the import summary |
+| [`__tests__/`](__tests__/) | Tests for the use case sheets, their sorting, their percentage and search fields, and the import summary |
 | [`heatmap/`](heatmap/) | Heatmap tab: the ATT&CK matrix coloured by use case scores, and its filters |
 | [`insights/`](insights/) | Insights tab: the MaGMa charts |
 | [`importSummaryContent.ts`](importSummaryContent.ts) | The dialog after loading a MaGMa file with problems: the use cases that were not loaded, and the warnings, as lists |
@@ -14,5 +14,6 @@ The MaGMa page: the use case sheets, the heatmap, the insights and the summary.
 | [`optionSearch.ts`](optionSearch.ts) | The searches of the search field: by ID or name, and for techniques by the start of the ID |
 | [`SheetTabs.vue`](SheetTabs.vue) | The tab bar, with the buttons to load and save a MaGMa YAML file |
 | [`useCaseColumns.ts`](useCaseColumns.ts) | The columns of the L1, L2 and L3 sheets |
+| [`percentageInput.ts`](percentageInput.ts) | What a typed percentage is kept to: digits with one decimal point (a comma counts as one), at most 100 |
 | [`useCaseSort.ts`](useCaseSort.ts) | Sorting a sheet by a column (a click on its header), only on the screen |
 | [`UseCaseTable.vue`](UseCaseTable.vue) | The L1, L2 or L3 sheet: one row per use case, sortable by each column |

@@ -11,6 +11,7 @@ import { searchTechniques } from './optionSearch';
 import { vHint } from '@/components/common/hint';
 import { NOT_DETECTABLE_STYLE } from '@/components/common/notDetectableStyle';
 import { nextSort, sortedRows, type SortValue } from './useCaseSort';
+import { typedPercentage } from './percentageInput';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -187,10 +188,17 @@ const updateObjectField = (uid: string, field: string, value: string | string[] 
   magma.updateUseCase(uid, { [field]: value }, tactics.domain);
 };
 
-// A typed percentage: kept between 0 and 100 (see validateAndFormat), then saved.
+// A typed percentage: kept to digits with one decimal point and at most 100 (see percentageInput.ts), then saved. When
+// the text changes, the cursor stays where it was.
 const updatePercentage = (useCase: UseCase, field: string, event: Event) => {
-  validateAndFormat(event);
-  updateObjectField(useCase.uid, field, (event.target as HTMLInputElement).value);
+  const input = event.target as HTMLInputElement;
+  const percentage = typedPercentage(input.value);
+  if (percentage !== input.value) {
+    const cursor = (input.selectionStart ?? input.value.length) - (input.value.length - percentage.length);
+    input.value = percentage;
+    input.setSelectionRange(Math.max(cursor, 0), Math.max(cursor, 0));
+  }
+  updateObjectField(useCase.uid, field, percentage);
 };
 
 // Turning the override off takes the visibility from the ATT&CK technique again (by setting the technique again).
@@ -282,24 +290,6 @@ const parentLevelUseCases = computed(() => {
 });
 
 const formatPercentage = (value: unknown) => Number(value).toFixed(2);
-
-// Validation method to limit input to numbers with up to two decimal places, and rangebound between 0 and 100.
-const validateAndFormat = (event: Event) => {
-  const inputElement = event.target as HTMLInputElement;
-  const value = inputElement.value;
-
-  // Parse the value to a float
-  const parsedValue = parseFloat(value);
-
-  // Check if the parsed value is within the range [0, 100], and otherwise force it to be within this value.
-  if (!isNaN(parsedValue)) {
-    if (parsedValue < 0) {
-      inputElement.value = '0';
-    } else if (parsedValue > 100) {
-      inputElement.value = '100';
-    }
-  }
-};
 </script>
 
 <template>
@@ -358,7 +348,8 @@ const validateAndFormat = (event: Event) => {
             <template v-if="column.editable">
               <input
                 v-if="PERCENTAGE_INPUTS.includes(column.field)"
-                type="number"
+                type="text"
+                inputmode="decimal"
                 :value="notApplicable(useCase, column.field) ? '' : fieldValue(useCase, column.field)"
                 @input="(event) => updatePercentage(useCase, column.field, event)"
                 :disabled="isLocked(useCase, column.field)"

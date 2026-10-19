@@ -309,4 +309,17 @@ describe('UseCaseTable', () => {
     expect(deleteCells.map((cell) => cell.classes().includes('not-deletable'))).toEqual([true, true, false]);
     expect(deleteCells.map((cell) => cell.find('.remove-button').exists())).toEqual([false, false, true]);
   });
+
+  it('shows percentages with a decimal point in every browser language, and accepts a typed decimal comma', async () => {
+    const { magma, cell } = await showTable('L3');
+    const useCase = magma.L3UseCases(domain)[0]!;
+    const implementation = () => cell(0, 'Implementation %').find('input');
+    expect(implementation().attributes('type')).toBe('text'); // a number field shows the browser's language, e.g. 0,00
+    expect(implementation().attributes('inputmode')).toBe('decimal');
+    await implementation().setValue('45,5');
+    expect((implementation().element as HTMLInputElement).value).toBe('45.5');
+    expect(magma.L3UseCases(domain)[0]!.implementation).toBe('45.5');
+    await implementation().setValue('120');
+    expect(magma.useCases.find((u) => u.uid === useCase.uid)!.implementation).toBe('100');
+  });
 });
