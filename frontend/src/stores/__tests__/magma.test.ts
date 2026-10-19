@@ -318,6 +318,12 @@ describe('magma store: loading a MaGMa file', () => {
     expect(ids()).not.toContain('mobile:M-1');
   });
 
+  it('shows a loaded file in its own order: the sheets are no longer sorted', () => {
+    magma.sheetSorts.L3 = { field: 'implementation', direction: 'descending' };
+    magma.loadUseCases([{ domain: 'mobile-attack', level: 3, id: 'M-2', name: 'new' }]);
+    expect(magma.sheetSorts).toEqual({});
+  });
+
   it('restores the saved domains from a file saved by PRISMA, and keeps domains the file has no use cases for', () => {
     const saved = saveFile(magma); // Contains IN/THR for every domain, and use cases for Enterprise and Mobile.
     const before = ids();

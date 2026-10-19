@@ -1,5 +1,6 @@
 // The columns of the L1, L2 and L3 sheets on the MaGMa page, from left to right. The description is shown when the mouse
-// is on the column header. Each column is at least as wide as its header needs on one line (12.5px bold).
+// is on the column header. Each column is at least as wide as its header needs on one line (12.5px bold), with room for
+// the arrow that shows the sheet is sorted by it.
 
 export type SheetLevel = 'L1' | 'L2' | 'L3';
 
@@ -33,31 +34,31 @@ const averaged = (below: string) => [
     field: 'visibility',
     title: 'Visibility %',
     description: `The average visibility of its ${below} use cases.`,
-    width: 90,
+    width: 97,
   },
   {
     field: 'implementation',
     title: 'Implementation %',
     description: `The average implementation of its ${below} use cases.`,
-    width: 130,
+    width: 139,
   },
   {
     field: 'effectiveness',
     title: 'Effectiveness %',
     description: `The average effectiveness of its ${below} use cases.`,
-    width: 118,
+    width: 127,
   },
   {
     field: 'weight',
     title: 'Weight %',
     description: `The average weight (overall score) of its ${below} use cases.`,
-    width: 78,
+    width: 87,
   },
   {
     field: 'potential',
     title: 'Potential %',
     description: '100% minus the weight: how much the detection can still improve.',
-    width: 90,
+    width: 97,
   },
 ];
 
@@ -72,34 +73,34 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       field: 'L1nrChildren',
       title: 'L2 UC Related',
       description: 'The number of L2 use cases with this use case as their parent.',
-      width: 104,
+      width: 113,
     },
     {
       field: 'L1nrGrandChildren',
       title: 'L3 UC Related',
       description: 'The number of L3 use cases under its L2 use cases.',
-      width: 104,
+      width: 113,
     },
     ...averaged('L2'),
     {
       field: 'inImpact',
       title: 'IN Impact %',
       description: `For a business risk: the part of an attack in the IN phase (getting in), detected by the cumulative IN use cases. ${IMPACT}`,
-      width: 95,
+      width: 101,
       editable: true,
     },
     {
       field: 'thrImpact',
       title: 'THR Impact %',
       description: `For a business risk: the part of an attack in the THROUGH phase (moving through the network), detected by the cumulative THR use cases. ${IMPACT}`,
-      width: 105,
+      width: 114,
       editable: true,
     },
     {
       field: 'outImpact',
       title: 'OUT Impact %',
       description: `For a business risk: the part of an attack in the OUT phase (reaching its goal), detected by the risk's own use cases. ${IMPACT}`,
-      width: 106,
+      width: 115,
       editable: true,
     },
     {
@@ -125,7 +126,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       field: 'L2nrChildren',
       title: 'L3 UC Related',
       description: 'The number of L3 use cases with this use case as their parent.',
-      width: 104,
+      width: 113,
     },
     ...averaged('L3'),
   ],
@@ -160,7 +161,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       field: 'visibilityFromAttackTechniqueOverride',
       title: 'Override',
       description: 'On: use your own visibility instead of the DeTT&CT visibility of the technique.',
-      width: 73,
+      width: 81,
       editable: true,
     },
     {
@@ -168,7 +169,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       title: 'Visibility %',
       description:
         'How much of the data the rule needs is available. Taken from DeTT&CT (yellow) when the rule has a technique and Override is off; otherwise your own value.',
-      width: 90,
+      width: 97,
       editable: true,
     },
     {
@@ -176,7 +177,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       title: 'Implementation %',
       description:
         'How free of false positives the rule is: 100% minus the share of its alerts that are false positives. A rule without alerts in the period may count as 100%.',
-      width: 130,
+      width: 139,
       editable: true,
     },
     {
@@ -184,20 +185,20 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       title: 'Effectiveness %',
       description:
         'How well the rule is tested, so it does not miss attacks: from 20% (untested) to 100% (tested regularly with attack simulation tools).',
-      width: 118,
+      width: 127,
       editable: true,
     },
     {
       field: 'weight',
       title: 'Weight %',
       description: 'Visibility × implementation × effectiveness: the overall score of the rule.',
-      width: 78,
+      width: 87,
     },
     {
       field: 'potential',
       title: 'Potential %',
       description: '100% minus the weight: how much the rule can still improve.',
-      width: 90,
+      width: 97,
     },
   ],
 };

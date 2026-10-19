@@ -236,4 +236,77 @@ describe('UseCaseTable', () => {
     expect((await showTable('L1')).table.text()).toContain('Averages');
     expect((await showTable('L2')).table.text()).not.toContain('Averages');
   });
+
+  it('sorts by a column when its header is clicked: ascending, descending, then the order of the file', async () => {
+    const { table, magma, headers } = await showTable('L2');
+    magma.addNewUseCase(2, domain);
+    magma.addNewUseCase(2, domain);
+    const [first, second, third] = magma.L2UseCases(domain);
+    magma.updateUseCase(first!.uid, { name: 'beta' }, domain);
+    magma.updateUseCase(second!.uid, { name: 'Alpha' }, domain);
+    magma.updateUseCase(third!.uid, { name: 'gamma' }, domain);
+    await table.vm.$nextTick();
+    const names = () =>
+      table.findAll('tbody tr').flatMap((row) => {
+        const field = row.findAll('textarea').at(1);
+        return field ? [(field.element as HTMLTextAreaElement).value] : [];
+      });
+    const header = () =>
+      table.findAll('thead th').at(headers().findIndex((text) => text.startsWith('Use Case Name')) + 1)!;
+    expect(names()).toEqual(['beta', 'Alpha', 'gamma']);
+    expect(header().attributes('aria-sort')).toBe('none');
+    await header().trigger('click');
+    expect(names()).toEqual(['Alpha', 'beta', 'gamma']);
+    expect(header().attributes('aria-sort')).toBe('ascending');
+    expect(header().find('.sort-arrow').text()).toBe('▲');
+    await header().trigger('click');
+    expect(names()).toEqual(['gamma', 'beta', 'Alpha']);
+    expect(header().find('.sort-arrow').text()).toBe('▼');
+    await header().trigger('click');
+    expect(names()).toEqual(['beta', 'Alpha', 'gamma']);
+    expect(header().attributes('aria-sort')).toBe('none');
+    expect(magma.L2UseCases(domain).map((useCase) => useCase.name)).toEqual(['beta', 'Alpha', 'gamma']); // the file order
+  });
+
+  it('keeps IN and THR on top of a sorted L1 sheet', async () => {
+    const { table, headers } = await showTable('L1');
+    const header = table.findAll('thead th').at(headers().indexOf('ID') + 1)!;
+    await header.trigger('click');
+    await header.trigger('click'); // descending: the new use case would come before IN and THR without pinning
+    const ids = table
+      .findAll('tbody tr')
+      .flatMap((row) =>
+        row.find('textarea').exists() ? [(row.find('textarea').element as HTMLTextAreaElement).value] : [],
+      );
+    expect(ids.slice(0, 2)).toEqual(['IN', 'THR']);
+  });
+
+  it('keeps a row in its place while it is being edited, and sorts it when it is left', async () => {
+    const { table, magma, headers } = await showTable('L2');
+    magma.addNewUseCase(2, domain);
+    const [first, second] = magma.L2UseCases(domain);
+    magma.updateUseCase(first!.uid, { name: 'a' }, domain);
+    magma.updateUseCase(second!.uid, { name: 'b' }, domain);
+    await table.vm.$nextTick();
+    await table
+      .findAll('thead th')
+      .at(headers().indexOf('Use Case Name') + 1)!
+      .trigger('click');
+    const rows = () => table.findAll('tbody tr').filter((row) => row.find('textarea').exists());
+    const nameOf = (row: typeof rows extends () => (infer R)[] ? R : never) =>
+      (row.findAll('textarea').at(1)!.element as HTMLTextAreaElement).value;
+    await rows()[0]!.trigger('focusin');
+    magma.updateUseCase(first!.uid, { name: 'c' }, domain);
+    await table.vm.$nextTick();
+    expect(rows().map(nameOf)).toEqual(['c', 'b']); // still on top while editing
+    await rows()[0]!.trigger('focusout');
+    expect(rows().map(nameOf)).toEqual(['b', 'c']);
+  });
+
+  it('hatches the delete cells of IN and THR in red: they cannot be deleted', async () => {
+    const { table } = await showTable('L1');
+    const deleteCells = table.findAll('tbody td.remove-col').slice(0, 3);
+    expect(deleteCells.map((cell) => cell.classes().includes('not-deletable'))).toEqual([true, true, false]);
+    expect(deleteCells.map((cell) => cell.find('.remove-button').exists())).toEqual([false, false, true]);
+  });
 });

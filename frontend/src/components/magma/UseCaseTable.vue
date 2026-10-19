@@ -2,7 +2,7 @@
 // The L1, L2 or L3 sheet of the MaGMa page (the active tab): one row per use case of the current domain, with a button
 // to add a use case. The columns are defined in useCaseColumns.ts.
 import Swal from 'sweetalert2';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { magmaStore, type UseCase } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
 import { USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
@@ -10,12 +10,52 @@ import OptionPicker from './OptionPicker.vue';
 import { searchTechniques } from './optionSearch';
 import { vHint } from '@/components/common/hint';
 import { NOT_DETECTABLE_STYLE } from '@/components/common/notDetectableStyle';
+import { nextSort, sortedRows, type SortValue } from './useCaseSort';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
 
 const columns = computed(() => USE_CASE_COLUMNS[magma.activeTab as SheetLevel]);
 const useCases = computed(() => magma.activeTabUseCases(tactics.domain));
+
+// Sorting by a column (a click on its header): only the order on the screen changes, not the order of the use cases or
+// the file. IN and THR stay on top of L1. A row stays in its place while it is being edited (it is sorted by the value it
+// had when the editing started), so it does not jump away while typing; it moves when it is left.
+const sort = computed(() => magma.sheetSorts[magma.activeTab] ?? null);
+const toggleSort = (field: string) => {
+  magma.sheetSorts[magma.activeTab] = nextSort(sort.value, field);
+};
+const ariaSort = (field: string) => (sort.value?.field === field ? sort.value.direction : 'none');
+
+function sortValue(useCase: UseCase, field: string): SortValue {
+  if (field === 'L1nrChildren' || field === 'L2nrChildren') return magma.getChildUseCases(useCase).length;
+  if (field === 'L1nrGrandChildren') return magma.getGrandChildUseCases(useCase).length;
+  if (field === 'parentIds') return (useCase.parentIds ?? []).join(', ');
+  if (field === 'attackTechniqueId') return useCase.attackTechniqueId === 'none' ? '' : useCase.attackTechniqueId;
+  return fieldValue(useCase, field) as SortValue;
+}
+
+const editing = ref<{ uid: string; value: SortValue } | null>(null);
+const startEditing = (useCase: UseCase) => {
+  if (editing.value?.uid !== useCase.uid) {
+    editing.value = { uid: useCase.uid, value: sort.value ? sortValue(useCase, sort.value.field) : null };
+  }
+};
+const stopEditing = (event: FocusEvent) => {
+  const row = event.currentTarget as HTMLElement;
+  if (!(event.relatedTarget instanceof Node && row.contains(event.relatedTarget))) {
+    editing.value = null;
+  }
+};
+
+const rows = computed(() =>
+  sortedRows(
+    useCases.value,
+    sort.value,
+    (useCase) => (editing.value?.uid === useCase.uid ? editing.value.value : sortValue(useCase, sort.value!.field)),
+    (useCase) => !!useCase.permanent,
+  ),
+);
 
 // The value of the use case field that a column shows.
 const fieldValue = (useCase: UseCase, field: string) => useCase[field as keyof UseCase];
@@ -284,19 +324,25 @@ const validateAndFormat = (event: Event) => {
           <th
             v-for="column in columns"
             :key="column.field"
-            v-hint="column.description"
-            class="explained"
+            v-hint="`${column.description} Click to sort.`"
+            class="explained sortable"
+            :class="{ sorted: sort?.field === column.field }"
+            :aria-sort="ariaSort(column.field)"
             :style="{ width: `${column.width}px` }"
+            @click="toggleSort(column.field)"
           >
-            {{ column.title }}
+            {{ column.title
+            }}<span v-if="sort?.field === column.field" class="sort-arrow" aria-hidden="true">
+              {{ sort.direction === 'ascending' ? '▲' : '▼' }}</span
+            >
           </th>
         </tr>
       </thead>
       <tbody>
         <!-- Rows for all use cases. -->
-        <tr v-for="useCase in useCases" :key="useCase.uid">
-          <!-- Remove-use-case buttons -->
-          <td class="remove-col">
+        <tr v-for="useCase in rows" :key="useCase.uid" @focusin="startEditing(useCase)" @focusout="stopEditing">
+          <!-- Remove-use-case buttons; IN and THR cannot be deleted. -->
+          <td class="remove-col" :class="{ 'not-deletable': useCase.permanent }">
             <button
               v-if="!useCase.permanent"
               class="remove-button"
@@ -477,6 +523,27 @@ th.remove-col {
 td.remove-col {
   background-color: var(--color-remove);
 }
+
+/* IN and THR cannot be deleted: their delete cell is hatched in red. */
+td.remove-col.not-deletable {
+  background-color: #fbe4e1;
+  background-image: repeating-linear-gradient(135deg, #de7b72 0 4px, #fbe4e1 4px 8px);
+}
+
+/* A click on a column header sorts the sheet by it (the pointing hand says it can be clicked; its description still shows
+   shortly after the mouse comes on it, v-hint); the sorted column's header is a little darker, with an arrow. */
+th.sortable {
+  cursor: pointer;
+}
+
+th.sorted {
+  background-color: #b1c4e3;
+}
+
+.sort-arrow {
+  margin-left: 4px;
+  font-size: 10px;
+}
 button.remove-button {
   width: 100%;
   height: 100%;
@@ -528,10 +595,6 @@ input,
 
 .uneditable {
   background-color: lightgoldenrodyellow;
-}
-
-th.explained {
-  cursor: help; /* the description shows shortly after the mouse comes on the header (v-hint) */
 }
 
 /* The override: a switch (the same look as the toggles of SelectionTool.vue), and the whole cell can be clicked. */

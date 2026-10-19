@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import type { SheetSort } from '@/components/magma/useCaseSort';
 import { v4 as uuidv4 } from 'uuid';
 import { tacticsStore } from '@/stores/tactics';
 import { recalculateUseCases } from '@/domain/magma/calculations';
@@ -96,6 +97,7 @@ export const magmaStore = defineStore('magma', {
     heatmapFilterValue: 0,
     heatmapSearchQuery: '' as string,
     savedUseCases: '[]', // what the user had entered at the last load or save, see hasUnsavedChanges
+    sheetSorts: {} as Partial<Record<string, SheetSort | null>>, // the column each sheet (L1, L2, L3) is sorted by
   }),
 
   getters: {
@@ -508,6 +510,7 @@ export const magmaStore = defineStore('magma', {
       this.useCases = this.useCases.filter((useCase) => useCase.permanent || !domains.includes(useCase.domain));
       const result = this.importUseCases(useCases);
       this.markAsSaved();
+      this.sheetSorts = {}; // a loaded file is shown in its own order
       return result;
     },
 
