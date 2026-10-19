@@ -1,9 +1,10 @@
 <script setup lang="ts">
-// The legend of the MaGMa heatmap: not detectable (striped), no use cases (white), and the green of a score from 0 to
+// The legend of the MaGMa heatmap: not detectable (striped), no use cases (the base colour), and the green of a score from 0 to
 // 100% for techniques with use cases (the heatmap colours them continuously; these are samples). The label is in the
 // ControlBox around it (Heatmap.vue).
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '@/components/common/notDetectableStyle';
 import { vHint } from '@/components/common/hint';
+import { heatmapFill } from './heatmapFill';
 
 const SAMPLES = [0, 25, 50, 75, 100];
 </script>
@@ -16,7 +17,7 @@ const SAMPLES = [0, 25, 50, 75, 100];
       v-for="sample in SAMPLES"
       :key="sample"
       class="swatch"
-      :style="{ backgroundColor: `rgba(0, 255, 0, ${sample / 100})` }"
+      :style="heatmapFill(sample)"
       v-hint="`Score ${sample}%`"
     >
       {{ sample }}
@@ -41,7 +42,7 @@ const SAMPLES = [0, 25, 50, 75, 100];
   height: 30px;
   border: var(--border-control);
   border-radius: 5px;
-  background-color: white;
+  background-color: var(--color-technique);
   font-size: 10px;
   font-weight: bold;
 }

@@ -17,6 +17,14 @@ const magma = magmaStore();
 const tactics = tacticsStore();
 
 const columns = computed(() => USE_CASE_COLUMNS[magma.activeTab as SheetLevel]);
+
+// Each sheet is as wide as its columns (the delete column, the columns of useCaseColumns.ts, and the 2px between the cells
+// and at both ends), so the columns the sheets share are equally wide on each sheet, whatever the width of the window.
+const DELETE_COLUMN_WIDTH = 28;
+const sheetWidth = computed(
+  () =>
+    DELETE_COLUMN_WIDTH + columns.value.reduce((sum, column) => sum + column.width, 0) + (columns.value.length + 2) * 2,
+);
 const useCases = computed(() => magma.activeTabUseCases(tactics.domain));
 
 // Sorting by a column (a click on its header): only the order on the screen changes, not the order of the use cases or
@@ -296,7 +304,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
   <!-- The sheet scrolls sideways; the add button below it (in the caption, above the scroll bar) stays across the page
        with its text in view. -->
   <div class="sheet-scroll">
-    <table border="1" class="fixed-table">
+    <table border="1" class="fixed-table" :style="{ width: `${sheetWidth}px` }">
       <caption class="add-row">
         <button type="button" class="add-button" @click="addNewUseCase">+ Add use case</button>
       </caption>
@@ -465,7 +473,6 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
 .fixed-table {
   --sheet-row-height: 52px; /* three lines of 16px, plus 2px padding above and below */
   --sheet-text-max-height: 52px;
-  width: 100%;
   table-layout: fixed;
   border: 0; /* no frame around the sheet: the cells have their own borders, and the add button follows the rows */
 }
@@ -546,7 +553,8 @@ button.remove-button {
 }
 
 /* Below the sheet: the caption is as wide as the table, so the button can stay at the left of the visible part (sticky)
-   while the sheet scrolls sideways. It is as wide as the window minus the page margins. */
+   while the sheet scrolls sideways. It is as wide as the window minus the page margins, or as the sheet when that is
+   narrower. */
 .add-row {
   caption-side: bottom;
   text-align: left;
@@ -556,7 +564,7 @@ button.remove-button {
   position: sticky;
   left: 0;
   display: block;
-  width: calc(100vw - 1rem);
+  width: min(calc(100vw - 1rem), 100%);
   height: 30px;
   margin: 4px 0;
   background-color: var(--color-add);
@@ -573,7 +581,7 @@ button.remove-button {
 }
 
 .remove-col {
-  width: 28px;
+  width: 28px; /* DELETE_COLUMN_WIDTH */
 }
 
 input,

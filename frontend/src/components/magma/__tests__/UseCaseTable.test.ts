@@ -322,4 +322,19 @@ describe('UseCaseTable', () => {
     await implementation().setValue('120');
     expect(magma.useCases.find((u) => u.uid === useCase.uid)!.implementation).toBe('100');
   });
+
+  it('gives every sheet its own width, so the columns the sheets share are equally wide on each', async () => {
+    for (const level of ['L1', 'L2', 'L3'] as const) {
+      const { table } = await showTable(level);
+      const headers = table.findAll('thead th').slice(1);
+      const columnsWidth = headers.reduce((sum, th) => sum + parseFloat((th.element as HTMLElement).style.width), 0);
+      const spacing = (headers.length + 2) * 2; // the 2px between the cells and at both ends, also around the delete column
+      expect((table.find('table').element as HTMLElement).style.width, level).toBe(`${28 + columnsWidth + spacing}px`);
+      expect(headers.slice(0, 3).map((th) => (th.element as HTMLElement).style.width)).toEqual([
+        '86px',
+        '155px',
+        '258px',
+      ]);
+    }
+  });
 });

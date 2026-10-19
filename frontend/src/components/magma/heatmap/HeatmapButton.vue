@@ -5,6 +5,7 @@ import { ref, computed } from 'vue';
 import { ancestorCounts, heatmapValue } from '@/domain/magma/heatmap';
 import { isDetectable } from '@/domain/attack/visibility';
 import { NOT_DETECTABLE_STYLE } from '@/components/common/notDetectableStyle';
+import { heatmapFill } from './heatmapFill';
 import TechniqueTag from '@/components/common/TechniqueTag.vue';
 import TechniqueTooltip from '@/components/common/TechniqueTooltip.vue';
 import { useTechniqueTooltip } from '@/components/common/useTechniqueTooltip';
@@ -31,17 +32,13 @@ const value = computed(() =>
   }),
 );
 
-function getBackgroundColor() {
-  return value.value === null ? undefined : `rgba(0, 255, 0, ${value.value / 100})`;
-}
-
 // Techniques without use cases that ATT&CK lists no data components for are striped, as in the DeTT&CT matrix: a known
 // blind spot. Techniques with use cases are coloured by their heatmap value (and marked with a thicker border).
 function getButtonStyle() {
   if (relatedUseCases.value.length === 0 && !isDetectable(props.technique)) {
     return NOT_DETECTABLE_STYLE;
   }
-  return { backgroundColor: getBackgroundColor() };
+  return value.value === null ? {} : heatmapFill(value.value);
 }
 
 // The numbers in the tooltip: the heatmap value of each score and of all three together (the weight), and how many use
@@ -173,7 +170,7 @@ button {
   margin-inline: auto; /* centred in its column */
   margin-top: 0px;
   margin-bottom: 3px;
-  background-color: rgb(255, 255, 255);
+  background-color: var(--color-technique);
   border: 1.5px solid var(--color-control-border);
   box-shadow: var(--inner-line), var(--outer-ring);
   border-radius: 4px; /* Slightly rounded corners */
