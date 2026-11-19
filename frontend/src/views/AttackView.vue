@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import TacticColumn from '../components/attack/TacticColumn.vue';
 import { tacticsStore } from '@/stores/tactics';
 import { useEndTagHover } from '@/components/common/useTagHover';
@@ -12,6 +12,8 @@ import SearchBar from '@/components/attack/SearchBar.vue';
 import SelectionTool from '@/components/common/SelectionTool.vue';
 import ControlBox from '@/components/common/ControlBox.vue';
 import ControlPanel from '@/components/common/ControlPanel.vue';
+import ScrollThumbs from '@/components/common/ScrollThumbs.vue';
+import { useScrollArea } from '@/components/common/useScrollArea';
 import { occurrenceLevel, visibilityRangeText } from '@/components/attack/controlValues';
 const store = tacticsStore();
 
@@ -33,6 +35,11 @@ watch(
 
 // The matrix columns are keyed by domain and tactic, so switching domains creates new columns: each column and
 // technique button keeps the domain it was created for.
+
+// In a big enough window the matrix fills the window below the controls and scrolls itself, with the tactic names frozen
+// at its top (useScrollArea.ts).
+const matrix = ref<HTMLElement | null>(null);
+const matrixArea = useScrollArea(matrix);
 </script>
 
 <template>
@@ -78,7 +85,7 @@ watch(
     </ControlBox>
   </ControlPanel>
 
-  <div class="matrix-container">
+  <div ref="matrix" class="matrix-container scroll-area" :class="{ scrolled: matrixArea.scrolled }">
     <div class="attack-matrix">
       <div
         v-for="tactic in store.currentDomain?.tactics"
@@ -89,6 +96,7 @@ watch(
       </div>
     </div>
   </div>
+  <ScrollThumbs :area="matrixArea" />
 </template>
 
 <style scoped>
@@ -111,21 +119,17 @@ watch(
   }
 }
 
-/* The matrix scrolls sideways from window edge to window edge (past the 0.5rem margin of the page, App.vue), starting
-   and ending 0.5rem from the edges. */
+/* The matrix scrolls from window edge to window edge (past the 0.5rem margin of the page, App.vue), starting and ending
+   0.5rem from the edges. In a big enough window it also fills the window below the controls and scrolls down itself
+   (.scroll-area in main.css, useScrollArea.ts). */
 .matrix-container {
-  overflow-x: auto;
   margin: 0 -0.5rem;
   padding: 0 0.5rem;
-  transform: rotateX(180deg); /* Rotates container upside down so the horizontal scrollbar is at the top. */
 }
 
 .attack-matrix {
   display: flex;
   width: fit-content; /* Allow content to take up natural width */
-  transform: rotateX(
-    180deg
-  ); /* Rotates the matrix content upside down AGAIN (after doing this to the .matrix-container), so it rotated back to normal. */
 }
 
 .button-columns {

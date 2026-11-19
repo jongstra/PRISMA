@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { tacticsStore } from '@/stores/tactics';
 import { magmaStore } from '@/stores/magma';
 import HeatmapButtonColumn from './HeatmapButtonColumn.vue';
@@ -12,6 +12,8 @@ import SelectionTool from '@/components/common/SelectionTool.vue';
 import { useEndTagHover } from '@/components/common/useTagHover';
 import ControlPanel from '@/components/common/ControlPanel.vue';
 import ControlBox from '@/components/common/ControlBox.vue';
+import ScrollThumbs from '@/components/common/ScrollThumbs.vue';
+import { useScrollArea } from '@/components/common/useScrollArea';
 import { scoreName } from './scoreName';
 const store = tacticsStore();
 
@@ -33,6 +35,11 @@ const legendLabel = computed(() => (legendScore.value ? `Legend: ${legendScore.v
 
 // The matrix columns are keyed by domain and tactic, so switching domains creates new columns: each column and
 // technique button keeps the domain it was created for.
+
+// In a big enough window the heatmap fills the window below the controls and scrolls itself, with the tactic names
+// frozen at its top (useScrollArea.ts).
+const heatmap = ref<HTMLElement | null>(null);
+const heatmapArea = useScrollArea(heatmap);
 </script>
 
 <template>
@@ -59,7 +66,7 @@ const legendLabel = computed(() => (legendScore.value ? `Legend: ${legendScore.v
         ><HeatmapLegend :score-name="legendScore ?? 'score'"
       /></ControlBox>
     </ControlPanel>
-    <div class="heatmap-container">
+    <div ref="heatmap" class="heatmap-container scroll-area" :class="{ scrolled: heatmapArea.scrolled }">
       <div class="heatmap">
         <div
           v-for="tactic in store.currentDomain?.tactics"
@@ -70,6 +77,7 @@ const legendLabel = computed(() => (legendScore.value ? `Legend: ${legendScore.v
         </div>
       </div>
     </div>
+    <ScrollThumbs :area="heatmapArea" />
   </div>
 </template>
 
@@ -97,20 +105,16 @@ const legendLabel = computed(() => (legendScore.value ? `Legend: ${legendScore.v
   }
 }
 
-/* The heatmap scrolls sideways from window edge to window edge, like the sheets around it (MagmaView.vue). */
+/* The heatmap scrolls from window edge to window edge, like the sheets around it (MagmaView.vue). In a big enough window
+   it also fills the window below the controls and scrolls down itself, as the DeTT&CT matrix does (AttackView.vue). */
 .heatmap-container {
-  overflow-x: auto;
   margin: 0 -0.5rem;
   padding: 0 0.5rem;
-  transform: rotateX(180deg); /* Rotates container upside down so the horizontal scrollbar is at the top. */
 }
 
 .heatmap {
   display: flex;
   width: fit-content; /* Allow content to take up natural width */
-  transform: rotateX(
-    180deg
-  ); /* Rotates the matrix content upside down AGAIN (after doing this to the .matrix-container), so it rotated back to normal. */
 }
 
 .button-columns {

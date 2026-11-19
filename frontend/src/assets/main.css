@@ -96,6 +96,31 @@ body {
   font-family: Inter, sans-serif;
 }
 
+/* A scroll area that fills the window (components/common/useScrollArea.ts): the ATT&CK matrix and the MaGMa heatmap.
+   It scrolls both ways, and keeps the z-indexes of what it holds inside it, so its frozen tactic names stay below the
+   lists of the controls. While it fills the window, the page does not scroll and the area draws its own scroll bars
+   (ScrollThumbs.vue). */
+.scroll-area {
+  overflow: auto;
+  isolation: isolate;
+}
+
+html.fills-window {
+  overflow: hidden;
+}
+
+html.fills-window .app {
+  padding-bottom: 0;
+}
+
+html.fills-window .scroll-area {
+  scrollbar-width: none;
+}
+
+html.fills-window .scroll-area::-webkit-scrollbar {
+  display: none;
+}
+
 /* The explanation of v-hint (components/common/hint.ts): a pink card with a thin black edge that floats above the
    sheet, with a small arrow to the mouse (on top, or at the bottom when the card is above its element). */
 .hint {

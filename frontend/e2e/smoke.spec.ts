@@ -267,6 +267,45 @@ test('the Enterprise matrix fits a Full HD window without scrolling sideways or 
   expect(fits(heatmap), `heatmap: ${heatmap}`).toBe(true);
 });
 
+test('the matrix fills the window below the controls and scrolls itself, with the tactic names frozen at its top', async ({
+  page,
+}) => {
+  await openApp(page); // 1400 × 900
+  const matrix = page.locator('.matrix-container');
+  const firstName = page.locator('.button-column-tactic-name').first();
+  const bottom = async (area: Locator) => {
+    const box = (await area.boundingBox())!;
+    return Math.round(box.y + box.height);
+  };
+  // Above every column its name, then its number of techniques and its visibility in a chip on one line.
+  await expect(page.locator('.column-header .visibility-chip')).toHaveCount(14);
+  await expect(page.locator('.button-column-stats').first()).toHaveText(/^10 techniques\s*0%$/);
+  // The page does not scroll: the matrix reaches to 8px above the bottom of the window.
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight)).toBe(true);
+  expect(await bottom(matrix)).toBe(892);
+  await expect(page.locator('.scroll-thumb.vertical')).toBeVisible();
+  await expect(page.locator('.scroll-thumb.horizontal')).toBeVisible();
+
+  // The wheel over the controls scrolls the matrix, not the page; the tactic names stay, with a line below them.
+  const nameTop = (await firstName.boundingBox())!.y;
+  await page.mouse.move(300, 150);
+  await page.mouse.wheel(0, 400);
+  await expect.poll(() => matrix.evaluate((area) => area.scrollTop)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  expect((await firstName.boundingBox())!.y).toBe(nameTop);
+  await expect(matrix).toHaveClass(/scrolled/);
+
+  // The heatmap fills the window the same way.
+  await openPage(page, 'MaGMa');
+  await openTab(page, 'Heatmap');
+  expect(await bottom(page.locator('.heatmap-container'))).toBe(892);
+
+  // In a phone-sized window the page scrolls as before.
+  await page.setViewportSize({ width: 375, height: 812 });
+  await openPage(page, 'DeTT&CT');
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true);
+});
+
 test('the MaGMa page fits a phone: its tabs in two rows of three, and nothing sticks out of the window', async ({
   page,
 }) => {
