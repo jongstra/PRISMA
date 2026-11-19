@@ -31,4 +31,9 @@ describe('scrollTopForDrag', () => {
     expect(scrollTopForDrag(900, 1800, 100, -500)).toBe(0);
     expect(scrollTopForDrag(900, 1800, 800, 500)).toBe(900);
   });
+
+  it('can keep a small bar for a short list, such as the selected groups of a control box', () => {
+    expect(thumbGeometry(34, 58, 0, 8)).toEqual({ visible: true, top: 0, height: (34 * 34) / 58 });
+    expect(thumbGeometry(34, 300, 0, 8).height).toBe(8);
+  });
 });

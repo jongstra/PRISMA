@@ -1,13 +1,18 @@
 <script setup lang="ts">
 // Selects groups or data components of the current domain, to highlight (or only show) the techniques they use or
-// cover. Used on the DeTT&CT page (groups and data components) and on the MaGMa heatmap (groups).
-import Swal from 'sweetalert2';
-import { computed, ref } from 'vue';
+// cover. Used on the DeTT&CT page (groups and data components) and on the MaGMa heatmap (groups). In the look of a
+// control box: while nothing is selected, a label and a search field like the technique search; once something is
+// selected, the search field moves up next to the label, thinner, with the switch (only show these) and a clear icon,
+// and the selected items take its place below: two rows, then a thin scroll bar, so the box keeps its height.
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { notifyUndoable } from './notify';
+import { thumbGeometry, type ThumbGeometry } from './scrollbarGeometry';
 import { vHint } from './hint';
 import { suggestedItems } from './selectionSearch';
 import { tacticsStore, type TechniqueAttribute } from '@/stores/tactics';
 
 const props = defineProps<{
+  label: string; // 'Groups' or 'Components'
   list: 'groups' | 'data_components'; // the list of the domain to select from
   selectedField: 'selected' | 'selectedInMagmaHeatmap'; // the field that marks an item as selected
   // The domain field that says: only show the techniques of the selected items.
@@ -28,35 +33,14 @@ const removeSelection = (item: TechniqueAttribute) => {
   delete item[props.selectedField];
 };
 
+// Clear all selections at once; the message offers to undo it.
 const clearAllSelections = () => {
-  items.value.forEach((item) => delete item[props.selectedField]);
-};
-
-// Clear all selections, after confirmation.
-const confirmClearAllSelections = () => {
-  if (selectedItems.value.length === 0) {
-    return;
-  }
-
-  Swal.fire({
-    title: `Clear all ${props.noun} selections?`,
-    text: "You won't be able to revert this.",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: 'green',
-    confirmButtonText: `Yes, clear all ${props.noun} selections`,
-    cancelButtonText: 'No, cancel',
-    reverseButtons: true,
-    customClass: {
-      confirmButton: 'swal2-confirm-custom',
-      cancelButton: 'swal2-cancel-custom',
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      clearAllSelections();
-    }
-  });
+  const cleared = selectedItems.value.slice();
+  cleared.forEach((item) => delete item[props.selectedField]);
+  const count = cleared.length;
+  notifyUndoable(`Cleared ${count} ${props.noun}${count === 1 ? '' : 's'}.`, undefined, () =>
+    cleared.forEach((item) => (item[props.selectedField] = true)),
+  );
 };
 
 // Search field: clicking it opens a list of the items that are not selected yet, which narrows while typing (see
@@ -80,6 +64,25 @@ const addItemFromSearch = () => {
   }
 };
 
+// The scroll bar of the selected items: drawn, so it also shows where the system only shows one while scrolling (macOS).
+const itemList = ref<HTMLElement | null>(null);
+const thumb = ref<ThumbGeometry>({ visible: false, top: 0, height: 0 });
+const updateThumb = () => {
+  const list = itemList.value;
+  thumb.value = list
+    ? thumbGeometry(list.clientHeight, list.scrollHeight, list.scrollTop, 8)
+    : { visible: false, top: 0, height: 0 };
+};
+watch(
+  () => selectedItems.value.length,
+  () => nextTick(updateThumb),
+);
+onMounted(() => {
+  window.addEventListener('resize', updateThumb);
+  updateThumb();
+});
+onUnmounted(() => window.removeEventListener('resize', updateThumb));
+
 const onlyShowSelected = computed<boolean>({
   get: () => store.currentDomain?.[props.onlyShowField] ?? false,
   set: (value) => {
@@ -91,23 +94,35 @@ const onlyShowSelected = computed<boolean>({
 </script>
 
 <template>
-  <div class="selection-container" :class="`items-${color}`">
-    <div class="header">
+  <div class="selection-container" :class="[`items-${color}`, { 'has-selection': selectedItems.length > 0 }]">
+    <div class="top">
+      <span class="control-label">{{ label }}</span>
       <input
-        class="search-box"
+        class="search-box search-field"
+        :class="{ compact: selectedItems.length > 0 }"
         v-model="searchQuery"
-        :placeholder="`Search ${noun}s...`"
+        :placeholder="selectedItems.length ? 'Search...' : `Search ${noun}s...`"
         @focus="listOpen = true"
         @input="listOpen = true"
         @blur="listOpen = false"
         @keydown.enter="addItemFromSearch"
         @keydown.escape="listOpen = false"
       />
-      <button class="clear-all-button" @click="confirmClearAllSelections">Clear</button>
-      <label class="toggle-label" v-hint="toggleTitle">
-        <input type="checkbox" v-model="onlyShowSelected" />
-        <span class="toggle-switch"></span>
-      </label>
+      <template v-if="selectedItems.length">
+        <label class="toggle-label" v-hint="toggleTitle">
+          <input type="checkbox" v-model="onlyShowSelected" />
+          <span class="toggle-switch"></span>
+        </label>
+        <button
+          type="button"
+          class="clear-icon"
+          :aria-label="`Clear all ${noun}s`"
+          v-hint="`Clear all ${noun}s`"
+          @click="clearAllSelections"
+        >
+          &#x2715;
+        </button>
+      </template>
     </div>
     <!-- mousedown.prevent: choosing an item keeps the focus (and the list) in the search field. -->
     <div v-if="listOpen && suggestions.length" class="suggestions" @mousedown.prevent>
@@ -115,11 +130,21 @@ const onlyShowSelected = computed<boolean>({
         {{ item.name }}
       </div>
     </div>
-    <div v-if="selectedItems.length" class="buttons-wrapper">
-      <button v-for="item in selectedItems" :key="item.name" @click="removeSelection(item)">
-        {{ item.name }}
-      </button>
-    </div>
+    <Transition name="items" @after-enter="updateThumb">
+      <div v-if="selectedItems.length" class="items">
+        <div ref="itemList" class="buttons-wrapper" @scroll="updateThumb">
+          <button v-for="item in selectedItems" :key="item.name" @click="removeSelection(item)">
+            {{ item.name }}
+          </button>
+        </div>
+        <div
+          v-if="thumb.visible"
+          class="items-thumb"
+          :style="{ top: `${thumb.top}px`, height: `${thumb.height}px` }"
+          aria-hidden="true"
+        ></div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -127,13 +152,16 @@ const onlyShowSelected = computed<boolean>({
 .selection-container {
   --item-color: rgb(255, 104, 104);
   --item-hover-color: rgb(225, 52, 52);
-  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 3px 6px 4px; /* as a control box (ControlBox.vue) */
   font-size: 14px;
   border: var(--border-box);
-  border-radius: 5px;
+  border-radius: var(--radius-box);
   background-color: var(--color-box);
-  width: 265px;
-  position: relative; /* Ensure absolute positioning is relative to this container */
+  position: relative; /* the list of suggestions is placed in it */
 }
 
 .selection-container.items-green {
@@ -141,26 +169,52 @@ const onlyShowSelected = computed<boolean>({
   --item-hover-color: rgb(55, 190, 55);
 }
 
-.header {
-  display: flex;
+/* Nothing selected: the label above the search field, which is centred in the rest of the box, as in a control box.
+   Something selected: the label, a thinner search field, the switch and the clear icon on one line, with two rows of
+   items below; the box is 64px (ControlPanel.vue) either way. */
+.top {
+  display: grid;
+  flex: 1;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  padding-top: 2px;
+  gap: 3px;
 }
 
-input {
-  flex: 1;
-  margin: 0px 5px;
-  padding: 2px 8px;
-  border: var(--border-control);
+.has-selection {
+  gap: 2px;
+  padding-bottom: 3px;
+}
+
+.has-selection .top {
+  flex: none;
+  grid-template-rows: auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 6px;
+}
+
+.search-box.compact {
+  height: 20px;
+  padding: 0 7px;
+  font-size: 12px;
   border-radius: 4px;
-  height: 26px;
-  font-size: 13.3px;
-  min-width: 0; /* the search field shrinks in a narrower box, so Clear and the switch stay inside it */
+}
+
+/* The label of a control box (ControlBox.vue). */
+.control-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #333;
+  white-space: nowrap;
+}
+
+.search-box {
+  min-width: 0; /* the search field shrinks in a narrower box, so the switch and the clear icon stay inside it */
 }
 
 button {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   padding: 0px 3px;
   background-color: var(--item-color);
   border-width: 1.5px;
@@ -172,7 +226,8 @@ button {
     background-color 0.2s,
     border-color 0.2s;
   font-size: 11px;
-  height: 18px;
+  height: 16px;
+  line-height: 1;
 }
 
 button:hover {
@@ -181,33 +236,43 @@ button:hover {
 
 button::before {
   content: '\2715'; /* Unicode for 'X' */
-  margin-right: 4px;
-  font-size: 12px;
+  margin-right: 3px;
+  font-size: 10px;
   color: #ffffff;
 }
 
-.clear-all-button {
-  height: 26px; /* as high as the search field */
-  background-color: var(--color-hint);
+/* Clear all: a small square button, as high as the thinner search field, in the quiet style of the other controls. */
+.clear-icon {
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  background-color: white;
+  border: var(--border-control);
+  border-radius: 4px;
 }
 
-.clear-all-button::before {
-  content: '';
-  margin-right: 0px;
+.clear-icon::before {
+  content: none;
 }
 
-.clear-all-button:hover {
-  background-color: hotpink;
+.clear-icon:hover {
+  color: var(--color-remove);
+  background-color: white;
+  border-color: var(--color-remove);
 }
 
 .suggestions {
-  position: absolute; /* Position absolutely within the selection-container */
-  left: 5px;
-  right: 5px;
+  position: absolute; /* below the search field, over what follows */
+  top: 100%;
+  left: 6px;
+  right: 6px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin-top: 5px;
+  margin-top: -2px;
   max-height: 400px;
   overflow-y: auto;
   z-index: 10; /* Ensure it appears above other elements */
@@ -222,50 +287,66 @@ button::before {
   background-color: #f0f0f0;
 }
 
-/* The selected items, below the search field and starting where it starts. The box grows with them up to two lines;
-   more lines scroll, with a thin scroll bar (the same as the text fields of the MaGMa sheets). */
+/* The selected items, below the search field: two rows of 16px items, then they scroll. The system's scroll bar is
+   hidden; a thin one is drawn at the right (items-thumb), so it also shows on a Mac, where the system shows one only
+   while scrolling. */
+.items {
+  position: relative;
+  max-height: 34px;
+}
+
 .buttons-wrapper {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 2px;
-  max-height: 38px; /* two lines of 18px items */
-  margin: 4px 5px 2px;
+  max-height: 34px;
+  padding-right: 6px; /* room for the scroll bar */
   overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .buttons-wrapper::-webkit-scrollbar {
-  width: 3px;
+  display: none;
 }
 
-.buttons-wrapper::-webkit-scrollbar-thumb {
+.items-thumb {
+  position: absolute;
+  right: 0;
+  width: 3px;
   border-radius: 1.5px;
   background-color: #888;
+  pointer-events: none;
 }
 
-.buttons-wrapper::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
+/* The selected items appear and disappear smoothly. */
+.items-enter-active,
+.items-leave-active {
+  transition:
+    max-height 0.15s ease,
+    opacity 0.15s ease;
+  overflow: hidden;
 }
 
-@supports not selector(::-webkit-scrollbar) {
-  .buttons-wrapper {
-    scrollbar-width: thin;
-    scrollbar-color: #888 transparent;
-  }
+.items-enter-from,
+.items-leave-to {
+  max-height: 0;
+  opacity: 0;
 }
 
 /* Toggle switch styles */
 .toggle-label {
   position: relative;
-  display: inline-block;
+  display: block;
   cursor: pointer;
-  width: 40px;
+  width: 36px;
+  height: 20px;
 }
 
 .toggle-switch {
   position: absolute;
-  top: -1px; /* Adjusted for vertical alignment */
-  left: 3px;
+  top: 0;
+  left: 0;
   width: 36px;
   height: 20px;
   background-color: var(--color-switch-off);

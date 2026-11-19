@@ -1,4 +1,5 @@
-// The size and position of the page's scroll bar (PageScrollbar.vue), and how far dragging it scrolls the page.
+// The size and position of the page's scroll bar (PageScrollbar.vue), and how far dragging it scrolls the page. Also
+// used for the small scroll bar of the selected items in a control box (SelectionTool.vue).
 
 const MIN_HEIGHT = 30; // pixels: the bar of a very long page stays big enough to grab
 
@@ -13,11 +14,16 @@ export interface ThumbGeometry {
  * much shorter than the window as the window is shorter than the page, and as far down as the page is scrolled. No bar
  * when the page is not taller than the window.
  */
-export function thumbGeometry(viewport: number, content: number, scrollTop: number): ThumbGeometry {
+export function thumbGeometry(
+  viewport: number,
+  content: number,
+  scrollTop: number,
+  minHeight = MIN_HEIGHT,
+): ThumbGeometry {
   if (content <= viewport + 1) {
     return { visible: false, top: 0, height: 0 };
   }
-  const height = Math.max(MIN_HEIGHT, (viewport * viewport) / content);
+  const height = Math.max(minHeight, (viewport * viewport) / content);
   const maxScroll = content - viewport;
   const scrolled = Math.min(Math.max(scrollTop, 0), maxScroll);
   return { visible: true, top: (scrolled / maxScroll) * (viewport - height), height };

@@ -20,10 +20,10 @@ export function notifySuccess(text: string) {
 
 /**
  * A short message for a change that can be undone, such as deleting a use case, with an Undo button that also names its
- * shortcut (such as ⌘Z). It stays 5 seconds, so there is time to click the button; the detail is a second line, such as
+ * shortcut (such as ⌘Z), where the page has one. It stays 5 seconds, so there is time to click the button; the detail is a second line, such as
  * what else the change affected.
  */
-export async function notifyUndoable(text: string, detail: string | undefined, undo: () => void, shortcut: string) {
+export async function notifyUndoable(text: string, detail: string | undefined, undo: () => void, shortcut?: string) {
   const result = await Swal.fire({
     toast: true,
     position: 'top-end',
@@ -31,7 +31,7 @@ export async function notifyUndoable(text: string, detail: string | undefined, u
     titleText: text,
     text: detail,
     showConfirmButton: true,
-    confirmButtonText: `Undo (${shortcut})`,
+    confirmButtonText: shortcut ? `Undo (${shortcut})` : 'Undo',
     confirmButtonColor: 'var(--color-accent)',
     customClass: { popup: 'undoable-notice' },
     focusConfirm: false, // the cursor stays where it is (in the sheet), also when the message closes

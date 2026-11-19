@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // A control panel: a grey frame with a grid of boxes (ControlBox.vue, SelectionTool.vue) 3px apart, as wide as the
-// navigation and domain buttons (App.vue). The rows are at least 60px: room for one line of selected groups or data
-// components; a row grows for a second line. The page sets the columns. Used by the DeTT&CT page and the MaGMa heatmap.
+// navigation and domain buttons (App.vue). The rows are 64px: room for a search field with two rows of selected groups
+// or components below it, so a row keeps its height however many are selected. The page sets the columns. Used by the
+// DeTT&CT page and the MaGMa heatmap.
 </script>
 
 <template>
@@ -11,7 +12,7 @@
 <style scoped>
 .control-panel {
   display: grid;
-  grid-auto-rows: minmax(60px, auto);
+  grid-auto-rows: minmax(64px, auto);
   gap: 3px;
   max-width: 960px;
   padding: 3px;

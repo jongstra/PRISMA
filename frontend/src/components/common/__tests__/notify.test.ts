@@ -41,6 +41,12 @@ describe('notifySuccess', () => {
     expect(undo).toHaveBeenCalledOnce();
   });
 
+  it('names no shortcut on the Undo button where the page has none', async () => {
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false } as Awaited<ReturnType<typeof Swal.fire>>);
+    await notifyUndoable('Cleared 2 groups.', undefined, () => {});
+    expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ confirmButtonText: 'Undo' }));
+  });
+
   it('closes the message with the Undo button when the change is undone another way, but no other message', () => {
     const popup = (className: string) => Object.assign(document.createElement('div'), { className });
     vi.mocked(Swal.getPopup).mockReturnValue(popup('swal2-popup undoable-notice'));

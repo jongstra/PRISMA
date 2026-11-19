@@ -58,6 +58,7 @@ watch(
       <TechniqueTotalOccurrenceFilterBinned />
     </ControlBox>
     <SelectionTool
+      label="Groups"
       list="groups"
       selected-field="selected"
       only-show-field="only_show_selected_groups"
@@ -66,6 +67,7 @@ watch(
       color="red"
     />
     <SelectionTool
+      label="Components"
       list="data_components"
       selected-field="selected"
       only-show-field="only_show_selected_components"
@@ -101,10 +103,6 @@ watch(
 @media (max-width: 940px) {
   .dettect-controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .dettect-controls > .selection-container {
-    width: auto;
   }
 }
 

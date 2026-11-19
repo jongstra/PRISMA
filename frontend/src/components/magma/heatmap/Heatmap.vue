@@ -41,6 +41,7 @@ const legendLabel = computed(() => {
       <ControlBox label="Min. score %" :value="String(magma.heatmapFilterValue)"><HeatmapSliderFilter /></ControlBox>
       <ControlBox label="Techniques"><HeatmapSearchBar /></ControlBox>
       <SelectionTool
+        label="Groups"
         list="groups"
         selected-field="selectedInMagmaHeatmap"
         only-show-field="only_show_selected_groups_magma_heatmap"
@@ -70,11 +71,6 @@ const legendLabel = computed(() => {
 .heatmap-controls {
   grid-template-columns: 170px 116px minmax(0, 1fr) 240px 238px;
   margin: 5px 0 3px;
-}
-
-/* The group box fills its column (it is 265px on the DeTT&CT page). */
-.heatmap-controls > .selection-container {
-  width: auto;
 }
 
 @media (max-width: 940px) {

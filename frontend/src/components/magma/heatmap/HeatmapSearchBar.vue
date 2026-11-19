@@ -14,18 +14,6 @@ const searchQuery = computed({
 
 <template>
   <div class="search-bar">
-    <input v-model="searchQuery" type="text" placeholder="Search techniques..." />
+    <input v-model="searchQuery" class="search-field" type="text" placeholder="Search techniques..." />
   </div>
 </template>
-
-<style scoped>
-/* The same look as the technique search of the DeTT&CT page (SearchBar.vue). */
-input[type='text'] {
-  width: 100%;
-  padding: 0 9px;
-  font-size: 13.3px;
-  border: var(--border-control);
-  border-radius: 5px;
-  height: 30px;
-}
-</style>
