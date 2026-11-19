@@ -285,6 +285,7 @@ button {
   margin-top: 0px;
   margin-bottom: 3px;
   background-color: var(--color-technique);
+  padding: 1px 2px; /* 2px beside the name (not the browser's 6px), so 14 Enterprise columns fit Full HD */
   border: 1.5px solid var(--color-control-border);
   border-radius: 4px; /* Slightly rounded corners */
   box-shadow: var(--inner-line), var(--outer-ring);
@@ -323,13 +324,18 @@ button.occurs-in-selected-components {
   outline-offset: -4px;
 }
 
+/* The name in two lines at most: 125px is the narrowest width at which every ATT&CK v17.1 name fits in two lines (the
+   two 'Multi-Factor Authentication ...' names need it). A longer name in a later version ends in an ellipsis; the
+   tooltip shows it in full. */
 .buttontext {
+  display: -webkit-box;
   width: 125px;
   height: 24px;
-  font-size: 10.5px;
   overflow: hidden;
-  display: block;
-  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-size: 10.5px;
   text-align: center;
 }
 </style>

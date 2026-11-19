@@ -131,6 +131,6 @@ watch(
 .button-columns {
   flex: 1; /* Allow components to grow and take up available space */
   width: auto; /* Allow components to take their natural width */
-  margin-right: 4px; /* Adjust spacing between components */
+  margin-right: 3px; /* 3px between the columns, so 14 Enterprise columns fit Full HD (TacticColumn.vue) */
 }
 </style>

@@ -50,10 +50,12 @@ const tacticVisibility = (tactic: Tactic) => {
   align-items: center;
 }
 
+/* 132px: with the technique buttons (TechniqueButton.vue) as wide and 3px between the columns, the 14 columns of
+   Enterprise fit a Full HD window (1920px), with 14px to spare. */
 .button-column-tactic-name {
   align-content: flex-end;
   height: 40px;
-  width: 141px;
+  width: 132px;
   margin-bottom: 5px;
   text-align: center;
   font-size: 14px;

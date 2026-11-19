@@ -245,6 +245,28 @@ test('the MaGMa tabs are a menu bar like the ones above, with the content of eve
   }
 });
 
+test('the Enterprise matrix fits a Full HD window without scrolling sideways or cutting a name, on both pages', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await openApp(page);
+  const widths = (selector: string) =>
+    page.locator(selector).evaluate((matrix) => `${matrix.scrollWidth} of ${matrix.clientWidth}px`);
+  const fits = (text: string) => Number(text.split(' ')[0]) <= Number(text.split(' ')[2]!.replace('px', ''));
+  const dettect = await widths('.matrix-container');
+  expect(fits(dettect), `DeTT&CT matrix: ${dettect}`).toBe(true);
+  const cut = await page
+    .locator('.buttontext')
+    .evaluateAll((texts) =>
+      texts.filter((text) => text.scrollHeight > text.clientHeight + 1).map((text) => text.textContent?.trim()),
+    );
+  expect(cut, 'names that need more than two lines').toEqual([]);
+  await openPage(page, 'MaGMa');
+  await openTab(page, 'Heatmap');
+  const heatmap = await widths('.heatmap-container');
+  expect(fits(heatmap), `heatmap: ${heatmap}`).toBe(true);
+});
+
 test('the MaGMa page fits a phone: its tabs in two rows of three, and nothing sticks out of the window', async ({
   page,
 }) => {
