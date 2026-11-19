@@ -105,6 +105,17 @@ test('the DeTT&CT controls are two rows of four equally wide boxes, with Load at
   expect(new Set(widths).size).toBe(1);
 });
 
+test('the MaGMa heatmap controls are five equally wide boxes', async ({ page }) => {
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await openTab(page, 'Heatmap');
+  const widths = await page
+    .locator('.heatmap-controls > *')
+    .evaluateAll((all) => all.map((box) => Math.round(box.getBoundingClientRect().width)));
+  expect(widths).toHaveLength(5);
+  expect(new Set(widths).size).toBe(1);
+});
+
 test('the groups box keeps its height while groups are selected and cleared', async ({ page }) => {
   await openApp(page);
   const box = page.locator('.selection-container').first();

@@ -34,8 +34,8 @@ const legendLabel = computed(() => {
 
 <template>
   <div>
-    <!-- The controls in one row, in the style of the DeTT&CT page: the score, the minimum score, the technique search,
-         the groups and the legend. -->
+    <!-- The controls in one row of five equally wide boxes, in the style of the DeTT&CT page: the score, the minimum
+         score, the technique search, the groups and the legend. -->
     <ControlPanel class="heatmap-controls">
       <ControlBox label="Score"><HeatmapScoreFilter /></ControlBox>
       <ControlBox label="Min. score %" :value="String(magma.heatmapFilterValue)"><HeatmapSliderFilter /></ControlBox>
@@ -66,10 +66,10 @@ const legendLabel = computed(() => {
 </template>
 
 <style scoped>
-/* One row, wide enough for every text: the score button fits 'Implementation', the legend fits 'none'. In a narrower
-   window the boxes go in two columns (the legend over both), and in a very narrow one below each other. */
+/* One row of five equally wide boxes, as the DeTT&CT controls are equally wide. In a narrower window the boxes go in two
+   columns (the legend over both), and in a very narrow one below each other. */
 .heatmap-controls {
-  grid-template-columns: 170px 116px minmax(0, 1fr) 240px 238px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   margin: 5px 0 3px;
 }
 
