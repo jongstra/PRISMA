@@ -6,6 +6,7 @@ import HeatmapButtonColumn from './HeatmapButtonColumn.vue';
 import HeatmapScoreFilter from './HeatmapScoreFilter.vue';
 import HeatmapSliderFilter from './HeatmapSliderFilter.vue';
 import HeatmapSearchBar from './HeatmapSearchBar.vue';
+import HeatmapUseCaseSwitch from './HeatmapUseCaseSwitch.vue';
 import HeatmapLegend from './HeatmapLegend.vue';
 import SelectionTool from '@/components/common/SelectionTool.vue';
 import { useEndTagHover } from '@/components/common/useTagHover';
@@ -37,11 +38,14 @@ const legendLabel = computed(() => (legendScore.value ? `Legend: ${legendScore.v
 <template>
   <div>
     <!-- The controls in one row of five equally wide boxes, in the style of the DeTT&CT page: the score, the minimum
-         score, the technique search, the groups and the legend. -->
+         score, the technique search (with the switch 'with use case'), the groups and the legend. -->
     <ControlPanel class="heatmap-controls">
       <ControlBox label="Score"><HeatmapScoreFilter /></ControlBox>
       <ControlBox label="Min. score %" :value="String(magma.heatmapFilterValue)"><HeatmapSliderFilter /></ControlBox>
-      <ControlBox label="Techniques"><HeatmapSearchBar /></ControlBox>
+      <ControlBox label="Techniques">
+        <template #aside><HeatmapUseCaseSwitch /></template>
+        <HeatmapSearchBar />
+      </ControlBox>
       <SelectionTool
         label="Groups"
         list="groups"

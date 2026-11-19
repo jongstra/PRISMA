@@ -91,7 +91,11 @@ const showButton = computed(() => {
     !store.selectedGroupsTechniquesSetMagmaHeatmap.has(props.technique.name)
   );
 
-  return valueFilterResult && searchQueryFilterResult && groupMaskFilterResult;
+  // The switch "with use case" in the Techniques box hides the techniques without L3 use cases (and keeps those with
+  // use cases at 0%, which the minimum score would hide).
+  const useCaseFilterResult = !magma.heatmapOnlyWithUseCases || relatedUseCases.value.length > 0;
+
+  return valueFilterResult && searchQueryFilterResult && groupMaskFilterResult && useCaseFilterResult;
 });
 
 const occursInSelectedGroups = () => {
@@ -191,20 +195,20 @@ button {
   position: relative; /* Ensure the button's stacking context is isolated */
 }
 
+/* Techniques with L3 use cases get a thicker (2.5px) dark border, so a technique with use cases at 0% still stands out
+   from techniques without use cases. The extra 1px is drawn outside the normal border, so the button keeps its size,
+   and the red border of a selected group (below) stays visible inside it. The ring of hover (below) replaces it. */
+button.has-use-cases {
+  border-color: rgb(42, 42, 42);
+  --outer-ring: 0 0 0 1px rgb(42, 42, 42);
+}
+
 button:hover,
 button.pinned,
 button.occurs-in-hovered-groups.pinned {
   --outer-ring:
     rgba(0, 0, 0, 0.16) 0px 1px 3px, rgb(51, 51, 51) 0px 0px 0px 2.5px; /* On hover, a dark ring around the button. */
   z-index: 1001;
-}
-
-/* Techniques with L3 use cases get a thicker (3.5px) dark border, so a technique with use cases at 0% still stands out
-   from techniques without use cases. The extra 2px is drawn outside the normal border, so the button keeps its size,
-   and the red border of a selected group (below) stays visible inside it. */
-button.has-use-cases {
-  border-color: rgb(42, 42, 42);
-  --outer-ring: 0 0 0 2px rgb(42, 42, 42);
 }
 
 /* The techniques of a group hovered in a pinned tooltip: an orange ring, as in the DeTT&CT matrix. */

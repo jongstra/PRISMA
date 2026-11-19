@@ -1,7 +1,9 @@
 <script setup lang="ts">
 // A box in a control panel: a label at the top left, optionally a value at the top right (such as the range of a
 // slider or the name of a loaded file), and the control below them. A value that does not fit is cut off with an
-// ellipsis; valueHint then shows it in full when the mouse is on it. Used by the control panel of the DeTT&CT page.
+// ellipsis; valueHint then shows it in full when the mouse is on it. Instead of a value, the slot 'aside' can put
+// something else at the top right, such as a small switch (HeatmapUseCaseSwitch.vue). Used by the control panels of
+// the DeTT&CT page and the MaGMa heatmap.
 import { vHint } from './hint';
 
 defineProps<{ label: string; value?: string; valueHint?: string }>();
@@ -11,7 +13,9 @@ defineProps<{ label: string; value?: string; valueHint?: string }>();
   <div class="control-box">
     <div class="control-label">
       <span>{{ label }}</span>
-      <span v-if="value" v-hint="valueHint" class="control-value">{{ value }}</span>
+      <slot name="aside">
+        <span v-if="value" v-hint="valueHint" class="control-value">{{ value }}</span>
+      </slot>
     </div>
     <div class="control">
       <slot />
@@ -31,10 +35,14 @@ defineProps<{ label: string; value?: string; valueHint?: string }>();
   background-color: var(--color-box);
 }
 
+/* 20px high, with the label and the value in the middle: as the top line of a selection tool (SelectionTool.vue), so the
+   labels, switches and clear icons of a panel share one middle. */
 .control-label {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
+  min-height: 20px;
   font-size: 11px;
   color: #333;
   white-space: nowrap;

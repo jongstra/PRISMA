@@ -3,7 +3,8 @@
 // cover. Used on the DeTT&CT page (groups and data components) and on the MaGMa heatmap (groups). In the look of a
 // control box: while nothing is selected, a label and a search field like the technique search; once something is
 // selected, the search field moves up next to the label, thinner, with the switch (only show these) and a clear icon,
-// and the selected items take its place below: two rows, then a thin scroll bar, so the box keeps its height.
+// and the selected items take its place below: two rows, then a thin scroll bar, so the box keeps its height. The top
+// line is 20px high either way, as in a control box, so the labels, switches and clear icons of a panel share one middle.
 import Swal from 'sweetalert2';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { clearConfirmation } from './clearConfirmation';
@@ -134,9 +135,7 @@ const onlyShowSelected = computed<boolean>({
           :aria-label="`Clear all ${noun}s`"
           v-hint="`Clear all ${noun}s`"
           @click="clearAllSelections"
-        >
-          &#x2715;
-        </button>
+        ></button>
       </template>
     </div>
     <!-- mousedown.prevent: choosing an item keeps the focus (and the list) in the search field. -->
@@ -186,11 +185,12 @@ const onlyShowSelected = computed<boolean>({
 
 /* Nothing selected: the label above the search field, which is centred in the rest of the box, as in a control box.
    Something selected: the label, a thinner search field, the switch and the clear icon on one line, with two rows of
-   items below; the box is 64px (ControlPanel.vue) either way. */
+   items below; the box is 64px (ControlPanel.vue) either way. The top line is 20px high in both, as the label line of
+   a control box (ControlBox.vue), with everything on it in the middle. */
 .top {
   display: grid;
   flex: 1;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 20px 1fr;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 3px;
@@ -203,13 +203,14 @@ const onlyShowSelected = computed<boolean>({
 
 .has-selection .top {
   flex: none;
-  grid-template-rows: auto;
+  grid-template-rows: 20px;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 6px;
 }
 
+/* The thinner search field: 18px, in the middle of the 20px top line. */
 .search-box.compact {
-  height: 20px;
+  height: 18px;
   padding: 0 7px;
   font-size: 12px;
   border-radius: 4px;
@@ -262,13 +263,13 @@ button:hover {
     center / contain no-repeat;
 }
 
-/* Clear all: a small square button, as high as the thinner search field, in the quiet style of the other controls. */
+/* Clear all: a small square button, as high as the switch, in the quiet style of the other controls. Its × is drawn (a
+   mask over the colour of the text), so it sits in the middle of the button in every font. */
 .clear-icon {
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   padding: 0;
-  font-size: 10px;
   color: var(--color-text-muted);
   background-color: white;
   border: var(--border-control);
@@ -279,6 +280,15 @@ button:hover {
   color: var(--color-remove);
   background-color: white;
   border-color: var(--color-remove);
+}
+
+.clear-icon::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  background-color: currentColor;
+  mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><path d='M1.5 1.5l7 7M8.5 1.5l-7 7' stroke='black' stroke-width='1.6' stroke-linecap='round'/></svg>")
+    center / contain no-repeat;
 }
 
 .suggestions {
@@ -354,21 +364,21 @@ button:hover {
   display: none;
 }
 
-/* Toggle switch styles */
+/* The switch: as big as the one of the heatmap's Techniques box (HeatmapUseCaseSwitch.vue). */
 .toggle-label {
   position: relative;
   display: block;
   cursor: pointer;
-  width: 36px;
-  height: 20px;
+  width: 28px;
+  height: 16px;
 }
 
 .toggle-switch {
   position: absolute;
   top: 0;
   left: 0;
-  width: 36px;
-  height: 20px;
+  width: 28px;
+  height: 16px;
   background-color: var(--color-switch-off);
   border-radius: 34px;
   transition: 0.4s;
@@ -377,8 +387,8 @@ button:hover {
 .toggle-switch:before {
   position: absolute;
   content: '';
-  height: 16px;
-  width: 16px;
+  height: 12px;
+  width: 12px;
   left: 2px;
   bottom: 2px;
   background-color: white;
@@ -397,6 +407,6 @@ button:hover {
 }
 
 .toggle-label input:checked + .toggle-switch:before {
-  transform: translateX(16px);
+  transform: translateX(12px);
 }
 </style>

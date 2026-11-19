@@ -120,6 +120,57 @@ test('the MaGMa heatmap controls are five equally wide boxes, with the legend na
   await expect(page.locator('.legend-box .control-label span').first()).toHaveText('Legend: weight');
 });
 
+test('the heatmap switch "with use case" only shows the techniques with use cases, and fits in its box', async ({
+  page,
+}) => {
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  await openTab(page, 'Heatmap');
+  const techniques = page.locator('.heatmap-container button');
+  const withUseCases = page.locator('.heatmap-container button.has-use-cases');
+  const box = page.locator('.heatmap-controls > .control-box', { hasText: 'Techniques' });
+  const toggle = box.locator('.use-case-switch');
+  const height = async () => Math.round((await box.boundingBox())!.height);
+  const heightBefore = await height();
+  const all = await techniques.count();
+  const covered = await withUseCases.count();
+  expect(covered).toBeGreaterThan(0);
+  expect(covered).toBeLessThan(all);
+
+  // Off at the start; the label line reads 'Techniques with use case' in full, with the switch inside the box.
+  await expect(box.getByRole('checkbox', { name: 'with use case' })).not.toBeChecked();
+  const [toggleBox, boxBox] = [(await toggle.boundingBox())!, (await box.boundingBox())!];
+  expect(toggleBox.x + toggleBox.width).toBeLessThanOrEqual(boxBox.x + boxBox.width);
+  expect(await box.locator('.switch-text').evaluate((text) => text.scrollWidth <= text.clientWidth)).toBe(true);
+
+  await toggle.click();
+  await expect(techniques).toHaveCount(covered);
+  await expect(page.locator('.heatmap-container button:not(.has-use-cases)')).toHaveCount(0);
+  expect(await height()).toBe(heightBefore);
+  await toggle.click();
+  await expect(techniques).toHaveCount(all);
+
+  // The labels, the text, the switches, the thinner search field and the clear icon of the panel share one middle, also
+  // with a group selected.
+  const groups = page.locator('.heatmap-controls .selection-container');
+  await groups.locator('input.search-box').fill('APT41');
+  await page.locator('.suggestion-item', { hasText: 'APT41' }).first().click();
+  await expect(groups.locator('.clear-icon')).toBeVisible();
+  const middles = await page.locator('.heatmap-controls').evaluate((panel) =>
+    [
+      ...panel.querySelectorAll(
+        '.control-label > span:first-child, span.control-label, .switch-text, .switch, .toggle-switch, .search-box.compact, .clear-icon',
+      ),
+    ].map((element) => {
+      const { top, height } = element.getBoundingClientRect();
+      return top + height / 2;
+    }),
+  );
+  expect(middles).toHaveLength(10); // five labels, the text, two switches, the search field and the clear icon
+  expect(Math.max(...middles) - Math.min(...middles)).toBeLessThanOrEqual(0.5);
+});
+
 test('the groups box asks before clearing groups, and keeps its height while they are selected and cleared', async ({
   page,
 }) => {

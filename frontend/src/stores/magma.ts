@@ -107,6 +107,7 @@ export const magmaStore = defineStore('magma', {
     heatmapEffectiveness: true,
     heatmapFilterValue: 0,
     heatmapSearchQuery: '' as string,
+    heatmapOnlyWithUseCases: false, // the heatmap only shows the techniques with L3 use cases
     savedUseCases: '[]', // what the user had entered at the last load or save, see hasUnsavedChanges
     sheetSorts: {} as Partial<Record<string, SheetSort | null>>, // the column each sheet (L1, L2, L3) is sorted by
     history: emptyHistory<string>(), // the undo history: copies of the use cases (as JSON) from before each change
