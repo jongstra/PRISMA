@@ -2,7 +2,7 @@
 // The L1, L2 or L3 sheet of the MaGMa page (the active tab): one row per use case of the current domain, with a button
 // to add a use case. The columns are defined in useCaseColumns.ts.
 import Swal from 'sweetalert2';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { magmaStore, type UseCase } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
 import { USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
@@ -14,6 +14,7 @@ import { nextSort, sortedRows, type SortValue } from './useCaseSort';
 import { typedPercentage } from './percentageInput';
 import { isMac, shortcuts } from './undoKeys';
 import { notifyUndoable } from '@/components/common/notify';
+import { useCellSelection } from './useCellSelection';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -64,8 +65,14 @@ const stopEditing = (event: FocusEvent) => {
 // changes in one cell make one step until the cell is left: the cell is the group of the step.
 const UNDO_KEY = shortcuts(isMac()).undo;
 const titleOf = (field: string) => columns.value.find((column) => column.field === field)?.title ?? field;
-const recordCellStep = (useCase: UseCase, field: string) =>
-  magma.recordStep(`${titleOf(field)} of ${useCase.id}`, `${useCase.uid}:${field}`);
+// A change in a cell: recorded as an undo step, then made in the cell and, when the cell is part of a selection within
+// its column, in all the selected cells (see changeTargets).
+const changeCells = (useCase: UseCase, field: string, change: (target: UseCase) => void) => {
+  const targets = changeTargets(useCase, field);
+  const what = targets.length > 1 ? `${targets.length} use cases` : useCase.id;
+  magma.recordStep(`${titleOf(field)} of ${what}`, `${useCase.uid}:${field}`);
+  targets.forEach(change);
+};
 
 const rows = computed(() =>
   sortedRows(
@@ -75,6 +82,60 @@ const rows = computed(() =>
     (useCase) => !!useCase.permanent,
   ),
 );
+
+// Selecting cells with the mouse (see useCellSelection.ts). A change in one cell of a selection within one column goes to
+// all of them, and the × of a selected row deletes all selected rows. The ID column cannot be selected: each ID must stay
+// unique. Switching the sheet, the domain or the sort ends the selection.
+const {
+  rows: selectedRows,
+  fillField,
+  bottomLeft,
+  dragging,
+  cellClasses,
+  onCellMousedown,
+  onCellMouseenter,
+  clear: clearSelection,
+} = useCellSelection(
+  computed(() => rows.value.map((useCase) => useCase.uid)),
+  computed(() => columns.value.map((column) => column.field).filter((field) => field !== 'id')),
+);
+watch([() => magma.activeTab, () => tactics.domain, sort], clearSelection);
+
+// The use cases a change in a cell goes to: the selected ones when the cell is part of a selection within its column
+// (but not those whose cell cannot be changed), otherwise only its own.
+const changeTargets = (useCase: UseCase, field: string): UseCase[] => {
+  const uids =
+    fillField.value === field && selectedRows.value.includes(useCase.uid) ? selectedRows.value : [useCase.uid];
+  return uids
+    .map((uid) => magma.getUseCaseByUid(uid))
+    .filter((target): target is UseCase => !!target && !isLocked(target, field) && !notApplicable(target, field));
+};
+
+// A short line under the selection, when a change or the × does something with all of it.
+const selectionLabel = computed(() => {
+  const count = selectedRows.value.length;
+  if (fillField.value) {
+    return `${count} cells selected · a change goes to all`;
+  }
+  return count > 1 ? `${count} rows selected · × deletes all` : null;
+});
+const sheetScroll = ref<HTMLElement | null>(null);
+const labelPosition = ref<{ top: string; left: string } | null>(null);
+watch(bottomLeft, async (corner) => {
+  await nextTick();
+  const scroll = sheetScroll.value;
+  const cell = corner && scroll?.querySelector(`[data-cell="${corner.uid}:${corner.field}"]`);
+  if (!scroll || !cell) {
+    labelPosition.value = null;
+    return;
+  }
+  const area = scroll.getBoundingClientRect();
+  const box = cell.getBoundingClientRect();
+  labelPosition.value = {
+    top: `${box.bottom - area.top + scroll.scrollTop + 3}px`,
+    left: `${box.left - area.left + scroll.scrollLeft}px`,
+  };
+});
 
 // The value of the use case field that a column shows.
 const fieldValue = (useCase: UseCase, field: string) => useCase[field as keyof UseCase];
@@ -124,15 +185,27 @@ const listIds = (useCases: UseCase[], max = 5) => {
 
 // Deleting a use case needs no confirmation: a short message says what was deleted, with a button to undo it (as Ctrl+Z
 // does). Its child use cases are kept but lose their parent; the message names them, so they can get another parent.
+// The × of a row in a selection of several rows deletes all the selected rows, as one undo step.
 const removeUseCase = (useCase: UseCase) => {
-  const children = magma.getChildUseCases(useCase);
-  magma.recordStep(`Delete ${useCase.id}`);
-  magma.removeUseCaseByUid(useCase.uid);
+  const deleted =
+    selectedRows.value.length > 1 && selectedRows.value.includes(useCase.uid)
+      ? selectedRows.value
+          .map((uid) => magma.getUseCaseByUid(uid))
+          .filter((target): target is UseCase => !!target && !target.permanent)
+      : [useCase];
+  const children = [...new Set(deleted.flatMap((target) => magma.getChildUseCases(target)))].filter(
+    (child) => !deleted.includes(child),
+  );
+  magma.recordStep(deleted.length > 1 ? `Delete ${deleted.length} use cases` : `Delete ${useCase.id}`);
+  deleted.forEach((target) => magma.removeUseCaseByUid(target.uid));
+  clearSelection();
   const lost =
     children.length === 1
       ? `1 use case lost its parent: ${listIds(children)}.`
       : `${children.length} use cases lost their parent: ${listIds(children)}.`;
-  notifyUndoable(`Deleted ${useCase.id}.`, children.length > 0 ? lost : undefined, () => magma.undo(), UNDO_KEY);
+  const title =
+    deleted.length > 1 ? `Deleted ${deleted.length} use cases: ${listIds(deleted)}.` : `Deleted ${useCase.id}.`;
+  notifyUndoable(title, children.length > 0 ? lost : undefined, () => magma.undo(), UNDO_KEY);
 };
 
 const confirmRemoveUseCaseLevel = () => {
@@ -191,8 +264,7 @@ const onTextInput = (useCase: UseCase, field: string, event: Event) => {
     textarea.value = textarea.value.replace(/\r?\n|\r/g, ' ');
   }
   if (field !== 'id') {
-    recordCellStep(useCase, field);
-    updateObjectField(useCase.uid, field, textarea.value);
+    changeCells(useCase, field, (target) => updateObjectField(target.uid, field, textarea.value));
   }
 };
 
@@ -203,8 +275,7 @@ const updateObjectField = (uid: string, field: string, value: string | string[] 
 
 // A parent or technique chosen in its search field.
 const updatePicked = (useCase: UseCase, field: string, value: string | string[] | undefined) => {
-  recordCellStep(useCase, field);
-  updateObjectField(useCase.uid, field, value);
+  changeCells(useCase, field, (target) => updateObjectField(target.uid, field, value));
 };
 
 // A typed percentage: kept to digits with one decimal point and at most 100 (see percentageInput.ts), then saved. When
@@ -217,18 +288,18 @@ const updatePercentage = (useCase: UseCase, field: string, event: Event) => {
     input.value = percentage;
     input.setSelectionRange(Math.max(cursor, 0), Math.max(cursor, 0));
   }
-  recordCellStep(useCase, field);
-  updateObjectField(useCase.uid, field, percentage);
+  changeCells(useCase, field, (target) => updateObjectField(target.uid, field, percentage));
 };
 
 // Turning the override off takes the visibility from the ATT&CK technique again (by setting the technique again).
 const updateOverride = (useCase: UseCase, event: Event) => {
   const checked = (event.target as HTMLInputElement).checked;
-  recordCellStep(useCase, 'visibilityFromAttackTechniqueOverride');
-  updateObjectField(useCase.uid, 'visibilityFromAttackTechniqueOverride', checked);
-  if (!checked) {
-    updateObjectField(useCase.uid, 'attackTechniqueId', useCase.attackTechniqueId);
-  }
+  changeCells(useCase, 'visibilityFromAttackTechniqueOverride', (target) => {
+    updateObjectField(target.uid, 'visibilityFromAttackTechniqueOverride', checked);
+    if (!checked) {
+      updateObjectField(target.uid, 'attackTechniqueId', target.attackTechniqueId);
+    }
+  });
 };
 
 // Fields that are shown but cannot be changed: those of the permanent IN and THR use cases, and a visibility that
@@ -316,8 +387,11 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
 <template>
   <!-- The sheet scrolls sideways; the add button below it (in the caption, above the scroll bar) stays across the page
        with its text in view. -->
-  <div class="sheet-scroll">
-    <table border="1" class="fixed-table" :style="{ width: `${sheetWidth}px` }">
+  <div ref="sheetScroll" class="sheet-scroll">
+    <div v-if="selectionLabel && labelPosition" class="selection-label" :style="labelPosition">
+      {{ selectionLabel }}
+    </div>
+    <table border="1" class="fixed-table" :class="{ selecting: dragging }" :style="{ width: `${sheetWidth}px` }">
       <caption class="add-row">
         <button type="button" class="add-button" @click="addNewUseCase">+ Add use case</button>
       </caption>
@@ -353,7 +427,13 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
         <!-- Rows for all use cases. -->
         <tr v-for="useCase in rows" :key="useCase.uid" @focusin="startEditing(useCase)" @focusout="stopEditing">
           <!-- Remove-use-case buttons; IN and THR cannot be deleted. -->
-          <td class="remove-col" :class="{ 'not-deletable': useCase.permanent }">
+          <td
+            class="remove-col"
+            :class="{
+              'not-deletable': useCase.permanent,
+              'in-selection': selectedRows.length > 1 && selectedRows.includes(useCase.uid),
+            }"
+          >
             <button
               v-if="!useCase.permanent"
               class="remove-button"
@@ -364,7 +444,14 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
             </button>
           </td>
 
-          <td v-for="column in columns" :key="column.field">
+          <td
+            v-for="column in columns"
+            :key="column.field"
+            :data-cell="`${useCase.uid}:${column.field}`"
+            :class="cellClasses({ uid: useCase.uid, field: column.field })"
+            @mousedown="(event) => onCellMousedown({ uid: useCase.uid, field: column.field }, event)"
+            @mouseenter="(event) => onCellMouseenter({ uid: useCase.uid, field: column.field }, event)"
+          >
             <!-- Editable fields -->
             <template v-if="column.editable">
               <input
@@ -477,6 +564,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
 /* The sheet scrolls sideways from window edge to window edge (past the 0.5rem margin of the page, App.vue), starting
    and ending 0.5rem from the edges. */
 .sheet-scroll {
+  position: relative; /* for the line under a selection of cells */
   overflow-x: auto;
   margin: 0 -0.5rem;
   padding: 0 0.5rem;
@@ -534,6 +622,66 @@ th.remove-col {
 
 td.remove-col {
   background-color: var(--color-remove);
+}
+
+/* Selected cells (useCellSelection.ts): tinted, with a line around the block; no text selection while dragging. */
+.fixed-table.selecting {
+  user-select: none;
+}
+
+td.cell-selected {
+  position: relative;
+}
+
+td.cell-selected,
+td.cell-selected > :is(input, .text-field, .uneditable),
+td.cell-selected > :deep(.option-picker) {
+  background-image: linear-gradient(rgba(57, 55, 139, 0.12), rgba(57, 55, 139, 0.12));
+}
+
+td.cell-selected textarea {
+  background-color: transparent; /* the text field around it is tinted already */
+}
+
+td.cell-selected::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 0 solid var(--color-accent);
+  pointer-events: none;
+}
+
+td.edge-top::after {
+  border-top-width: 2px;
+}
+
+td.edge-bottom::after {
+  border-bottom-width: 2px;
+}
+
+td.edge-left::after {
+  border-left-width: 2px;
+}
+
+td.edge-right::after {
+  border-right-width: 2px;
+}
+
+td.remove-col.in-selection {
+  background-color: #a8201a;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.selection-label {
+  position: absolute;
+  z-index: 5;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: var(--color-accent);
+  color: white;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /* IN and THR cannot be deleted: their delete cell is hatched in red. */

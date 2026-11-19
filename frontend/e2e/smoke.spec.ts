@@ -133,6 +133,29 @@ test('a change in a sheet can be undone and redone, with the keyboard and the bu
   await expect(name).toHaveValue(before);
 });
 
+test('cells selected by dragging change together, and the change can be undone', async ({ page }) => {
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  await openTab(page, 'L3');
+  const column = await page
+    .locator('table.fixed-table thead th')
+    .evaluateAll((headers) => headers.findIndex((th) => th.textContent!.trim().startsWith('Implementation')));
+  const cell = (row: number) => page.locator('table.fixed-table tbody tr').nth(row).locator('td').nth(column);
+  const values = () => Promise.all([0, 1, 2].map((row) => cell(row).locator('input').inputValue()));
+  const before = await values();
+  const from = (await cell(0).boundingBox())!;
+  const to = (await cell(2).boundingBox())!;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
+  await page.mouse.up();
+  await page.keyboard.type('90');
+  expect(await values()).toEqual(['90', '90', '90']);
+  await page.keyboard.press('ControlOrMeta+z');
+  expect(await values()).toEqual(before);
+});
+
 // The fields of a use case that a user enters (the other fields are calculated). The visibility of an L3 rule is entered
 // only when Override is on; otherwise it comes from DeTT&CT.
 const ENTERED = ['name', 'description', 'parentIds', 'attackTechniqueId', 'visibilityFromAttackTechniqueOverride'];

@@ -393,3 +393,88 @@ describe('UseCaseTable', () => {
     );
   });
 });
+
+// Three L3 use cases, and dragging over cells as a mouse does: press in one cell, enter others with the button held.
+async function showThreeL3UseCases() {
+  const shown = await showTable('L3');
+  shown.magma.addNewUseCase(3, domain);
+  shown.magma.addNewUseCase(3, domain);
+  await shown.table.vm.$nextTick();
+  const drag = async (from: [number, string], to: [number, string]) => {
+    await shown.cell(...from).trigger('mousedown', { button: 0 });
+    await shown.cell(...to).trigger('mouseenter', { buttons: 1 });
+    window.dispatchEvent(new MouseEvent('mouseup'));
+  };
+  const selected = () => shown.table.findAll('td.cell-selected').length;
+  const value = (row: number, header: string) =>
+    (shown.cell(row, header).find('input, textarea').element as HTMLInputElement).value;
+  return { ...shown, drag, selected, value, useCases: () => shown.magma.L3UseCases(domain) };
+}
+
+describe('UseCaseTable: selecting cells', () => {
+  it('selects cells by dragging, and a change in one of them goes to all of them, as one undo step', async () => {
+    const { drag, selected, cell, useCases, magma } = await showThreeL3UseCases();
+    await drag([0, 'Implementation %'], [2, 'Implementation %']);
+    expect(selected()).toBe(3);
+    await cell(1, 'Implementation %').find('input').setValue('90');
+    expect(useCases().map((useCase) => useCase.implementation)).toEqual(['90', '90', '90']);
+    expect(magma.undoDescription).toBe('Implementation % of 3 use cases');
+    magma.undo();
+    expect(useCases().map((useCase) => useCase.implementation)).toEqual([null, null, null]);
+  });
+
+  it('keeps the selection for a click in it, so a choice in a search field goes to all of them', async () => {
+    const { drag, cell, useCases, table } = await showThreeL3UseCases();
+    await drag([0, 'ATT&CK Technique'], [2, 'ATT&CK Technique']);
+    await cell(1, 'ATT&CK Technique').trigger('mousedown', { button: 0 });
+    const picker = table
+      .findAllComponents({ name: 'OptionPicker' })
+      .filter((found) => found.props('noun') === 'technique')[1]!;
+    picker.vm.$emit('update:modelValue', 'T1566');
+    expect(useCases().map((useCase) => useCase.attackTechniqueId)).toEqual(['T1566', 'T1566', 'T1566']);
+  });
+
+  it('skips the cells that cannot be changed, such as a visibility that comes from the technique', async () => {
+    const { drag, cell, useCases, magma } = await showThreeL3UseCases();
+    magma.updateUseCase(useCases()[0]!.uid, { attackTechniqueId: 'T1566' }, domain);
+    const fromTechnique = useCases()[0]!.visibility;
+    for (const useCase of useCases().slice(1)) {
+      magma.updateUseCase(useCase.uid, { visibilityFromAttackTechniqueOverride: true }, domain);
+    }
+    await drag([0, 'Visibility %'], [2, 'Visibility %']);
+    await cell(2, 'Visibility %').find('input').setValue('40');
+    expect(useCases().map((useCase) => useCase.visibility)).toEqual([fromTechnique, '40', '40']);
+  });
+
+  it('makes a block with a click and a shift-click, and ends it with Esc', async () => {
+    const { cell, selected, table } = await showThreeL3UseCases();
+    await cell(0, 'Use Case Name').trigger('mousedown', { button: 0 });
+    window.dispatchEvent(new MouseEvent('mouseup'));
+    await cell(2, 'Description').trigger('mousedown', { button: 0, shiftKey: true });
+    expect(selected()).toBe(6);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await table.vm.$nextTick();
+    expect(selected()).toBe(0);
+  });
+
+  it('cannot select the ID column: each ID must stay unique', async () => {
+    const { drag, selected } = await showThreeL3UseCases();
+    await drag([0, 'ID'], [2, 'ID']);
+    expect(selected()).toBe(0);
+    await drag([0, 'Use Case Name'], [2, 'ID']);
+    expect(selected()).toBe(0); // the drag does not reach into the ID column
+  });
+
+  it('deletes all selected rows with the × of one of them, as one undo step', async () => {
+    const { drag, table, useCases, magma } = await showThreeL3UseCases();
+    await drag([0, 'Use Case Name'], [1, 'Description']);
+    expect(table.findAll('td.remove-col.in-selection')).toHaveLength(2);
+    await table.findAll('tbody .remove-button')[1]!.trigger('click');
+    expect(useCases()).toHaveLength(1);
+    expect(Swal.fire).toHaveBeenLastCalledWith(
+      expect.objectContaining({ titleText: expect.stringMatching(/^Deleted 2 use cases: /) }),
+    );
+    magma.undo();
+    expect(useCases()).toHaveLength(3);
+  });
+});
