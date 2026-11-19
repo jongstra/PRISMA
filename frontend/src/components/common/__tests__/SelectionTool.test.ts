@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
-import { notifyUndoable } from '../notify';
+import Swal from 'sweetalert2';
 import { createPinia, setActivePinia } from 'pinia';
 import fs from 'node:fs';
 import { tacticsStore } from '@/stores/tactics';
@@ -9,7 +9,7 @@ import SelectionTool from '../SelectionTool.vue';
 
 const catalog = JSON.parse(fs.readFileSync('public/tactics_and_techniques_by_domain.json', 'utf8'));
 
-vi.mock('../notify', () => ({ notifyUndoable: vi.fn() }));
+vi.mock('sweetalert2', () => ({ default: { fire: vi.fn() } }));
 
 // The groups tool of the DeTT&CT page, with the enterprise catalog.
 function showGroupsTool() {
@@ -61,19 +61,46 @@ describe('SelectionTool', () => {
     tool.unmount();
   });
 
-  it('clears all selections at once, and offers to undo it in the message', async () => {
+  it('asks before clearing two or more, and clears them when confirmed', async () => {
     const { tool, groups } = showGroupsTool();
     groups[0]!.selected = true;
     groups[1]!.selected = true;
     await nextTick();
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as never);
     await tool.find('.clear-icon').trigger('click');
+    expect(Swal.fire).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        titleText: 'Clear both groups?',
+        confirmButtonText: 'Yes, clear them',
+        cancelButtonText: 'No, cancel',
+        focusCancel: true, // Enter keeps the selection
+      }),
+    );
+    await flushPromises();
     expect(groups.filter((group) => group.selected)).toEqual([]);
-    expect(notifyUndoable).toHaveBeenLastCalledWith('Cleared 2 groups.', undefined, expect.any(Function));
-    vi.mocked(notifyUndoable).mock.lastCall![2]();
-    expect(groups.filter((group) => group.selected).map((group) => group.name)).toEqual([
-      groups[0]!.name,
-      groups[1]!.name,
-    ]);
+    tool.unmount();
+  });
+
+  it('keeps the selection when the question is cancelled', async () => {
+    const { tool, groups } = showGroupsTool();
+    groups[0]!.selected = true;
+    groups[1]!.selected = true;
+    await nextTick();
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false } as never);
+    await tool.find('.clear-icon').trigger('click');
+    await flushPromises();
+    expect(groups.filter((group) => group.selected)).toHaveLength(2);
+    tool.unmount();
+  });
+
+  it('clears a single selection at once, without asking, as clicking its chip does', async () => {
+    const { tool, groups } = showGroupsTool();
+    groups[0]!.selected = true;
+    await nextTick();
+    vi.mocked(Swal.fire).mockClear();
+    await tool.find('.clear-icon').trigger('click');
+    expect(Swal.fire).not.toHaveBeenCalled();
+    expect(groups.filter((group) => group.selected)).toEqual([]);
     tool.unmount();
   });
 

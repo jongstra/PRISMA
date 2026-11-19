@@ -4,8 +4,9 @@
 // control box: while nothing is selected, a label and a search field like the technique search; once something is
 // selected, the search field moves up next to the label, thinner, with the switch (only show these) and a clear icon,
 // and the selected items take its place below: two rows, then a thin scroll bar, so the box keeps its height.
+import Swal from 'sweetalert2';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { notifyUndoable } from './notify';
+import { clearConfirmation } from './clearConfirmation';
 import { thumbGeometry, type ThumbGeometry } from './scrollbarGeometry';
 import { vHint } from './hint';
 import { suggestedItems } from './selectionSearch';
@@ -33,14 +34,28 @@ const removeSelection = (item: TechniqueAttribute) => {
   delete item[props.selectedField];
 };
 
-// Clear all selections at once; the message offers to undo it.
-const clearAllSelections = () => {
+// Clear all selections. For two or more, a dialog first asks, with their number (clearConfirmation.ts); a single one
+// clears at once, as clicking its chip does. There is no undo: Ctrl+Z is for the changes to the use cases (the sheets).
+const clearAllSelections = async () => {
   const cleared = selectedItems.value.slice();
+  const question = clearConfirmation(cleared.length, props.noun);
+  if (question) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      titleText: question,
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: 'green',
+      confirmButtonText: 'Yes, clear them',
+      cancelButtonText: 'No, cancel',
+      reverseButtons: true,
+      focusCancel: true, // Enter keeps the selection
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+  }
   cleared.forEach((item) => delete item[props.selectedField]);
-  const count = cleared.length;
-  notifyUndoable(`Cleared ${count} ${props.noun}${count === 1 ? '' : 's'}.`, undefined, () =>
-    cleared.forEach((item) => (item[props.selectedField] = true)),
-  );
 };
 
 // Search field: clicking it opens a list of the items that are not selected yet, which narrows while typing (see

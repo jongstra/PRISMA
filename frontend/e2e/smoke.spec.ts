@@ -120,7 +120,9 @@ test('the MaGMa heatmap controls are five equally wide boxes, with the legend na
   await expect(page.locator('.legend-box .control-label span').first()).toHaveText('Legend: weight');
 });
 
-test('the groups box keeps its height while groups are selected and cleared', async ({ page }) => {
+test('the groups box asks before clearing groups, and keeps its height while they are selected and cleared', async ({
+  page,
+}) => {
   await openApp(page);
   const box = page.locator('.selection-container').first();
   const field = box.locator('input.search-box');
@@ -131,6 +133,9 @@ test('the groups box keeps its height while groups are selected and cleared', as
     await page.locator('.suggestion-item', { hasText: group }).first().click();
   }
   expect(await height()).toBe(before);
+  // Clearing five groups asks first.
+  await page.locator('.clear-icon').first().click();
+  await expect(page.locator('.swal2-title')).toHaveText('Clear all 5 groups?');
   // The height in every frame while the groups are cleared: no jump, also not for a moment.
   await box.evaluate((element) => {
     const heights: number[] = [];
@@ -142,8 +147,9 @@ test('the groups box keeps its height while groups are selected and cleared', as
     };
     requestAnimationFrame(sample);
   });
-  await page.locator('.clear-icon').first().click();
+  await page.getByRole('button', { name: 'Yes, clear them' }).click();
   await page.waitForTimeout(500);
+  await expect(box.locator('.buttons-wrapper button')).toHaveCount(0);
   const heights = await page.evaluate(() => (window as unknown as { heights: number[] }).heights);
   expect(Math.max(...heights)).toBe(before);
 });
