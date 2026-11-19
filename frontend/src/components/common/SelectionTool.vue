@@ -234,11 +234,17 @@ button:hover {
   background-color: var(--item-hover-color);
 }
 
-button::before {
-  content: '\2715'; /* Unicode for 'X' */
-  margin-right: 3px;
-  font-size: 10px;
-  color: #ffffff;
+/* The × of a selected item, after its name and in the middle of its height. It is drawn (a mask over the white
+   background), so it sits in the middle in every font; the whole item removes it. */
+.buttons-wrapper button::after {
+  content: '';
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  margin-left: 4px;
+  background-color: #ffffff;
+  mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><path d='M1.5 1.5l7 7M8.5 1.5l-7 7' stroke='black' stroke-width='1.6' stroke-linecap='round'/></svg>")
+    center / contain no-repeat;
 }
 
 /* Clear all: a small square button, as high as the thinner search field, in the quiet style of the other controls. */
@@ -252,10 +258,6 @@ button::before {
   background-color: white;
   border: var(--border-control);
   border-radius: 4px;
-}
-
-.clear-icon::before {
-  content: none;
 }
 
 .clear-icon:hover {
