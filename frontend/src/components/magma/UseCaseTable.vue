@@ -216,11 +216,15 @@ const averages = computed(() => {
   };
 });
 
-const addNewUseCase = () => {
+// Adds empty use cases at the bottom of the sheet: one, or 5 or 10 at once (as one undo step).
+const addUseCases = (count: number) => {
   const level = parseFloat(magma.activeTab.slice(-1));
-  magma.recordStep(`Add a use case to ${magma.activeTab}`);
-  magma.addNewUseCase(level, tactics.domain);
+  magma.recordStep(count > 1 ? `Add ${count} use cases to ${magma.activeTab}` : `Add a use case to ${magma.activeTab}`);
+  for (let added = 0; added < count; added++) {
+    magma.addNewUseCase(level, tactics.domain);
+  }
 };
+const ADD_MORE = [5, 10];
 
 // A short list of use case IDs for a message, e.g. "DOS-1-A, DOS-1-B and 3 more".
 const listIds = (useCases: UseCase[], max = 5) => {
@@ -453,7 +457,20 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
     </div>
     <table border="1" class="fixed-table" :class="{ selecting: dragging }" :style="{ width: `${sheetWidth}px` }">
       <caption class="add-row">
-        <button type="button" class="add-button" @click="addNewUseCase">+ Add use case</button>
+        <div class="add-buttons">
+          <button type="button" class="add-button" @click="addUseCases(1)">+ Add use case</button>
+          <button
+            v-for="count in ADD_MORE"
+            :key="count"
+            type="button"
+            class="add-button add-more"
+            :aria-label="`Add ${count} empty use cases`"
+            v-hint="`Add ${count} empty use cases`"
+            @click="addUseCases(count)"
+          >
+            +{{ count }}
+          </button>
+        </div>
       </caption>
       <thead>
         <tr>
@@ -847,21 +864,26 @@ button.remove-button {
   cursor: pointer;
 }
 
-/* Below the sheet: the caption is as wide as the table, so the button can stay at the left of the visible part (sticky)
-   while the sheet scrolls sideways. It is as wide as the window minus the page margins, or as the sheet when that is
-   narrower. */
+/* Below the sheet: the caption is as wide as the table, so the buttons can stay at the left of the visible part (sticky)
+   while the sheet scrolls sideways. Together they are as wide as the window minus the page margins, or as the sheet when
+   that is narrower: the add button, then two small buttons that add 5 or 10 use cases at once. */
 .add-row {
   caption-side: bottom;
   text-align: left;
 }
 
-.add-button {
+.add-buttons {
   position: sticky;
   left: 0;
-  display: block;
+  display: flex;
+  gap: 4px;
   width: min(calc(100vw - 1rem), 100%);
-  height: 30px;
   margin: 4px 0;
+}
+
+.add-button {
+  flex: 1;
+  height: 30px;
   background-color: var(--color-add);
   color: var(--color-add-text);
   border: 1.5px solid var(--color-add-border);
@@ -873,6 +895,10 @@ button.remove-button {
 
 .add-button:hover {
   background-color: var(--color-add-hover);
+}
+
+.add-button.add-more {
+  flex: 0 0 48px;
 }
 
 .remove-col {

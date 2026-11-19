@@ -234,6 +234,22 @@ describe('UseCaseTable', () => {
     expect((id().element as HTMLTextAreaElement).value).toBe('NEW-1');
   });
 
+  it('adds one, 5 or 10 empty use cases with the add buttons below the sheet, each as one undo step', async () => {
+    const { table, magma } = await showTable('L2'); // one L2 use case: L2-1
+    const ids = () => magma.L2UseCases(domain).map((useCase) => useCase.id);
+    const button = (text: string) => table.findAll('.add-row button').find((found) => found.text() === text)!;
+    await button('+ Add use case').trigger('click');
+    expect(ids()).toEqual(['L2-1', 'L2-2']);
+    await button('+5').trigger('click');
+    expect(ids()).toEqual(['L2-1', 'L2-2', 'L2-3', 'L2-4', 'L2-5', 'L2-6', 'L2-7']);
+    expect(magma.undoDescription).toBe('Add 5 use cases to L2');
+    magma.undo();
+    expect(ids()).toHaveLength(2);
+    await button('+10').trigger('click');
+    expect(ids()).toHaveLength(12);
+    expect(button('+10').attributes('aria-label')).toBe('Add 10 empty use cases');
+  });
+
   it('shows the averages only on L1', async () => {
     expect((await showTable('L1')).table.text()).toContain('Averages');
     expect((await showTable('L2')).table.text()).not.toContain('Averages');
