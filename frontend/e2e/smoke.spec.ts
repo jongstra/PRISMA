@@ -85,6 +85,26 @@ for (const { domain, name, file, tactics } of [
   });
 }
 
+test('the DeTT&CT controls are two rows of four equally wide boxes, with Load at the top right', async ({ page }) => {
+  await openApp(page);
+  const boxes = page.locator('.dettect-controls > *');
+  const labels = await boxes.evaluateAll((all) =>
+    all.map((box) => box.querySelector('.control-label')?.firstChild?.textContent?.trim()),
+  );
+  expect(labels).toEqual([
+    'Visibility %',
+    'Min. total occurrence',
+    'Platforms',
+    'DeTT&CT file',
+    'Techniques',
+    'Groups',
+    'Components',
+    'Legend: visibility',
+  ]);
+  const widths = await boxes.evaluateAll((all) => all.map((box) => Math.round(box.getBoundingClientRect().width)));
+  expect(new Set(widths).size).toBe(1);
+});
+
 test('the groups box keeps its height while groups are selected and cleared', async ({ page }) => {
   await openApp(page);
   const box = page.locator('.selection-container').first();

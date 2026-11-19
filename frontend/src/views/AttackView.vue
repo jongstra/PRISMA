@@ -36,27 +36,21 @@ watch(
 </script>
 
 <template>
-  <!-- The controls: the file, the platforms, the technique search and the legend; below them the filters and the
-       group and data component selections. The columns of the two rows line up. -->
+  <!-- The controls in two rows of four equally wide boxes. Above: the two thresholds, the platforms and the file (Load
+       at the top right, where the MaGMa page has Load and Save). Below: the three searches, and the legend just above
+       the matrix it explains. -->
   <ControlPanel class="dettect-controls">
-    <ControlBox label="DeTT&CT file" :value="dettectFileName ?? 'No file loaded'" :value-hint="dettectFileName">
-      <FileUploadButtonYaml />
-    </ControlBox>
-    <ControlBox label="Platforms"><TechniqueAttributeFilter attribute_type="platforms" /></ControlBox>
-    <ControlBox label="Techniques"><SearchBar /></ControlBox>
-    <ControlBox
-      label="Legend: visibility"
-      :value="store.attackVersion ? `MITRE ATT&CK v${store.attackVersion}` : undefined"
-      value-hint="The ATT&CK version of the catalog that PRISMA uses"
-    >
-      <VisibilityLegend />
-    </ControlBox>
     <ControlBox label="Visibility %" :value="visibilityRangeText(store.minVisibilityRatio, store.maxVisibilityRatio)">
       <TechniqueVisibilityPercentageFilter />
     </ControlBox>
     <ControlBox label="Min. total occurrence" :value="occurrenceLevel(store.minTotalOccurrencesBinned)">
       <TechniqueTotalOccurrenceFilterBinned />
     </ControlBox>
+    <ControlBox label="Platforms"><TechniqueAttributeFilter attribute_type="platforms" /></ControlBox>
+    <ControlBox label="DeTT&CT file" :value="dettectFileName ?? 'No file loaded'" :value-hint="dettectFileName">
+      <FileUploadButtonYaml />
+    </ControlBox>
+    <ControlBox label="Techniques"><SearchBar /></ControlBox>
     <SelectionTool
       label="Groups"
       list="groups"
@@ -75,6 +69,13 @@ watch(
       toggle-title="Only show techniques covered by selected components."
       color="green"
     />
+    <ControlBox
+      label="Legend: visibility"
+      :value="store.attackVersion ? `MITRE ATT&CK v${store.attackVersion}` : undefined"
+      value-hint="The ATT&CK version of the catalog that PRISMA uses"
+    >
+      <VisibilityLegend />
+    </ControlBox>
   </ControlPanel>
 
   <div class="matrix-container">
@@ -91,15 +92,13 @@ watch(
 </template>
 
 <style scoped>
-/* Two rows of four boxes (ControlPanel.vue); the group and data component boxes keep their own width (SelectionTool.vue)
-   and grow with their selected items. In a narrower window the boxes go in two columns, and in a very narrow one below
-   each other. */
+/* Two rows of four equally wide boxes (ControlPanel.vue). In a narrower window the boxes go in two columns, and in a very
+   narrow one below each other. */
 .dettect-controls {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 265px 265px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-bottom: 3px;
 }
 
-/* In two columns or one, the group and data component boxes fill their column. */
 @media (max-width: 940px) {
   .dettect-controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
