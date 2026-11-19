@@ -34,6 +34,8 @@ export async function notifyUndoable(text: string, detail: string | undefined, u
     confirmButtonText: `Undo (${shortcut})`,
     confirmButtonColor: 'var(--color-accent)',
     customClass: { popup: 'undoable-notice' },
+    focusConfirm: false, // the cursor stays where it is (in the sheet), also when the message closes
+    returnFocus: false,
     timer: 5000,
     timerProgressBar: true,
     didOpen: (toast) => {

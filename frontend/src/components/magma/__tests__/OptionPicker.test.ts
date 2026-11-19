@@ -75,6 +75,13 @@ describe('OptionPicker', () => {
     expect(picker.find('.current').text()).toBe('T1059 Command and Scripting Interpreter');
   });
 
+  it('opens with Alt+↓ on the closed field, and leaves the other arrows to the sheet', async () => {
+    await mountPicker('T1059').find('.current').trigger('keydown', { key: 'ArrowDown' });
+    expect(picker.find('input').exists()).toBe(false);
+    await picker.find('.current').trigger('keydown', { key: 'ArrowDown', altKey: true });
+    expect(picker.find('input').exists()).toBe(true);
+  });
+
   it('starts searching when a letter is typed on the field', async () => {
     await mountPicker('T1059').find('.current').trigger('keydown', { key: 'h' });
     expect((picker.find('input').element as HTMLInputElement).value).toBe('h');

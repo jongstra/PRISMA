@@ -109,10 +109,11 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-// On the closed field, the arrow keys open the list, typing a letter or digit starts a search with it, and Delete or
-// Backspace removes the option (the delete key of a Mac keyboard is Backspace).
+// On the closed field, Enter or Space (a click) and Alt+↓ open the list, typing a letter or digit starts a search with
+// it, and Delete or Backspace removes the option (the delete key of a Mac keyboard is Backspace). The other arrows
+// move to another cell of the sheet.
 function onFieldKeydown(event: KeyboardEvent) {
-  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+  if (event.key === 'ArrowDown' && event.altKey) {
     event.preventDefault();
     openList();
   } else if (event.key === 'Delete' || event.key === 'Backspace') {
@@ -191,7 +192,9 @@ onUnmounted(close);
         <template v-else-if="hasValue">{{ modelValue }}</template>
         <template v-else>None</template>
       </button>
-      <button v-if="hasValue" type="button" class="clear" v-hint="`No ${noun}`" @click="choose('none')">×</button>
+      <button v-if="hasValue" type="button" class="clear" tabindex="-1" v-hint="`No ${noun}`" @click="choose('none')">
+        ×
+      </button>
     </template>
   </div>
 </template>

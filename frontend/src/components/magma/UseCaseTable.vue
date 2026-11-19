@@ -19,6 +19,7 @@ import type { Cell } from './cellSelection';
 import { letteredIds } from '@/domain/magma/letteredIds';
 import { parseCopiedCells } from './copiedCells';
 import { readPastedValue } from './pastedValues';
+import { keyDirection, nextCell, type FieldState } from './cellNavigation';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -146,16 +147,74 @@ const changeTargets = (useCase: UseCase, field: string): { useCase: UseCase; fie
 // typing replaces it; on a search field, typing starts a search and Delete or Backspace clears it; on a switch, Space
 // switches it. Says whether the cell could take the cursor: a calculated or locked cell cannot.
 function focusCell(cell: Cell) {
-  const place = `[data-cell="${cell.uid}:${cell.field}"]`;
-  const field = sheetScroll.value?.querySelector<HTMLElement>(
-    `${place} > input, ${place} textarea, ${place} .option-picker .current, ${place} .override-toggle input`,
-  );
+  const field = focusableField(cell);
   field?.focus();
   if ((field instanceof HTMLInputElement && field.type === 'text') || field instanceof HTMLTextAreaElement) {
     field.select();
   }
   return !!field && document.activeElement === field;
 }
+
+// The field of a cell that can take the cursor: a text, percentage, search field or switch that is not locked (a
+// calculated cell has none).
+function focusableField(cell: Cell) {
+  const place = `[data-cell="${cell.uid}:${cell.field}"]`;
+  const field = sheetScroll.value?.querySelector<HTMLElement>(
+    `${place} > input, ${place} textarea, ${place} .option-picker .current, ${place} .override-toggle input`,
+  );
+  return field && !field.matches(':disabled') ? field : null;
+}
+
+// Moving between the cells with the keyboard: the arrows, Enter and Shift+Enter, Tab and Shift+Tab (see
+// cellNavigation.ts). An open search field keeps its keys. Enter in the last row saves and keeps the cursor; Tab after
+// the last cell leaves the sheet.
+const onSheetKeydown = (event: KeyboardEvent) => {
+  const target = event.target as HTMLElement;
+  const place = target.closest<HTMLElement>('td[data-cell]')?.dataset.cell;
+  if (!place || target.closest('.option-picker input')) {
+    return;
+  }
+  const text = target instanceof HTMLTextAreaElement || (target instanceof HTMLInputElement && target.type === 'text');
+  const state: FieldState = text
+    ? {
+        kind: target.dataset.field === 'description' ? 'multiline' : 'text',
+        start: target.selectionStart ?? 0,
+        end: target.selectionEnd ?? 0,
+        length: target.value.length,
+      }
+    : { kind: 'other', start: 0, end: 0, length: 0 };
+  const direction = keyDirection(event, state);
+  if (!direction) {
+    return;
+  }
+  const [uid, field] = place.split(':') as [string, string];
+  const uids = rows.value.map((useCase) => useCase.uid);
+  const fields = columns.value.map((column) => column.field);
+  const next = nextCell(
+    { row: uids.indexOf(uid), column: fields.indexOf(field) },
+    direction,
+    { rows: uids.length, columns: fields.length },
+    (row, column) => !!focusableField({ uid: uids[row]!, field: fields[column]! }),
+  );
+  if (next) {
+    event.preventDefault();
+    focusCell({ uid: uids[next.row]!, field: fields[next.column]! });
+  } else if (event.key === 'Enter' && text) {
+    event.preventDefault();
+    target.blur(); // saved (an ID is renamed), and the next typing is a new undo step
+    focusCell({ uid, field });
+  }
+};
+
+// The column last worked in: after a delete, the cursor goes to that column of the row that takes the deleted row's
+// place (see deleteUseCases).
+let lastField = 'name';
+const cellFocused = (cell: Cell) => {
+  lastField = cell.field;
+  onCellFocusin(cell);
+};
+const focusInRow = (uid: string) =>
+  focusCell({ uid, field: lastField }) || columns.value.some((column) => focusCell({ uid, field: column.field }));
 
 // The use cases of the selected rows that can be deleted (IN and THR cannot), for the button under the selection.
 const deletableSelected = computed(() =>
@@ -284,6 +343,12 @@ const listIds = (useCases: UseCase[], max = 5) => {
 // does). Their child use cases are kept but lose their parent; the message names them, so they can get another parent.
 // The × of a row deletes that row; the button under a selection deletes the selected rows, as one undo step.
 const deleteUseCases = (deleted: UseCase[]) => {
+  // The row that takes the place of the (first) deleted row: the one below it, or else the one above.
+  const deletedUids = new Set(deleted.map((useCase) => useCase.uid));
+  const order = rows.value.map((useCase) => useCase.uid);
+  const first = order.findIndex((uid) => deletedUids.has(uid));
+  const remaining = (uids: string[]) => uids.find((uid) => !deletedUids.has(uid));
+  const takesPlace = remaining(order.slice(first + 1)) ?? remaining(order.slice(0, first).reverse());
   const children = [...new Set(deleted.flatMap((target) => magma.getChildUseCases(target)))].filter(
     (child) => !deleted.includes(child),
   );
@@ -291,6 +356,9 @@ const deleteUseCases = (deleted: UseCase[]) => {
   deleted.forEach((target) => magma.removeUseCaseByUid(target.uid));
   clearSelection();
   markForDelete([]);
+  if (takesPlace) {
+    nextTick(() => focusInRow(takesPlace));
+  }
   const lost =
     children.length === 1
       ? `1 use case lost its parent: ${listIds(children)}.`
@@ -358,12 +426,7 @@ const renameUseCase = (useCase: UseCase, event: Event) => {
 const onTextKeydown = (useCase: UseCase, field: string, event: KeyboardEvent) => {
   const textarea = event.target as HTMLTextAreaElement;
   if (event.key === 'Enter' && SINGLE_LINE_FIELDS.includes(field) && !event.isComposing) {
-    event.preventDefault();
-    textarea.blur(); // an ID is renamed, and the next typing is a new undo step
-    if (selectedRows.value.includes(useCase.uid) && selectedFields.value.includes(field)) {
-      textarea.focus();
-      textarea.select();
-    }
+    event.preventDefault(); // no new line: the sheet moves down (see onSheetKeydown)
   } else if (event.key === 'Escape' && field === 'id') {
     textarea.value = useCase.id;
     idDraft.value = null;
@@ -628,6 +691,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
         v-if="deletableSelected.length > 0"
         type="button"
         class="delete-selected"
+        tabindex="-1"
         @click="deleteUseCases(deletableSelected)"
         @mouseenter="markForDelete(deletableSelected)"
         @mouseleave="markForDelete([])"
@@ -641,6 +705,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
       :class="{ selecting: dragging }"
       :style="{ width: `${sheetWidth}px` }"
       @paste="onPaste"
+      @keydown="onSheetKeydown"
     >
       <caption class="add-row">
         <div class="add-buttons">
@@ -702,6 +767,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
             <button
               v-if="!useCase.permanent"
               class="remove-button"
+              tabindex="-1"
               v-hint="'Delete this use case'"
               @click="deleteUseCases([useCase])"
               @mouseenter="markForDelete([useCase])"
@@ -718,7 +784,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
             :class="cellClasses({ uid: useCase.uid, field: column.field })"
             @mousedown="(event) => onCellMousedown({ uid: useCase.uid, field: column.field }, event)"
             @mouseenter="(event) => onCellMouseenter({ uid: useCase.uid, field: column.field }, event)"
-            @focusin="onCellFocusin({ uid: useCase.uid, field: column.field })"
+            @focusin="cellFocused({ uid: useCase.uid, field: column.field })"
           >
             <!-- Editable fields -->
             <template v-if="column.editable">

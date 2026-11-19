@@ -233,6 +233,30 @@ test('cells copied from a spreadsheet are pasted from the cell with the cursor, 
   expect(await names()).toEqual([...before, '']);
 });
 
+test('the arrows, Enter and Tab move between the cells, as in a spreadsheet', async ({ page }) => {
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  await openTab(page, 'L3');
+  const names = page.locator('table.fixed-table tbody textarea[data-field="name"]');
+  const focused = () =>
+    page.evaluate(() => {
+      const cell = document.activeElement?.closest('td')?.dataset.cell;
+      return `${document.activeElement?.closest('tr')?.rowIndex}:${cell?.split(':')[1]}`;
+    });
+  await names.first().click();
+  await page.keyboard.press('ArrowDown');
+  expect(await focused()).toBe('2:name');
+  await page.keyboard.type('Renamed'); // the text was selected on arrival: typing replaces it
+  await page.keyboard.press('Enter');
+  expect(await names.nth(1).inputValue()).toBe('Renamed');
+  expect(await focused()).toBe('3:name');
+  await page.keyboard.press('Tab');
+  expect(await focused()).toBe('3:description');
+  await page.keyboard.press('Tab');
+  expect(await focused()).toBe('3:parentIds');
+});
+
 // The fields of a use case that a user enters (the other fields are calculated). The visibility of an L3 rule is entered
 // only when Override is on; otherwise it comes from DeTT&CT.
 const ENTERED = ['name', 'description', 'parentIds', 'attackTechniqueId', 'visibilityFromAttackTechniqueOverride'];

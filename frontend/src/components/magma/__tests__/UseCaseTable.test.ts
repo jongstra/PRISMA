@@ -648,15 +648,6 @@ describe('UseCaseTable: selecting cells', () => {
     table.unmount();
   });
 
-  it('keeps the cursor in a selected cell when Enter ends editing in it', async () => {
-    const { drag, cell, table } = await showThreeL3UseCases(true);
-    await drag([0, 'Use Case Name'], [2, 'Use Case Name']);
-    const name = cell(0, 'Use Case Name').find('textarea');
-    await name.trigger('keydown', { key: 'Enter' });
-    expect(document.activeElement).toBe(name.element);
-    table.unmount();
-  });
-
   it('deletes only its own row with the ×, also when the row is part of a selection', async () => {
     const { drag, table, useCases } = await showThreeL3UseCases();
     await drag([0, 'Use Case Name'], [1, 'Description']);
@@ -797,6 +788,91 @@ describe('UseCaseTable: pasting from a spreadsheet', () => {
     expect(paste(cell(0, 'ATT&CK Technique').find('.current').element, 'T1566\n').defaultPrevented).toBe(true);
     expect(useCases().map((useCase) => useCase.attackTechniqueId)).toEqual(['T1566', 'T1566', 'T1566']);
     expect(paste(cell(0, 'Use Case Name').find('textarea').element, 'one value').defaultPrevented).toBe(false);
+    table.unmount();
+  });
+});
+
+describe('UseCaseTable: moving between cells with the keyboard', () => {
+  // A key pressed in a field, as the browser sends it (it bubbles to the sheet); whether the sheet took it.
+  const press = (element: Element, key: string, modifiers: Partial<KeyboardEventInit> = {}) => {
+    const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...modifiers });
+    element.dispatchEvent(event);
+    return event.defaultPrevented;
+  };
+  const field = (cell: ReturnType<Awaited<ReturnType<typeof showTable>>['cell']>) =>
+    cell.find('input, textarea, .current').element as HTMLElement;
+
+  it('moves with the arrows to the next cell that can take the cursor, with its text selected', async () => {
+    const { cell, magma, useCases, table } = await showThreeL3UseCases(true);
+    magma.updateUseCase(useCases()[1]!.uid, { name: 'Beta', attackTechniqueId: 'T1566' }, domain);
+    await table.vm.$nextTick();
+    press(field(cell(0, 'Use Case Name')), 'ArrowDown');
+    const name = field(cell(1, 'Use Case Name')) as HTMLTextAreaElement;
+    expect(document.activeElement).toBe(name);
+    expect([name.selectionStart, name.selectionEnd]).toEqual([0, 4]);
+    press(field(cell(1, 'Implementation %')), 'ArrowLeft'); // the visibility comes from the technique: locked
+    expect(document.activeElement).toBe(cell(1, 'Override').find('input').element);
+    table.unmount();
+  });
+
+  it('keeps Left and Right in the text until the cursor is at its start or end', async () => {
+    const { cell, magma, useCases, table } = await showThreeL3UseCases(true);
+    magma.updateUseCase(useCases()[0]!.uid, { name: 'Alpha' }, domain);
+    await table.vm.$nextTick();
+    const name = field(cell(0, 'Use Case Name')) as HTMLTextAreaElement;
+    name.focus();
+    name.setSelectionRange(2, 2);
+    expect(press(name, 'ArrowLeft')).toBe(false);
+    expect(document.activeElement).toBe(name);
+    name.setSelectionRange(0, 0);
+    expect(press(name, 'ArrowLeft')).toBe(true);
+    expect(document.activeElement).toBe(field(cell(0, 'ID')));
+    table.unmount();
+  });
+
+  it('moves down with Enter and up with Shift+Enter, and on to the next row with Tab', async () => {
+    const { cell, table } = await showThreeL3UseCases(true);
+    press(field(cell(0, 'Use Case Name')), 'Enter');
+    expect(document.activeElement).toBe(field(cell(1, 'Use Case Name')));
+    press(field(cell(1, 'Use Case Name')), 'Enter', { shiftKey: true });
+    expect(document.activeElement).toBe(field(cell(0, 'Use Case Name')));
+    press(field(cell(0, 'Effectiveness %')), 'Tab'); // the last cell of the row that can take the cursor
+    expect(document.activeElement).toBe(field(cell(1, 'ID')));
+    expect(press(field(cell(1, 'Description')), 'Enter')).toBe(false); // a new line
+    table.unmount();
+  });
+
+  it('moves from a search field with the arrows, instead of opening its list', async () => {
+    const { cell, table } = await showThreeL3UseCases(true);
+    press(field(cell(0, 'ATT&CK Technique')), 'ArrowDown');
+    await table.vm.$nextTick();
+    expect(document.activeElement).toBe(field(cell(1, 'ATT&CK Technique')));
+    expect(document.querySelector('[role="listbox"]')).toBeNull();
+    table.unmount();
+  });
+
+  it('leaves the delete buttons out of Tab, so the keyboard cannot delete by accident', async () => {
+    const { table, magma, useCases } = await showThreeL3UseCases(true);
+    magma.updateUseCase(useCases()[0]!.uid, { attackTechniqueId: 'T1566' }, domain);
+    await table.vm.$nextTick();
+    expect(table.findAll('tbody .remove-button').every((button) => button.attributes('tabindex') === '-1')).toBe(true);
+    expect(table.find('.option-picker .clear').attributes('tabindex')).toBe('-1');
+    table.unmount();
+  });
+
+  it('after a delete, puts the cursor in the same column of the row that takes its place, or the row above', async () => {
+    const { cell, useCases, table } = await showThreeL3UseCases(true);
+    const [, second, third] = useCases();
+    field(cell(0, 'Description')).focus(); // the column worked in
+    await table.findAll('tbody .remove-button')[0]!.trigger('click');
+    await table.vm.$nextTick();
+    expect(document.activeElement).toBe(field(cell(0, 'Description'))); // the second use case, now on top
+    expect(useCases()[0]).toBe(second);
+    await table.findAll('tbody .remove-button')[1]!.trigger('click'); // the last row
+    await table.vm.$nextTick();
+    expect(document.activeElement).toBe(field(cell(0, 'Description')));
+    expect(useCases()).toEqual([second]);
+    expect(third).toBeDefined();
     table.unmount();
   });
 });
