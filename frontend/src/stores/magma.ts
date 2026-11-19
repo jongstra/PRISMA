@@ -544,7 +544,7 @@ export const magmaStore = defineStore('magma', {
 
     // Undo and redo (see undoHistory.ts). The sheets call recordStep before each change, with a description of it and, for
     // typing in a cell, the cell as group: the keystrokes in one cell make one step, until the cell is left (endStepGroup).
-    // The step remembers the sheet and domain of the change; undo and redo return them, so the change can be shown.
+    // The step remembers the sheet and domain of the change; undo and redo show them, so the change can be seen.
     recordStep(description: string, group: string | null = null) {
       if (inOpenGroup(this.history, group)) {
         return;
@@ -557,23 +557,28 @@ export const magmaStore = defineStore('magma', {
       this.history = endGroup(this.history);
     },
 
-    undo(): Place | null {
+    undo() {
       const result = undoStep(this.history, JSON.stringify(this.useCases));
-      return result && this.restoreStep(result);
+      if (result) {
+        this.restoreStep(result);
+      }
     },
 
-    redo(): Place | null {
+    redo() {
       const result = redoStep(this.history, JSON.stringify(this.useCases));
-      return result && this.restoreStep(result);
+      if (result) {
+        this.restoreStep(result);
+      }
     },
 
     // Puts back the use cases of an undone or redone step, with the visibility of their techniques from the DeTT&CT file
-    // that is loaded now, and recalculates.
+    // that is loaded now, recalculates, and shows the sheet and domain of the step.
     restoreStep({ step, history }: { step: Step<string>; history: History<string> }) {
       this.history = history;
       this.useCases = JSON.parse(step.state);
       this.updateAllL3UseCasesBasedOnDettectVisibility();
-      return step.place;
+      this.activeTab = step.place.tab;
+      tacticsStore().setDomain(step.place.domain);
     },
 
     // What the user entered, without what PRISMA calculates (such as a visibility taken from the DeTT&CT file, weights

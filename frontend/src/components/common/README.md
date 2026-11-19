@@ -15,7 +15,7 @@ Components and helpers that several pages use.
 | [`ControlPanel.vue`](ControlPanel.vue) | The grey frame with the control boxes, on the DeTT&CT page and the MaGMa heatmap |
 | [`hint.ts`](hint.ts) | `v-hint`: a short explanation that appears shortly after the mouse comes on an element, such as a column header |
 | [`notDetectableStyle.ts`](notDetectableStyle.ts) | Striped style for techniques without data components, in the matrix and its legend |
-| [`notify.ts`](notify.ts) | A short message at the top right for an action that went well, such as loading a file |
+| [`notify.ts`](notify.ts) | A short message at the top right for an action that went well, such as loading a file, or that can be undone, with an Undo button |
 | [`PageScrollbar.vue`](PageScrollbar.vue) | The page's scroll bar: a thin translucent bar over the right edge, instead of the browser's |
 | [`scrollbarGeometry.ts`](scrollbarGeometry.ts) | The size and position of the page's scroll bar, and how far dragging it scrolls |
 | [`selectionSearch.ts`](selectionSearch.ts) | Which items the list of a selection tool suggests: all that are not selected yet, narrowed by the typed text |

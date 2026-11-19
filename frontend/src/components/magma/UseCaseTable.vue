@@ -13,6 +13,7 @@ import { NOT_DETECTABLE_STYLE } from '@/components/common/notDetectableStyle';
 import { nextSort, sortedRows, type SortValue } from './useCaseSort';
 import { typedPercentage } from './percentageInput';
 import { isMac, shortcuts } from './undoKeys';
+import { notifyUndoable } from '@/components/common/notify';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -121,29 +122,17 @@ const listIds = (useCases: UseCase[], max = 5) => {
   return useCases.length > max ? `${ids} and ${useCases.length - max} more` : ids;
 };
 
-// Child use cases are kept when their parent is deleted, but lose their parent, so the dialog warns about them.
-const confirmRemoveUseCase = (useCase: UseCase) => {
+// Deleting a use case needs no confirmation: a short message says what was deleted, with a button to undo it (as Ctrl+Z
+// does). Its child use cases are kept but lose their parent; the message names them, so they can get another parent.
+const removeUseCase = (useCase: UseCase) => {
   const children = magma.getChildUseCases(useCase);
-  const childrenWarning =
-    children.length === 0
-      ? ''
-      : `"${useCase.id}" still has ${children.length} child use case(s): ${listIds(children)}. They will lose their parent (and turn red), so you can move them to another parent.\n\n`;
-  Swal.fire({
-    titleText: `Delete use case '${useCase.id}'?`,
-    text: `${childrenWarning}You can undo this (${UNDO_KEY}).`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: 'green',
-    confirmButtonText: 'Yes, delete this use case',
-    cancelButtonText: 'No, cancel',
-    reverseButtons: true,
-  }).then((result) => {
-    if (result.isConfirmed) {
-      magma.recordStep(`Delete ${useCase.id}`);
-      magma.removeUseCaseByUid(useCase.uid);
-    }
-  });
+  magma.recordStep(`Delete ${useCase.id}`);
+  magma.removeUseCaseByUid(useCase.uid);
+  const lost =
+    children.length === 1
+      ? `1 use case lost its parent: ${listIds(children)}.`
+      : `${children.length} use cases lost their parent: ${listIds(children)}.`;
+  notifyUndoable(`Deleted ${useCase.id}.`, children.length > 0 ? lost : undefined, () => magma.undo(), UNDO_KEY);
 };
 
 const confirmRemoveUseCaseLevel = () => {
@@ -369,7 +358,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
               v-if="!useCase.permanent"
               class="remove-button"
               v-hint="'Delete this use case'"
-              @click="confirmRemoveUseCase(useCase)"
+              @click="removeUseCase(useCase)"
             >
               &times;
             </button>

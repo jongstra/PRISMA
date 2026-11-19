@@ -352,14 +352,44 @@ describe('UseCaseTable', () => {
     expect(magma.undoDescription).toBeNull();
   });
 
-  it('can undo deleting a use case', async () => {
+  it('deletes a use case straight away, with a message that names it and can undo it', async () => {
     const { magma, table } = await showTable('L3');
     const count = magma.L3UseCases(domain).length;
-    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as Awaited<ReturnType<typeof Swal.fire>>);
+    const id = magma.L3UseCases(domain)[0]!.id;
+    let clickUndo = () => {};
+    vi.mocked(Swal.fire).mockReturnValueOnce(
+      new Promise(
+        (resolve) => (clickUndo = () => resolve({ isConfirmed: true } as Awaited<ReturnType<typeof Swal.fire>>)),
+      ),
+    );
     await table.find('tbody .remove-button').trigger('click');
-    await new Promise((resolve) => setTimeout(resolve));
     expect(magma.L3UseCases(domain)).toHaveLength(count - 1);
-    magma.undo();
+    expect(Swal.fire).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        toast: true,
+        titleText: `Deleted ${id}.`,
+        confirmButtonText: expect.stringMatching(/^Undo \((Ctrl\+Z|⌘Z)\)$/),
+      }),
+    );
+    clickUndo();
+    await new Promise((resolve) => setTimeout(resolve));
     expect(magma.L3UseCases(domain)).toHaveLength(count);
+  });
+
+  it('names the child use cases that lose their parent in the message', async () => {
+    const { magma, table } = await showTable('L2');
+    const parent = magma.L2UseCases(domain).find((useCase) => !useCase.permanent)!;
+    magma.addNewUseCase(3, domain);
+    magma.updateUseCase(magma.L3UseCases(domain)[0]!.uid, { parentIds: [parent.id] }, domain);
+    const row = table
+      .findAll('tbody tr')
+      .find(
+        (tr) =>
+          tr.find('textarea').exists() && (tr.find('textarea').element as HTMLTextAreaElement).value === parent.id,
+      )!;
+    await row.find('.remove-button').trigger('click');
+    expect(Swal.fire).toHaveBeenLastCalledWith(
+      expect.objectContaining({ text: `1 use case lost its parent: ${magma.L3UseCases(domain)[0]!.id}.` }),
+    );
   });
 });

@@ -466,15 +466,16 @@ describe('magma store: undo and redo', () => {
     expect(l3('DOS-1-1').effectiveness).not.toBe('5');
   });
 
-  it('gives the sheet and domain where the change was made, so they can be shown', () => {
+  it('shows the sheet and domain where the undone change was made', () => {
     tactics.setDomain('enterprise-attack');
     magma.activeTab = 'L2';
     magma.recordStep('Description of DOS-1');
     const dos1 = magma.L2UseCases('enterprise-attack').find((useCase) => useCase.id === 'DOS-1')!;
     magma.updateUseCase(dos1.uid, { description: 'changed' }, 'enterprise-attack');
     magma.activeTab = 'Heatmap';
-    expect(magma.undo()).toEqual({ tab: 'L2', domain: 'enterprise-attack' });
-    expect(magma.undo()).toBeNull();
+    tactics.setDomain('mobile-attack');
+    magma.undo();
+    expect([magma.activeTab, tactics.domain]).toEqual(['L2', 'enterprise-attack']);
   });
 
   it('forgets the history when a MaGMa file is loaded', () => {

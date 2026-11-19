@@ -4,8 +4,6 @@
 import Swal from 'sweetalert2';
 import { onMounted, onUnmounted } from 'vue';
 import { magmaStore, type UseCaseFromFile } from '@/stores/magma';
-import { tacticsStore } from '@/stores/tactics';
-import type { Place } from '@/stores/undoHistory';
 import { vHint } from '@/components/common/hint';
 import { fieldHasOwnUndo, isMac, shortcuts, undoKey } from './undoKeys';
 import { isYamlFile, readYamlFile } from '@/io/readYamlFile';
@@ -16,19 +14,12 @@ import { notifySuccess } from '@/components/common/notify';
 import { importSummaryContent } from './importSummaryContent';
 
 const magma = magmaStore();
-const tactics = tacticsStore();
 const tabs = ['L1', 'L2', 'L3', 'Heatmap', 'Insights', 'Summary'];
 
 // Undo and redo (see recordStep in the store) show the sheet and domain of the change, so it can be seen.
 const keys = shortcuts(isMac());
-const show = (place: Place | null) => {
-  if (place) {
-    magma.activeTab = place.tab;
-    tactics.setDomain(place.domain);
-  }
-};
-const undo = () => show(magma.undo());
-const redo = () => show(magma.redo());
+const undo = () => magma.undo();
+const redo = () => magma.redo();
 
 // Ctrl+Z and Ctrl+Shift+Z (⌘Z and ⇧⌘Z on a Mac) anywhere on the MaGMa page, except in a field with its own undo and
 // while a dialog is open (a short message at the top right, such as 'MaGMa file loaded', is not a dialog).
