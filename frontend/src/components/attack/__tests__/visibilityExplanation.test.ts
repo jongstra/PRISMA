@@ -114,9 +114,9 @@ describe('tacticVisibilityHint', () => {
     expect(tacticVisibilityHint([detectable(0.1), detectable(0.2)])).toBe('Visibility:\n\n• 15% over its 2 techniques');
   });
 
-  it('mentions the n/a techniques that are left out, on a line of their own', () => {
+  it('mentions the n/a techniques that are left out below the numbers, after an empty line', () => {
     expect(tacticVisibilityHint([detectable(0.5), notDetectable, notDetectable])).toBe(
-      'Visibility:\n\n• 50% over its 1 technique\n• 2 n/a techniques left out',
+      'Visibility:\n\n• 50% over its 1 technique\n\n2 n/a techniques left out',
     );
   });
 

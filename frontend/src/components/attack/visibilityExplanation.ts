@@ -105,9 +105,9 @@ export function techniqueVisibilityExplanation(
 
 /**
  * The hint on the visibility chip above a column of the matrix (TacticColumn.vue): its name, an empty line, then a
- * bulleted line per fact, such as 'Visibility:\n\n• 7% over its 9 techniques\n• 2 n/a techniques left out'. The
- * techniques that ATT&CK lists no data components for do not count. Like the hint on a tactic's score in the MaGMa
- * heatmap (tacticScoreHint.ts).
+ * bulleted line with the number, such as 'Visibility:\n\n• 7% over its 9 techniques\n\n2 n/a techniques left out'. The
+ * techniques that ATT&CK lists no data components for do not count; how many there are is said below the number.
+ * Like the hint on a tactic's score in the MaGMa heatmap (tacticScoreHint.ts).
  */
 export function tacticVisibilityHint(techniques: TechniqueLike[]): string {
   const percentage = averageVisibilityPercentage(techniques);
@@ -117,9 +117,10 @@ export function tacticVisibilityHint(techniques: TechniqueLike[]): string {
   const counted = techniques.filter(isDetectable).length;
   const leftOut = techniques.length - counted;
   const plural = (count: number) => `technique${count === 1 ? '' : 's'}`;
-  const facts = [
-    `${Math.round(percentage)}% over its ${counted} ${plural(counted)}`,
-    ...(leftOut > 0 ? [`${leftOut} n/a ${plural(leftOut)} left out`] : []),
-  ];
-  return ['Visibility:', '', ...facts.map((fact) => `• ${fact}`)].join('\n');
+  return [
+    'Visibility:',
+    '',
+    `• ${Math.round(percentage)}% over its ${counted} ${plural(counted)}`,
+    ...(leftOut > 0 ? ['', `${leftOut} n/a ${plural(leftOut)} left out`] : []),
+  ].join('\n');
 }

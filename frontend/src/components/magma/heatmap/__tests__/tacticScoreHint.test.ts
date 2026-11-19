@@ -22,12 +22,12 @@ describe('tacticScoreHint', () => {
     );
   });
 
-  it('mentions the n/a techniques that are left out, on a line of their own', () => {
+  it('mentions the n/a techniques that are left out below the numbers, after an empty line', () => {
     expect(tacticScoreHint({ value: 0, techniques: 8, withUseCases: null }, 'weight', 2)).toBe(
-      'Weight:\n\n• 0% over its 8 techniques\n• None has use cases yet\n• 2 n/a techniques left out',
+      'Weight:\n\n• 0% over its 8 techniques\n• None has use cases yet\n\n2 n/a techniques left out',
     );
     expect(tacticScoreHint({ value: 0, techniques: 8, withUseCases: null }, 'weight', 1)).toMatch(
-      /\n• 1 n\/a technique left out$/,
+      /\n\n1 n\/a technique left out$/,
     );
   });
 
