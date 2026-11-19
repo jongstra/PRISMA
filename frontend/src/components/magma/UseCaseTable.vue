@@ -5,7 +5,13 @@ import Swal from 'sweetalert2';
 import { computed, nextTick, ref, watch } from 'vue';
 import { magmaStore, type UseCase } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
-import { PERCENTAGE_INPUTS, SINGLE_LINE_FIELDS, USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
+import {
+  PERCENTAGE_INPUTS,
+  SINGLE_LINE_FIELDS,
+  USE_CASE_COLUMNS,
+  type UseCaseColumn,
+  type SheetLevel,
+} from './useCaseColumns';
 import OptionPicker from './OptionPicker.vue';
 import { searchTechniques } from './optionSearch';
 import { vHint } from '@/components/common/hint';
@@ -17,7 +23,7 @@ import { notifyUndoable } from '@/components/common/notify';
 import { useCellSelection } from './useCellSelection';
 import type { Cell } from './cellSelection';
 import { letteredIds } from '@/domain/magma/letteredIds';
-import { parseCopiedCells } from './copiedCells';
+import { formatCopiedCells, parseCopiedCells } from './copiedCells';
 import { readPastedValue } from './pastedValues';
 import { growDirection, keyDirection, nextCell, type FieldState } from './cellNavigation';
 
@@ -280,8 +286,13 @@ const shownText = (useCase: UseCase, field: string) =>
     ? idDraft.value.text
     : (previewId(useCase, field) ?? textValue(useCase, field));
 
-// A short line under the selection: a change goes to all of it. It has the button that deletes the selected rows.
+// A short line under the selection: a change goes to all of it. It has the button that deletes the selected rows. For a
+// moment after a copy, it says how many cells were copied.
+const copiedNote = ref<string | null>(null);
 const selectionLabel = computed(() => {
+  if (copiedNote.value && selectedRows.value.length * selectedFields.value.length > 1) {
+    return copiedNote.value;
+  }
   const newIds = [...idPreview.value.values()];
   if (newIds.length > 1) {
     return `${newIds.length} IDs selected · Enter names them ${newIds[0]} to ${newIds.at(-1)}`;
@@ -502,6 +513,95 @@ const saveValue = (target: UseCase, field: string, value: string | string[] | bo
 const updateOverride = (useCase: UseCase, event: Event) => {
   const checked = (event.target as HTMLInputElement).checked;
   changeCells(useCase, 'visibilityFromAttackTechniqueOverride', (target, field) => saveValue(target, field, checked));
+};
+
+// The text of a cell when it is copied: what the cell shows, but the ID of a parent or technique, and yes or no for a
+// switch. Numbers keep a decimal point, as in the sheet and the saved files.
+const copiedValue = (useCase: UseCase, column: UseCaseColumn) => {
+  const field = column.field;
+  if (notApplicable(useCase, field)) {
+    return '';
+  }
+  if (field === 'parentIds' || field === 'attackTechniqueId') {
+    const id = field === 'parentIds' ? useCase.parentIds?.[0] : useCase.attackTechniqueId;
+    return id && id !== 'none' ? id : '';
+  }
+  if (field === 'visibilityFromAttackTechniqueOverride') {
+    return useCase.visibilityFromAttackTechniqueOverride ? 'yes' : 'no';
+  }
+  if (column.editable) {
+    return textValue(useCase, field);
+  }
+  if (field === 'L1nrChildren' || field === 'L2nrChildren') {
+    return String(magma.getChildUseCases(useCase).length);
+  }
+  if (field === 'L1nrGrandChildren') {
+    return String(magma.getGrandChildUseCases(useCase).length);
+  }
+  if (field === 'risk') {
+    return useCase.permanent ? '' : formatPercentage(useCase.risk || 0);
+  }
+  return formatPercentage(fieldValue(useCase, field));
+};
+
+// Copying (⌘C or Ctrl+C): a selection of cells as a block that a spreadsheet can paste (see copiedCells.ts), or the cell
+// with the cursor when nothing is selected in it (a search field or switch has nothing to select). Cutting (⌘X, Ctrl+X)
+// copies the same and then empties those cells, as one undo step (see emptyCells). Text that is selected in a field is
+// copied or cut by the browser, as usual.
+const onCopyOrCut = (event: ClipboardEvent) => {
+  const target = event.target as HTMLElement;
+  const place = target.closest<HTMLElement>('td[data-cell]')?.dataset.cell;
+  if (!place || target.closest('.option-picker input')) {
+    return;
+  }
+  const field = target as HTMLInputElement | HTMLTextAreaElement;
+  const text = target.matches('textarea, input[type="text"]');
+  const textSelected = text && field.selectionStart !== field.selectionEnd;
+  const allSelected = textSelected && field.selectionStart === 0 && field.selectionEnd === field.value.length;
+  const block = selectedRows.value.length * selectedFields.value.length > 1;
+  const [uid, cellField] = place.split(':') as [string, string];
+  let rowUids: string[];
+  let copiedColumns: UseCaseColumn[];
+  if (block && (!textSelected || allSelected)) {
+    rowUids = selectedRows.value;
+    copiedColumns = columns.value.filter((column) => selectedFields.value.includes(column.field));
+  } else if (!textSelected) {
+    rowUids = [uid];
+    copiedColumns = columns.value.filter((column) => column.field === cellField);
+  } else {
+    return;
+  }
+  event.preventDefault();
+  const useCases = rowUids.map((rowUid) => magma.getUseCaseByUid(rowUid)!);
+  const cells = useCases.map((useCase) => copiedColumns.map((column) => copiedValue(useCase, column)));
+  event.clipboardData?.setData('text/plain', formatCopiedCells(cells));
+  const cut = event.type === 'cut';
+  if (cut) {
+    emptyCells(useCases, copiedColumns);
+  }
+  if (block) {
+    copiedNote.value = `${useCases.length * copiedColumns.length} cells ${cut ? 'cut' : 'copied'}`;
+    setTimeout(() => (copiedNote.value = null), 2000);
+  }
+};
+
+// Empties cut cells, as one undo step: a text or percentage becomes empty, a parent or technique none, a switch off.
+// An ID cannot be empty, and calculated and locked cells cannot change: they keep their value.
+const EMPTY: Record<string, string | string[] | boolean> = {
+  parentIds: ['none'],
+  attackTechniqueId: 'none',
+  visibilityFromAttackTechniqueOverride: false,
+};
+const emptyCells = (useCases: UseCase[], cutColumns: UseCaseColumn[]) => {
+  const count = useCases.length * cutColumns.length;
+  magma.recordStep(count > 1 ? `Cut ${count} cells` : `Cut ${cutColumns[0]!.title} of ${useCases[0]!.id}`);
+  for (const useCase of useCases) {
+    for (const { field, editable } of cutColumns) {
+      if (editable && field !== 'id' && !isLocked(useCase, field) && !notApplicable(useCase, field)) {
+        saveValue(useCase, field, EMPTY[field] ?? '');
+      }
+    }
+  }
 };
 
 // Pasting cells copied from a spreadsheet (Excel, Google Sheets, Numbers) into the cell with the cursor. One value in a
@@ -729,6 +829,8 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
       :class="{ selecting: dragging }"
       :style="{ width: `${sheetWidth}px` }"
       @paste="onPaste"
+      @copy="onCopyOrCut"
+      @cut="onCopyOrCut"
       @keydown="onSheetKeydown"
     >
       <caption class="add-row">

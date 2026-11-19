@@ -1,6 +1,6 @@
-// Cells copied from a spreadsheet (Excel, Google Sheets, Numbers) reach the clipboard as text: a tab between the cells of
-// a row and a line break after each row. A cell with a tab, a line break or a quote in it is put between quotes, with its
-// own quotes doubled.
+// Cells copied from or to a spreadsheet (Excel, Google Sheets, Numbers) go over the clipboard as text: a tab between the
+// cells of a row and a line break after each row. A cell with a tab, a line break or a quote in it is put between quotes,
+// with its own quotes doubled.
 
 /** The rows of copied spreadsheet text, each as a list of cell texts. */
 export function parseCopiedCells(text: string): string[][] {
@@ -62,4 +62,11 @@ export function parseCopiedCells(text: string): string[][] {
     rows.push(row);
   }
   return rows;
+}
+
+/** Cells as copied text that a spreadsheet can paste (and parseCopiedCells reads back the same). */
+export function formatCopiedCells(rows: string[][]): string {
+  // Quotes are needed around a tab or line break, and around a quote at the start (it would read as an opening quote).
+  const cell = (text: string) => (/[\t\r\n]|^"/.test(text) ? `"${text.replaceAll('"', '""')}"` : text);
+  return rows.map((row) => `${row.map(cell).join('\t')}\r\n`).join('');
 }

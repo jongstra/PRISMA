@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCopiedCells } from '../copiedCells';
+import { formatCopiedCells, parseCopiedCells } from '../copiedCells';
 
 describe('parseCopiedCells', () => {
   it('reads rows and cells as a spreadsheet copies them: a tab between cells, a line break after each row', () => {
@@ -34,5 +34,25 @@ describe('parseCopiedCells', () => {
   it('reads one value, and nothing', () => {
     expect(parseCopiedCells('T1566')).toEqual([['T1566']]);
     expect(parseCopiedCells('')).toEqual([]);
+  });
+});
+
+describe('formatCopiedCells', () => {
+  it('writes rows and cells as a spreadsheet copies them', () => {
+    expect(
+      formatCopiedCells([
+        ['a', 'b'],
+        ['c', ''],
+      ]),
+    ).toBe('a\tb\r\nc\t\r\n');
+  });
+
+  it('puts a cell with a line break, a tab or a leading quote in quotes, and reads back the same cells', () => {
+    const cells = [
+      ['two\nlines', 'a\tb', '"quoted"'],
+      ['say "hi"', '', 'plain'],
+    ];
+    expect(formatCopiedCells(cells)).toBe('"two\nlines"\t"a\tb"\t"""quoted"""\r\nsay "hi"\t\tplain\r\n');
+    expect(parseCopiedCells(formatCopiedCells(cells))).toEqual(cells);
   });
 });

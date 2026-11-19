@@ -272,6 +272,40 @@ test('the arrows, Enter and Tab move between the cells, as in a spreadsheet', as
   await expect(page.locator('td.cell-selected')).toHaveCount(0);
 });
 
+test('a selection copied with Ctrl+C pastes back into new rows, and Ctrl+X cuts all of it', async ({ page }) => {
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  await openTab(page, 'L3');
+  const names = page.locator('table.fixed-table tbody textarea[data-field="name"]');
+  const descriptions = page.locator('table.fixed-table tbody textarea[data-field="description"]');
+  const from = (await names.nth(0).boundingBox())!;
+  const to = (await descriptions.nth(1).boundingBox())!;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
+  await page.mouse.up();
+  await page.keyboard.press('ControlOrMeta+c');
+  await expect(page.locator('.selection-label')).toContainText('4 cells copied');
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  const [first, second] = [await names.nth(0).inputValue(), await names.nth(1).inputValue()];
+  expect(copied.split(/\r?\n/)[0]!.split('\t')[0]).toBe(first);
+  // Back into PRISMA: two new rows with the same names and descriptions.
+  await page.getByRole('button', { name: '+ Add use case' }).click();
+  await names.last().click();
+  await page.keyboard.press('ControlOrMeta+v');
+  expect([await names.nth(-2).inputValue(), await names.nth(-1).inputValue()]).toEqual([first, second]);
+
+  // Cutting the pasted block (it is selected after the paste) empties all of it, and puts all of it on the clipboard.
+  await page.keyboard.press('ControlOrMeta+x');
+  await expect(page.locator('.selection-label')).toContainText('4 cells cut');
+  expect([await names.nth(-2).inputValue(), await names.nth(-1).inputValue()]).toEqual(['', '']);
+  expect((await page.evaluate(() => navigator.clipboard.readText())).split(/\r?\n/)[1]!.split('\t')[0]).toBe(second);
+  await page.keyboard.press('ControlOrMeta+z');
+  expect([await names.nth(-2).inputValue(), await names.nth(-1).inputValue()]).toEqual([first, second]);
+});
+
 // The fields of a use case that a user enters (the other fields are calculated). The visibility of an L3 rule is entered
 // only when Override is on; otherwise it comes from DeTT&CT.
 const ENTERED = ['name', 'description', 'parentIds', 'attackTechniqueId', 'visibilityFromAttackTechniqueOverride'];

@@ -922,3 +922,84 @@ describe('UseCaseTable: moving between cells with the keyboard', () => {
     table.unmount();
   });
 });
+
+// Copying (or cutting) with ⌘C or Ctrl+C (⌘X, Ctrl+X), as the browser hands it to the sheet; what the clipboard gets.
+const copy = (element: Element, type: 'copy' | 'cut' = 'copy') => {
+  const setData = vi.fn();
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'clipboardData', { value: { setData } });
+  element.dispatchEvent(event);
+  return { copied: event.defaultPrevented ? (setData.mock.lastCall?.[1] as string) : null };
+};
+
+describe('UseCaseTable: copying to a spreadsheet', () => {
+  it('copies a selection as a block a spreadsheet can paste: IDs for parents and techniques, yes or no', async () => {
+    const { drag, cell, magma, useCases, table } = await showThreeL3UseCases(true);
+    const [first, second] = useCases();
+    magma.updateUseCase(
+      first!.uid,
+      { name: 'Beaconing', description: 'Two\nlines', attackTechniqueId: 'T1566' },
+      domain,
+    );
+    magma.updateUseCase(second!.uid, { name: 'Uploads', implementation: '72.5' }, domain);
+    await table.vm.$nextTick();
+    await drag([0, 'Use Case Name'], [1, 'Override']);
+    const { copied } = copy(cell(0, 'Use Case Name').find('textarea').element);
+    expect(copied).toBe('Beaconing\t"Two\nlines"\t\t\tT1566\tno\r\n' + 'Uploads\t\t\t\t\tno\r\n');
+    await table.vm.$nextTick();
+    await table.vm.$nextTick();
+    expect(table.find('.selection-label').text()).toMatch(/^12 cells copied/);
+    table.unmount();
+  });
+
+  it('copies the cell with the cursor when nothing is selected in it, and leaves selected text to the browser', async () => {
+    const { cell, magma, useCases, table } = await showThreeL3UseCases(true);
+    magma.updateUseCase(useCases()[0]!.uid, { name: 'Beaconing', attackTechniqueId: 'T1566' }, domain);
+    await table.vm.$nextTick();
+    expect(copy(cell(0, 'ATT&CK Technique').find('.current').element).copied).toBe('T1566\r\n');
+    const name = cell(0, 'Use Case Name').find('textarea').element as HTMLTextAreaElement;
+    name.focus();
+    name.setSelectionRange(3, 3);
+    expect(copy(name).copied).toBe('Beaconing\r\n');
+    name.setSelectionRange(0, 4);
+    expect(copy(name).copied).toBeNull(); // the browser copies "Beac"
+    table.unmount();
+  });
+
+  it('cuts a selection: copies it and empties the cells that can be empty, as one undo step', async () => {
+    const { drag, cell, magma, useCases, table } = await showThreeL3UseCases(true);
+    const [first, second] = useCases();
+    magma.updateUseCase(first!.uid, { name: 'Beaconing', attackTechniqueId: 'T1566' }, domain);
+    magma.updateUseCase(second!.uid, { name: 'Uploads', dataSource: 'Proxy logs' }, domain);
+    await table.vm.$nextTick();
+    const ids = useCases().map((useCase) => useCase.id);
+    await drag([0, 'ID'], [1, 'ATT&CK Technique']);
+    const { copied } = copy(cell(0, 'ID').find('textarea').element, 'cut');
+    expect(copied).toBe(`${ids[0]}\tBeaconing\t\t\t\tT1566\r\n${ids[1]}\tUploads\t\t\tProxy logs\t\r\n`);
+    const values = () =>
+      useCases().map((useCase) => [useCase.id, useCase.name, useCase.dataSource, useCase.attackTechniqueId]);
+    expect(values().slice(0, 2)).toEqual([
+      [ids[0], '', '', 'none'], // an ID cannot be empty: it stays
+      [ids[1], '', '', 'none'],
+    ]);
+    await table.vm.$nextTick();
+    await table.vm.$nextTick();
+    expect(table.find('.selection-label').text()).toMatch(/^12 cells cut/);
+    expect(magma.undoDescription).toBe('Cut 12 cells');
+    magma.undo();
+    expect(values().slice(0, 2)).toEqual([
+      [ids[0], 'Beaconing', undefined, 'T1566'],
+      [ids[1], 'Uploads', 'Proxy logs', 'none'], // a new use case starts without a technique
+    ]);
+    table.unmount();
+  });
+
+  it('cuts the whole cell with the cursor when nothing is selected in it', async () => {
+    const { cell, magma, useCases, table } = await showThreeL3UseCases(true);
+    magma.updateUseCase(useCases()[0]!.uid, { attackTechniqueId: 'T1566' }, domain);
+    await table.vm.$nextTick();
+    expect(copy(cell(0, 'ATT&CK Technique').find('.current').element, 'cut').copied).toBe('T1566\r\n');
+    expect(useCases()[0]!.attackTechniqueId).toBe('none');
+    table.unmount();
+  });
+});
