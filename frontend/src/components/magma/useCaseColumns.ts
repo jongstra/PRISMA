@@ -64,6 +64,18 @@ const averaged = (below: string) => [
 
 const IMPACT = 'IN, THR and OUT impact together make 100%.';
 
+/** The percentages that are typed in a sheet (as text, see percentageInput.ts). */
+export const PERCENTAGE_INPUTS = [
+  'visibility',
+  'implementation',
+  'effectiveness',
+  'inImpact',
+  'thrImpact',
+  'outImpact',
+];
+/** The text fields of one line: Enter ends editing (as in a spreadsheet), and typed or pasted line breaks become spaces. */
+export const SINGLE_LINE_FIELDS = ['id', 'name', 'dataSource'];
+
 export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
   L1: [
     id,

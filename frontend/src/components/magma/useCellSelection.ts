@@ -108,6 +108,10 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>, 
   const clear = () => {
     selection.value = null;
   };
+  /** Selects the block from one cell to another, such as the cells that were just pasted. */
+  const select = (anchor: Cell, focus: Cell) => {
+    selection.value = { anchor, focus };
+  };
 
   const onMouseup = () => {
     if (dragging.value && selection.value) {
@@ -141,5 +145,16 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>, 
     window.removeEventListener('keydown', onKeydown);
   });
 
-  return { rows, columns, bottomLeft, dragging, cellClasses, onCellMousedown, onCellMouseenter, onCellFocusin, clear };
+  return {
+    rows,
+    columns,
+    bottomLeft,
+    dragging,
+    cellClasses,
+    onCellMousedown,
+    onCellMouseenter,
+    onCellFocusin,
+    clear,
+    select,
+  };
 }

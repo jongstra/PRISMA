@@ -206,6 +206,32 @@ test('IDs selected in the ID column get the typed base with letters after the on
   expect(await ids()).toEqual(before);
 });
 
+test('cells copied from a spreadsheet are pasted from the cell with the cursor, adding rows as needed', async ({
+  page,
+}) => {
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  await openTab(page, 'L3');
+  const names = () =>
+    page
+      .locator('table.fixed-table tbody textarea[data-field="name"]')
+      .evaluateAll((fields) => fields.map((field) => (field as HTMLTextAreaElement).value));
+  const before = await names();
+  await page.getByRole('button', { name: '+ Add use case' }).click();
+  // As Excel copies two rows of name, description and parent; the second row goes into a new use case.
+  await page.evaluate(() =>
+    navigator.clipboard.writeText('Beaconing\tTo rare domains\tTHR-1\r\nUploads\t"Over\n1 GB"\tTHR-1\r\n'),
+  );
+  await page.locator('table.fixed-table tbody textarea[data-field="name"]').last().click();
+  await page.keyboard.press('ControlOrMeta+v');
+  expect((await names()).slice(-2)).toEqual(['Beaconing', 'Uploads']);
+  await expect(page.locator('.swal2-toast')).toContainText('Pasted 2 rows into L3, 1 of them new.');
+  await page.keyboard.press('ControlOrMeta+z');
+  expect(await names()).toEqual([...before, '']);
+});
+
 // The fields of a use case that a user enters (the other fields are calculated). The visibility of an L3 rule is entered
 // only when Override is on; otherwise it comes from DeTT&CT.
 const ENTERED = ['name', 'description', 'parentIds', 'attackTechniqueId', 'visibilityFromAttackTechniqueOverride'];

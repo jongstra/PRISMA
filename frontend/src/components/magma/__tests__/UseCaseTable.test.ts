@@ -719,3 +719,84 @@ describe('UseCaseTable: selecting cells', () => {
     table.unmount();
   });
 });
+
+// Pasting text copied from a spreadsheet into the cell with the cursor, as the browser hands it over.
+const paste = (element: Element, text: string) => {
+  const event = new Event('paste', { bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'clipboardData', { value: { getData: () => text } });
+  element.dispatchEvent(event);
+  return event;
+};
+
+describe('UseCaseTable: pasting from a spreadsheet', () => {
+  it('pastes from the cell with the cursor, right and down, adding use cases for rows below the last', async () => {
+    const { cell, selected, useCases, magma, table } = await showThreeL3UseCases(true);
+    paste(cell(1, 'Use Case Name').find('textarea').element, 'A\tabout A\nB\tabout B\nC\tabout C\n');
+    await table.vm.$nextTick();
+    expect(useCases().map((useCase) => [useCase.name, useCase.description])).toEqual([
+      ['', ''],
+      ['A', 'about A'],
+      ['B', 'about B'],
+      ['C', 'about C'],
+    ]);
+    expect(selected()).toBe(6); // the pasted cells are selected
+    expect(Swal.fire).toHaveBeenLastCalledWith(
+      expect.objectContaining({ titleText: 'Pasted 3 rows into L3, 1 of them new.' }),
+    );
+    expect(magma.undoDescription).toBe('Paste 3 rows into L3');
+    magma.undo();
+    expect(useCases().map((useCase) => useCase.name)).toEqual(['', '', '']);
+    table.unmount();
+  });
+
+  it('reads each value for its column, skips calculated columns, and lists the values left out', async () => {
+    const { cell, useCases, table } = await showThreeL3UseCases(true);
+    const row = (index: number) => {
+      const { parentIds, dataSource, attackTechniqueId, visibilityFromAttackTechniqueOverride, visibility } =
+        useCases()[index]!;
+      const { implementation, effectiveness } = useCases()[index]!;
+      return [parentIds, dataSource, attackTechniqueId, visibilityFromAttackTechniqueOverride, visibility]
+        .concat([implementation, effectiveness])
+        .map((value) => value ?? '-');
+    };
+    const before = row(1);
+    paste(
+      cell(0, 'Parent Use Case').find('.current').element,
+      'THR-1\tProxy logs\tT1566\tyes\t40\t65%\t72,5\t99\n' + 'IN-1\tSign-in logs\tT9999\tmaybe\tabc\t\t50\n',
+    );
+    await table.vm.$nextTick();
+    expect(row(0)).toEqual([['THR-1'], 'Proxy logs', 'T1566', true, '40', '65', '72.5']);
+    expect(row(1)).toEqual([['IN-1'], 'Sign-in logs', before[2], before[3], before[4], '', '50']); // 3 left out
+    expect(useCases()[0]!.weight).not.toBe('99'); // calculated: left out
+    expect(Swal.fire).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        text: expect.stringMatching(/^3 values left out: .*"T9999" is not an ATT&CK technique/),
+      }),
+    );
+    table.unmount();
+  });
+
+  it('leaves out a first row with the column titles', async () => {
+    const { cell, useCases, table } = await showThreeL3UseCases(true);
+    paste(cell(0, 'Use Case Name').find('textarea').element, 'Use Case Name\tDescription\nA\tabout A\n');
+    expect(useCases().map((useCase) => useCase.name)).toEqual(['A', '', '']);
+    table.unmount();
+  });
+
+  it('pastes IDs, and leaves out one that is already taken', async () => {
+    const { cell, useCases, table } = await showThreeL3UseCases(true);
+    const before = useCases().map((useCase) => useCase.id);
+    paste(cell(0, 'ID').find('textarea').element, 'NEW-1\nNEW-1\n');
+    expect(useCases().map((useCase) => useCase.id)).toEqual(['NEW-1', before[1], before[2]]);
+    table.unmount();
+  });
+
+  it('pastes one value into a selection of search fields, and leaves one value in a text field to the browser', async () => {
+    const { drag, cell, useCases, table } = await showThreeL3UseCases(true);
+    await drag([0, 'ATT&CK Technique'], [2, 'ATT&CK Technique']);
+    expect(paste(cell(0, 'ATT&CK Technique').find('.current').element, 'T1566\n').defaultPrevented).toBe(true);
+    expect(useCases().map((useCase) => useCase.attackTechniqueId)).toEqual(['T1566', 'T1566', 'T1566']);
+    expect(paste(cell(0, 'Use Case Name').find('textarea').element, 'one value').defaultPrevented).toBe(false);
+    table.unmount();
+  });
+});

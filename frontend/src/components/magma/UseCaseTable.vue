@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 import { computed, nextTick, ref, watch } from 'vue';
 import { magmaStore, type UseCase } from '@/stores/magma';
 import { tacticsStore } from '@/stores/tactics';
-import { USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
+import { PERCENTAGE_INPUTS, SINGLE_LINE_FIELDS, USE_CASE_COLUMNS, type SheetLevel } from './useCaseColumns';
 import OptionPicker from './OptionPicker.vue';
 import { searchTechniques } from './optionSearch';
 import { vHint } from '@/components/common/hint';
@@ -17,6 +17,8 @@ import { notifyUndoable } from '@/components/common/notify';
 import { useCellSelection } from './useCellSelection';
 import type { Cell } from './cellSelection';
 import { letteredIds } from '@/domain/magma/letteredIds';
+import { parseCopiedCells } from './copiedCells';
+import { readPastedValue } from './pastedValues';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -103,6 +105,7 @@ const {
   onCellMouseenter,
   onCellFocusin,
   clear: clearSelection,
+  select: selectCells,
 } = useCellSelection(
   computed(() => rows.value.map((useCase) => useCase.uid)),
   computed(() => columns.value.map((column) => column.field)),
@@ -235,13 +238,11 @@ const fieldValue = (useCase: UseCase, field: string) => useCase[field as keyof U
 // The text of a text field (name, description or data source); a number from a file is shown as text.
 const textValue = (useCase: UseCase, field: string) => String(fieldValue(useCase, field) ?? '');
 
-// The percentages that are typed in a number field, and the calculated ones that are only shown.
-const PERCENTAGE_INPUTS = ['visibility', 'implementation', 'effectiveness', 'inImpact', 'thrImpact', 'outImpact'];
+// The calculated percentages that are only shown (the typed ones are PERCENTAGE_INPUTS, see useCaseColumns.ts).
 const PERCENTAGES_SHOWN = ['visibility', 'implementation', 'effectiveness', 'weight', 'potential'];
 const TEXT_FIELDS = ['id', 'name', 'description', 'dataSource'];
-// The text fields of one line: Enter ends editing (as in a spreadsheet), and pasted line breaks become spaces. The
-// description can have several lines.
-const SINGLE_LINE_FIELDS = ['id', 'name', 'dataSource'];
+// The text fields of one line (SINGLE_LINE_FIELDS): Enter ends editing (as in a spreadsheet), and pasted line breaks
+// become spaces. The description can have several lines.
 
 // The averages in the row below the L1 sheet.
 const averages = computed(() => {
@@ -410,15 +411,128 @@ const updatePercentage = (useCase: UseCase, field: string, event: Event) => {
   changeCells(useCase, field, (target, other) => updateObjectField(target.uid, other, percentage));
 };
 
-// Turning the override off takes the visibility from the ATT&CK technique again (by setting the technique again).
+// Saves a value in a cell. Turning the override off takes the visibility from the ATT&CK technique again (by setting
+// the technique again).
+const saveValue = (target: UseCase, field: string, value: string | string[] | boolean) => {
+  updateObjectField(target.uid, field, value);
+  if (field === 'visibilityFromAttackTechniqueOverride' && !value) {
+    updateObjectField(target.uid, 'attackTechniqueId', target.attackTechniqueId);
+  }
+};
+
 const updateOverride = (useCase: UseCase, event: Event) => {
   const checked = (event.target as HTMLInputElement).checked;
-  changeCells(useCase, 'visibilityFromAttackTechniqueOverride', (target) => {
-    updateObjectField(target.uid, 'visibilityFromAttackTechniqueOverride', checked);
-    if (!checked) {
-      updateObjectField(target.uid, 'attackTechniqueId', target.attackTechniqueId);
-    }
+  changeCells(useCase, 'visibilityFromAttackTechniqueOverride', (target, field) => saveValue(target, field, checked));
+};
+
+// Pasting cells copied from a spreadsheet (Excel, Google Sheets, Numbers) into the cell with the cursor. One value in a
+// text or percentage field is typed by the browser as usual (and goes to a selection from there); in a search field or
+// switch it is chosen, also for the selected cells of its column. Several cells go in as a block: see pasteBlock.
+const onPaste = (event: ClipboardEvent) => {
+  const target = event.target as HTMLElement;
+  const place = target.closest<HTMLElement>('td[data-cell]')?.dataset.cell;
+  if (!place || target.closest('.option-picker input')) {
+    return; // outside the cells, or in an open search field: the browser pastes as usual
+  }
+  const [uid, field] = place.split(':') as [string, string];
+  const useCase = magma.getUseCaseByUid(uid);
+  const cells = parseCopiedCells(event.clipboardData?.getData('text/plain') ?? '');
+  const oneValue = cells.length === 1 && cells[0]!.length === 1;
+  if (!useCase || cells.length === 0 || (oneValue && target.matches('textarea, input[type="text"]'))) {
+    return;
+  }
+  event.preventDefault();
+  if (oneValue) {
+    pasteOne(useCase, field, cells[0]![0]!);
+  } else {
+    pasteBlock(useCase, field, cells);
+  }
+};
+
+const techniqueIds = computed(() => new Set(tactics.techniqueOptions.map((option) => option.id)));
+
+const pasteOne = (useCase: UseCase, field: string, text: string) => {
+  const read = readPastedValue(field, text, techniqueIds.value);
+  if ('problem' in read) {
+    Swal.fire({ icon: 'error', titleText: 'Nothing pasted', text: `${read.problem}.` });
+  } else {
+    changeCells(useCase, field, (target, other) => saveValue(target, other, read.value));
+  }
+};
+
+// Several pasted cells go in from the cell with the cursor, right and down in the order of the columns, as one undo
+// step. Rows below the last get new use cases. Calculated and locked cells are skipped, and a first row with the column
+// titles is left out. A value that does not fit its column (see pastedValues.ts) is left out, and the message lists
+// it. The pasted cells are selected.
+const pasteBlock = (start: UseCase, startField: string, cells: string[][]) => {
+  const sheetColumns = columns.value.slice(columns.value.findIndex((column) => column.field === startField));
+  const isTitleRow = (row: string[]) =>
+    row.every((text, index) => text.trim().toLowerCase() === sheetColumns[index]?.title.toLowerCase());
+  const body = cells.length > 1 && isTitleRow(cells[0]!) ? cells.slice(1) : cells;
+  const fields = sheetColumns.slice(0, Math.max(...body.map((row) => row.length))).map((column) => column.field);
+  const tab = magma.activeTab;
+  const rowsText = `${body.length} row${body.length > 1 ? 's' : ''}`;
+
+  magma.recordStep(`Paste ${rowsText} into ${tab}`);
+  const startRow = rows.value.findIndex((useCase) => useCase.uid === start.uid);
+  const uids = rows.value.slice(startRow, startRow + body.length).map((useCase) => useCase.uid);
+  const added = body.length - uids.length;
+  for (let count = 0; count < added; count++) {
+    magma.addNewUseCase(Number(tab.slice(-1)), tactics.domain);
+    uids.push(magma.useCases.at(-1)!.uid);
+  }
+
+  const problems: string[] = [];
+  let beyondLastColumn = 0;
+  const renames: { uid: string; id: string; was: string }[] = [];
+  body.forEach((row, rowIndex) => {
+    const useCase = magma.getUseCaseByUid(uids[rowIndex]!)!;
+    row.forEach((text, columnIndex) => {
+      const field = fields[columnIndex];
+      if (!field) {
+        beyondLastColumn += text.trim() === '' ? 0 : 1;
+      } else if (!isEditable(field) || isLocked(useCase, field) || notApplicable(useCase, field)) {
+        // calculated or locked: skipped
+      } else if (field === 'id') {
+        if (text.trim() !== useCase.id) {
+          renames.push({ uid: useCase.uid, id: text.trim(), was: useCase.id });
+        }
+      } else {
+        const read = readPastedValue(field, text, techniqueIds.value);
+        if ('problem' in read) {
+          problems.push(`${read.problem} (${useCase.id}, ${titleOf(field)})`);
+        } else {
+          saveValue(useCase, field, read.value);
+        }
+      }
+    });
   });
+
+  // The IDs are renamed together, so they may also swap; an ID that cannot be used is left out.
+  const renamedUids = renames.map((rename) => rename.uid);
+  const usable = renames.filter((rename, index) => {
+    const problem =
+      renames.findIndex((other) => other.id === rename.id) < index
+        ? `"${rename.id}" is pasted twice`
+        : magma.renameProblem(rename.uid, rename.id, renamedUids);
+    if (problem) {
+      problems.push(`${problem.replace(/\.? Choose another ID\.$|\.$/, '')} (${rename.was}, ID)`);
+    }
+    return !problem;
+  });
+  const renameProblem = usable.length > 0 ? magma.renameUseCases(usable) : null;
+  if (renameProblem) {
+    problems.push(`${renameProblem.replace(/\.$/, '')} (IDs not changed)`);
+  }
+  if (beyondLastColumn > 0) {
+    problems.push(`${beyondLastColumn} beyond the last column`);
+  }
+
+  selectCells({ uid: uids[0]!, field: startField }, { uid: uids.at(-1)!, field: fields.at(-1)! });
+  const title = `Pasted ${rowsText} into ${tab}${added > 0 ? `, ${added} of them new` : ''}.`;
+  const more = problems.length > 3 ? `; and ${problems.length - 3} more` : '';
+  const leftOut = `${problems.length} value${problems.length > 1 ? 's' : ''} left out: ${problems.slice(0, 3).join('; ')}${more}.`;
+  notifyUndoable(title, problems.length > 0 ? leftOut : undefined, () => magma.undo(), UNDO_KEY);
 };
 
 // Fields that are shown but cannot be changed: those of the permanent IN and THR use cases, and a visibility that
@@ -521,7 +635,13 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
         Delete {{ deletableSelected.length }} use case{{ deletableSelected.length > 1 ? 's' : '' }}
       </button>
     </div>
-    <table border="1" class="fixed-table" :class="{ selecting: dragging }" :style="{ width: `${sheetWidth}px` }">
+    <table
+      border="1"
+      class="fixed-table"
+      :class="{ selecting: dragging }"
+      :style="{ width: `${sheetWidth}px` }"
+      @paste="onPaste"
+    >
       <caption class="add-row">
         <div class="add-buttons">
           <button type="button" class="add-button" @click="addUseCases(1)">+ Add use case</button>
