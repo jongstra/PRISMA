@@ -186,11 +186,13 @@ onUnmounted(close);
         @click="openList()"
         @keydown="onFieldKeydown"
       >
-        <template v-if="current"
-          ><span class="option-id">{{ current.id }}</span> {{ current.name }}</template
-        >
-        <template v-else-if="hasValue">{{ modelValue }}</template>
-        <template v-else>None</template>
+        <span class="current-text">
+          <template v-if="current"
+            ><span class="option-id">{{ current.id }}</span> {{ current.name }}</template
+          >
+          <template v-else-if="hasValue">{{ modelValue }}</template>
+          <template v-else>None</template>
+        </span>
       </button>
       <button v-if="hasValue" type="button" class="clear" tabindex="-1" v-hint="`No ${noun}`" @click="choose('none')">
         ×
@@ -229,8 +231,20 @@ input {
 .current {
   color: inherit; /* the sheet makes it dark red in a cell that needs attention */
   white-space: normal;
-  overflow-wrap: break-word;
   cursor: pointer;
+}
+
+/* The chosen option in three lines at most, like a row of the sheet, ending in an ellipsis (the hint shows it in full).
+   It breaks between words; a word that does not fit on a line gets a hyphen (the page is in English), and an ID without
+   a place for a hyphen still wraps. */
+.current-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .clear {

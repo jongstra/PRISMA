@@ -39,21 +39,21 @@ async function showTable(level: 'L1' | 'L2' | 'L3', attach = false) {
 }
 
 describe('UseCaseTable', () => {
-  it('shows the columns of the active level', async () => {
+  it('shows the columns of the active level, their titles on one line without a % sign', async () => {
     expect((await showTable('L1')).headers()).toEqual([
       'ID',
       'Use Case Name',
       'Description',
-      'L2 UC Related',
-      'L3 UC Related',
-      'Visibility %',
-      'Implementation %',
-      'Effectiveness %',
-      'Weight %',
-      'Potential %',
-      'IN Impact %',
-      'THR Impact %',
-      'OUT Impact %',
+      'L2 UCs',
+      'L3 UCs',
+      'Visibility',
+      'Implementation',
+      'Effectiveness',
+      'Weight',
+      'Potential',
+      'IN Impact',
+      'THR Impact',
+      'OUT Impact',
       'Risk',
     ]);
     expect((await showTable('L2')).headers()).toEqual([
@@ -61,12 +61,12 @@ describe('UseCaseTable', () => {
       'Use Case Name',
       'Description',
       'Parent Use Case',
-      'L3 UC Related',
-      'Visibility %',
-      'Implementation %',
-      'Effectiveness %',
-      'Weight %',
-      'Potential %',
+      'L3 UCs',
+      'Visibility',
+      'Implementation',
+      'Effectiveness',
+      'Weight',
+      'Potential',
     ]);
     expect((await showTable('L3')).headers()).toEqual([
       'ID',
@@ -76,12 +76,24 @@ describe('UseCaseTable', () => {
       'Data Source',
       'ATT&CK Technique',
       'Override',
-      'Visibility %',
-      'Implementation %',
-      'Effectiveness %',
-      'Weight %',
-      'Potential %',
+      'Visibility',
+      'Implementation',
+      'Effectiveness',
+      'Weight',
+      'Potential',
     ]);
+  });
+
+  it('says in the hint of a column with percentages that it is in %', async () => {
+    const { table } = await showTable('L3');
+    const hintOf = (title: string) =>
+      table
+        .findAll('thead th')
+        .find((th) => th.text() === title)!
+        .attributes('aria-description');
+    expect(hintOf('Visibility')).toMatch(/, in %/);
+    expect(hintOf('Weight')).toMatch(/, in %/);
+    expect(hintOf('Data Source')).not.toMatch(/%/);
   });
 
   it('locks the permanent IN and THR use cases, and marks impacts that do not add up to 100', async () => {
@@ -89,17 +101,17 @@ describe('UseCaseTable', () => {
     const rows = table.findAll('tbody tr').filter((row) => row.find('td.remove-col').exists()); // without the averages
     expect(rows.map((row) => row.find('button.remove-button').exists())).toEqual([false, false, true]);
     expect(cell(0, 'ID').find('textarea').attributes('disabled')).toBeDefined();
-    expect(cell(0, 'IN Impact %').find('input').attributes('disabled')).toBeDefined();
+    expect(cell(0, 'IN Impact').find('input').attributes('disabled')).toBeDefined();
     expect(cell(2, 'ID').find('textarea').attributes('disabled')).toBeUndefined();
-    expect(cell(2, 'Visibility %').find('.uneditable').exists()).toBe(true); // calculated from the levels below
+    expect(cell(2, 'Visibility').find('.uneditable').exists()).toBe(true); // calculated from the levels below
 
     const useCase = magma.L1UseCases(domain).at(-1)!;
     magma.updateUseCase(useCase.uid, { inImpact: 50, thrImpact: 20, outImpact: 30 } as never, domain);
     await table.vm.$nextTick();
-    expect(cell(2, 'IN Impact %').find('input').element.style.backgroundColor).toBe('white');
+    expect(cell(2, 'IN Impact').find('input').element.style.backgroundColor).toBe('white');
     magma.updateUseCase(useCase.uid, { outImpact: 40 } as never, domain);
     await table.vm.$nextTick();
-    const impact = cell(2, 'IN Impact %').find('input').element;
+    const impact = cell(2, 'IN Impact').find('input').element;
     expect([impact.style.backgroundColor, impact.style.color]).toEqual([
       'var(--color-invalid)',
       'var(--color-invalid-text)',
@@ -108,7 +120,7 @@ describe('UseCaseTable', () => {
 
   it('hatches the impacts and the risk of IN and THR in grey, without a value: they do not apply', async () => {
     const { cell } = await showTable('L1');
-    for (const header of ['IN Impact %', 'THR Impact %', 'OUT Impact %', 'Risk']) {
+    for (const header of ['IN Impact', 'THR Impact', 'OUT Impact', 'Risk']) {
       const input = cell(0, header).find('input').element as HTMLInputElement;
       expect([header, input.style.backgroundImage.startsWith('repeating-linear-gradient'), input.value]).toEqual([
         header,
@@ -116,12 +128,12 @@ describe('UseCaseTable', () => {
         '',
       ]);
     }
-    expect((cell(2, 'IN Impact %').find('input').element as HTMLInputElement).style.backgroundImage).toBe('');
+    expect((cell(2, 'IN Impact').find('input').element as HTMLInputElement).style.backgroundImage).toBe('');
   });
 
   it('lets the visibility of an L3 use case be edited, unless it comes from its technique', async () => {
     const { table, magma, cell } = await showTable('L3');
-    const visibility = () => cell(0, 'Visibility %').find('input').attributes('disabled');
+    const visibility = () => cell(0, 'Visibility').find('input').attributes('disabled');
     expect(visibility()).toBeUndefined();
     const useCase = magma.L3UseCases(domain)[0];
     magma.updateUseCase(useCase.uid, { attackTechniqueId: 'T1059' }, domain);
@@ -141,7 +153,7 @@ describe('UseCaseTable', () => {
     await field().find('input').trigger('keydown', { key: 'Enter' });
     expect(magma.L3UseCases(domain)[0].attackTechniqueId).toBe('T1566.001');
     expect(field().find('.current').text()).toBe('T1566.001 Phishing: Spearphishing Attachment');
-    expect(cell(0, 'Visibility %').find('input').attributes('disabled')).toBeDefined(); // it comes from the technique now
+    expect(cell(0, 'Visibility').find('input').attributes('disabled')).toBeDefined(); // it comes from the technique now
   });
 
   it('sets the parent of a use case with the parent field, and marks a missing parent red', async () => {
@@ -180,10 +192,10 @@ describe('UseCaseTable', () => {
     expect((toggle().element as HTMLInputElement).checked).toBe(false);
     await toggle().setValue(true);
     expect(magma.L3UseCases(domain)[0].visibilityFromAttackTechniqueOverride).toBe(true);
-    expect(cell(0, 'Visibility %').find('input').attributes('disabled')).toBeUndefined();
+    expect(cell(0, 'Visibility').find('input').attributes('disabled')).toBeUndefined();
     await toggle().setValue(false);
     expect(magma.L3UseCases(domain)[0].visibilityFromAttackTechniqueOverride).toBe(false);
-    expect(cell(0, 'Visibility %').find('input').attributes('disabled')).toBeDefined();
+    expect(cell(0, 'Visibility').find('input').attributes('disabled')).toBeDefined();
   });
 
   it('keeps each row with its use case when a row above it is deleted', async () => {
@@ -336,7 +348,7 @@ describe('UseCaseTable', () => {
   it('shows percentages with a decimal point in every browser language, and accepts a typed decimal comma', async () => {
     const { magma, cell } = await showTable('L3');
     const useCase = magma.L3UseCases(domain)[0]!;
-    const implementation = () => cell(0, 'Implementation %').find('input');
+    const implementation = () => cell(0, 'Implementation').find('input');
     expect(implementation().attributes('type')).toBe('text'); // a number field shows the browser's language, e.g. 0,00
     expect(implementation().attributes('inputmode')).toBe('decimal');
     await implementation().setValue('45,5');
@@ -436,26 +448,26 @@ async function showThreeL3UseCases(attach = false) {
 describe('UseCaseTable: selecting cells', () => {
   it('selects cells by dragging, and a change in one of them goes to all of them, as one undo step', async () => {
     const { drag, selected, cell, useCases, magma } = await showThreeL3UseCases();
-    await drag([0, 'Implementation %'], [2, 'Implementation %']);
+    await drag([0, 'Implementation'], [2, 'Implementation']);
     expect(selected()).toBe(3);
-    await cell(1, 'Implementation %').find('input').setValue('90');
+    await cell(1, 'Implementation').find('input').setValue('90');
     expect(useCases().map((useCase) => useCase.implementation)).toEqual(['90', '90', '90']);
-    expect(magma.undoDescription).toBe('Implementation % of 3 use cases');
+    expect(magma.undoDescription).toBe('Implementation of 3 use cases');
     magma.undo();
     expect(useCases().map((useCase) => useCase.implementation)).toEqual([null, null, null]);
   });
 
   it('sends a change in a block to all selected cells of the same kind: a percentage to the percentages', async () => {
     const { drag, selected, cell, useCases, magma } = await showThreeL3UseCases();
-    await drag([0, 'Implementation %'], [2, 'Effectiveness %']);
+    await drag([0, 'Implementation'], [2, 'Effectiveness']);
     expect(selected()).toBe(6);
-    await cell(1, 'Implementation %').find('input').setValue('80');
+    await cell(1, 'Implementation').find('input').setValue('80');
     expect(useCases().map((useCase) => [useCase.implementation, useCase.effectiveness])).toEqual([
       ['80', '80'],
       ['80', '80'],
       ['80', '80'],
     ]);
-    expect(magma.undoDescription).toBe('Implementation % and Effectiveness % of 3 use cases');
+    expect(magma.undoDescription).toBe('Implementation and Effectiveness of 3 use cases');
     magma.undo();
     expect(useCases().map((useCase) => [useCase.implementation, useCase.effectiveness])).toEqual([
       [null, null],
@@ -466,7 +478,7 @@ describe('UseCaseTable: selecting cells', () => {
 
   it('sends a text to the selected texts only, on one line in the name and data source', async () => {
     const { drag, cell, useCases } = await showThreeL3UseCases();
-    await drag([0, 'Use Case Name'], [1, 'Implementation %']);
+    await drag([0, 'Use Case Name'], [1, 'Implementation']);
     await cell(0, 'Description').find('textarea').setValue('Checked\nby hand');
     expect(useCases().map((useCase) => [useCase.name, useCase.description, useCase.dataSource])).toEqual([
       ['Checked by hand', 'Checked\nby hand', 'Checked by hand'],
@@ -497,10 +509,10 @@ describe('UseCaseTable: selecting cells', () => {
     expect(document.activeElement).toBe(field(2, 'Use Case Name'));
     expect([field(2, 'Use Case Name').selectionStart, field(2, 'Use Case Name').selectionEnd]).toEqual([0, 6]);
 
-    await cell(0, 'Implementation %').trigger('mousedown', { button: 0 });
+    await cell(0, 'Implementation').trigger('mousedown', { button: 0 });
     window.dispatchEvent(new MouseEvent('mouseup'));
-    await cell(2, 'Effectiveness %').trigger('mousedown', { button: 0, shiftKey: true });
-    expect(document.activeElement).toBe(field(0, 'Implementation %'));
+    await cell(2, 'Effectiveness').trigger('mousedown', { button: 0, shiftKey: true });
+    expect(document.activeElement).toBe(field(0, 'Implementation'));
     table.unmount();
   });
 
@@ -542,13 +554,13 @@ describe('UseCaseTable: selecting cells', () => {
 
   it('gives the cursor to the first selected cell that can take it, when the start cell cannot', async () => {
     const { drag, cell, table } = await showThreeL3UseCases(true);
-    await drag([0, 'Weight %'], [2, 'Visibility %']); // the weight is calculated
-    const first = cell(0, 'Visibility %').find('input').element; // the first selected cell that can take the cursor
+    await drag([0, 'Weight'], [2, 'Visibility']); // the weight is calculated
+    const first = cell(0, 'Visibility').find('input').element; // the first selected cell that can take the cursor
     expect(document.activeElement).toBe(first);
-    expect(press(cell(1, 'Weight %').element).defaultPrevented).toBe(true); // keeps the cursor where it is
+    expect(press(cell(1, 'Weight').element).defaultPrevented).toBe(true); // keeps the cursor where it is
     expect(document.activeElement).toBe(first);
-    cell(1, 'Visibility %').find('input').element.setAttribute('disabled', ''); // as when it comes from the technique
-    expect(press(cell(1, 'Visibility %').find('input').element).defaultPrevented).toBe(true);
+    cell(1, 'Visibility').find('input').element.setAttribute('disabled', ''); // as when it comes from the technique
+    expect(press(cell(1, 'Visibility').find('input').element).defaultPrevented).toBe(true);
     await drag([0, 'Override'], [2, 'Override']); // a switch takes the cursor too: Space switches all of them
     expect(document.activeElement).toBe(cell(0, 'Override').find('input').element);
     table.unmount();
@@ -568,7 +580,7 @@ describe('UseCaseTable: selecting cells', () => {
 
   it('says under the selection how many cells it has and that a change goes to all', async () => {
     const { drag, table } = await showThreeL3UseCases(true);
-    await drag([0, 'Implementation %'], [2, 'Effectiveness %']);
+    await drag([0, 'Implementation'], [2, 'Effectiveness']);
     await table.vm.$nextTick();
     await table.vm.$nextTick();
     expect(table.find('.selection-label').text()).toMatch(
@@ -595,8 +607,8 @@ describe('UseCaseTable: selecting cells', () => {
     for (const useCase of useCases().slice(1)) {
       magma.updateUseCase(useCase.uid, { visibilityFromAttackTechniqueOverride: true }, domain);
     }
-    await drag([0, 'Visibility %'], [2, 'Visibility %']);
-    await cell(2, 'Visibility %').find('input').setValue('40');
+    await drag([0, 'Visibility'], [2, 'Visibility']);
+    await cell(2, 'Visibility').find('input').setValue('40');
     expect(useCases().map((useCase) => useCase.visibility)).toEqual([fromTechnique, '40', '40']);
   });
 
@@ -815,7 +827,7 @@ describe('UseCaseTable: moving between cells with the keyboard', () => {
     const name = field(cell(1, 'Use Case Name')) as HTMLTextAreaElement;
     expect(document.activeElement).toBe(name);
     expect([name.selectionStart, name.selectionEnd]).toEqual([0, 4]);
-    press(field(cell(1, 'Implementation %')), 'ArrowLeft'); // the visibility comes from the technique: locked
+    press(field(cell(1, 'Implementation')), 'ArrowLeft'); // the visibility comes from the technique: locked
     expect(document.activeElement).toBe(cell(1, 'Override').find('input').element);
     table.unmount();
   });
@@ -841,7 +853,7 @@ describe('UseCaseTable: moving between cells with the keyboard', () => {
     expect(document.activeElement).toBe(field(cell(1, 'Use Case Name')));
     press(field(cell(1, 'Use Case Name')), 'Enter', { shiftKey: true });
     expect(document.activeElement).toBe(field(cell(0, 'Use Case Name')));
-    press(field(cell(0, 'Effectiveness %')), 'Tab'); // the last cell of the row that can take the cursor
+    press(field(cell(0, 'Effectiveness')), 'Tab'); // the last cell of the row that can take the cursor
     expect(document.activeElement).toBe(field(cell(1, 'ID')));
     expect(press(field(cell(1, 'Description')), 'Enter')).toBe(false); // a new line
     table.unmount();

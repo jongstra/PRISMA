@@ -458,13 +458,13 @@ describe('magma store: undo and redo', () => {
 
   it('undoes a change, with the values that depend on it, and redoes it', () => {
     const before = { implementation: l3('DOS-1-A').implementation, weight: l3('DOS-1-A').weight };
-    magma.recordStep('Implementation % of DOS-1-A', 'DOS-1-A:implementation');
+    magma.recordStep('Implementation of DOS-1-A', 'DOS-1-A:implementation');
     magma.updateUseCase(l3('DOS-1-A').uid, { implementation: '10' }, 'enterprise-attack');
     const changed = { implementation: l3('DOS-1-A').implementation, weight: l3('DOS-1-A').weight };
-    expect(magma.undoDescription).toBe('Implementation % of DOS-1-A');
+    expect(magma.undoDescription).toBe('Implementation of DOS-1-A');
     magma.undo();
     expect({ implementation: l3('DOS-1-A').implementation, weight: l3('DOS-1-A').weight }).toEqual(before);
-    expect(magma.redoDescription).toBe('Implementation % of DOS-1-A');
+    expect(magma.redoDescription).toBe('Implementation of DOS-1-A');
     magma.redo();
     expect({ implementation: l3('DOS-1-A').implementation, weight: l3('DOS-1-A').weight }).toEqual(changed);
   });
@@ -500,7 +500,7 @@ describe('magma store: undo and redo', () => {
   });
 
   it('skips a step that changed nothing, such as a refused rename', () => {
-    magma.recordStep('Effectiveness % of DOS-1-A');
+    magma.recordStep('Effectiveness of DOS-1-A');
     magma.updateUseCase(l3('DOS-1-A').uid, { effectiveness: '5' }, 'enterprise-attack');
     magma.recordStep('ID of DOS-1-B');
     expect(magma.renameUseCase(l3('DOS-1-B').uid, 'DOS-1-A')).not.toBeNull(); // refused: the ID exists

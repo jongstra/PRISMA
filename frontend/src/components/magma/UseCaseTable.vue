@@ -20,6 +20,9 @@ import { nextSort, sortedRows, type SortValue } from './useCaseSort';
 import { typedPercentage } from './percentageInput';
 import { isMac, shortcuts } from './undoKeys';
 import { notifyUndoable } from '@/components/common/notify';
+import ScrollThumbs from '@/components/common/ScrollThumbs.vue';
+import { useScrollArea } from '@/components/common/useScrollArea';
+import { frozenLefts, frozenWidth } from './frozenColumns';
 import { useCellSelection } from './useCellSelection';
 import type { Cell } from './cellSelection';
 import { letteredIds } from '@/domain/magma/letteredIds';
@@ -156,6 +159,10 @@ const changeTargets = (useCase: UseCase, field: string): { useCase: UseCase; fie
 function focusCell(cell: Cell) {
   const field = focusableField(cell);
   field?.focus();
+  // The browser only scrolls to a field that is out of view; one under the frozen columns or header counts as in view.
+  // Scrolled into view, it lands beside them (scroll-margin-left and scroll-padding-top, see the styles); a frozen cell
+  // is always in view, so the sheet keeps its place.
+  field?.closest('td')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   if ((field instanceof HTMLInputElement && field.type === 'text') || field instanceof HTMLTextAreaElement) {
     field.select();
   }
@@ -301,10 +308,43 @@ const selectionLabel = computed(() => {
   return count > 1 ? `${count} cells selected · a change goes to all` : null;
 });
 const sheetScroll = ref<HTMLElement | null>(null);
+// In a big enough window the sheet fills the window below the tabs and scrolls itself, with its column headers frozen
+// at its top (useScrollArea.ts).
+const sheetTable = ref<HTMLElement | null>(null);
+const sheetArea = useScrollArea(sheetScroll, sheetTable);
+
+// The delete column, ID and Use Case Name stay at the left while the sheet scrolls sideways (frozenColumns.ts). A cell
+// that gets the cursor is scrolled into view beside them: past them and the 0.5rem of the sheet at its left
+// (--frozen-span, see the styles).
+const FROZEN = 2; // the columns after the delete column that stay: ID and Use Case Name
+const frozenColumnWidths = computed(() => columns.value.slice(0, FROZEN).map((column) => column.width));
+const lefts = computed(() => frozenLefts(DELETE_COLUMN_WIDTH, frozenColumnWidths.value));
+const frozenSpan = computed(() => frozenWidth(DELETE_COLUMN_WIDTH, frozenColumnWidths.value));
+const frozenClass = (index: number) => (index < FROZEN ? ['frozen', { 'frozen-last': index === FROZEN - 1 }] : []);
+const frozenLeft = (index: number) => (index < FROZEN ? { left: `${lefts.value[index + 1]}px` } : {});
+
+// When a selection made by dragging reaches into the columns hidden behind the frozen ones, they open up once it is
+// made: its first column that can scroll comes into view beside the frozen columns, smoothly. (Doing it while dragging
+// would move the cells under the mouse.)
+watch(dragging, (now, before) => {
+  if (!before || now) {
+    return;
+  }
+  const fields = columns.value.map((column) => column.field);
+  const field = selectedFields.value.find((candidate) => fields.indexOf(candidate) >= FROZEN);
+  const uid = selectedRows.value[0];
+  if (field && uid) {
+    sheetScroll.value
+      ?.querySelector(`[data-cell="${uid}:${field}"]`)
+      ?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  }
+});
 const labelPosition = ref<{ top: string; left: string } | null>(null);
-watch(bottomLeft, async (corner) => {
-  await nextTick();
+// Under the bottom left cell of the selection. It is placed again when the sheet scrolls: a frozen cell moves along with
+// it, as when the hidden columns open up after a selection.
+function placeLabel() {
   const scroll = sheetScroll.value;
+  const corner = bottomLeft.value;
   const cell = corner && scroll?.querySelector(`[data-cell="${corner.uid}:${corner.field}"]`);
   if (!scroll || !cell) {
     labelPosition.value = null;
@@ -316,6 +356,10 @@ watch(bottomLeft, async (corner) => {
     top: `${box.bottom - area.top + scroll.scrollTop + 3}px`,
     left: `${box.left - area.left + scroll.scrollLeft}px`,
   };
+}
+watch(bottomLeft, async () => {
+  await nextTick();
+  placeLabel();
 });
 
 // The value of the use case field that a column shows.
@@ -807,7 +851,12 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
 <template>
   <!-- The sheet scrolls sideways; the add button below it (in the caption, above the scroll bar) stays across the page
        with its text in view. -->
-  <div ref="sheetScroll" class="sheet-scroll">
+  <div
+    ref="sheetScroll"
+    class="sheet-scroll scroll-area"
+    :class="{ scrolled: sheetArea.scrolled, 'scrolled-sideways': sheetArea.scrolledSideways }"
+    @scroll.passive="bottomLeft && placeLabel()"
+  >
     <!-- A press on it leaves the cursor in the active cell. -->
     <div v-if="selectionLabel && labelPosition" class="selection-label" :style="labelPosition" @mousedown.prevent>
       {{ selectionLabel }}
@@ -823,218 +872,314 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
         Delete {{ deletableSelected.length }} use case{{ deletableSelected.length > 1 ? 's' : '' }}
       </button>
     </div>
-    <table
-      border="1"
-      class="fixed-table"
-      :class="{ selecting: dragging }"
-      :style="{ width: `${sheetWidth}px` }"
-      @paste="onPaste"
-      @copy="onCopyOrCut"
-      @cut="onCopyOrCut"
-      @keydown="onSheetKeydown"
-    >
-      <caption class="add-row">
-        <div class="add-buttons">
-          <button type="button" class="add-button" @click="addUseCases(1)">+ Add use case</button>
-          <button
-            v-for="count in ADD_MORE"
-            :key="count"
-            type="button"
-            class="add-button add-more"
-            :aria-label="`Add ${count} empty use cases`"
-            v-hint="`Add ${count} empty use cases`"
-            @click="addUseCases(count)"
-          >
-            +{{ count }}
-          </button>
-        </div>
-      </caption>
-      <thead>
-        <tr>
-          <!-- Deletes all use cases of this level. -->
-          <th
-            class="remove-col"
-            v-hint="`Delete all ${magma.activeTab} use cases`"
-            @click="confirmRemoveUseCaseLevel()"
-            @mouseenter="markForDelete(rows.filter((useCase) => !useCase.permanent))"
-            @mouseleave="markForDelete([])"
-            style="background-color: #e73030; color: white; cursor: pointer"
-          >
-            &#10806;
-          </th>
-          <th
-            v-for="column in columns"
-            :key="column.field"
-            v-hint="`${column.description} Click to sort.`"
-            class="explained sortable"
-            :class="{ sorted: sort?.field === column.field }"
-            :aria-sort="ariaSort(column.field)"
-            :style="{ width: `${column.width}px` }"
-            @click="toggleSort(column.field)"
-          >
-            {{ column.title
-            }}<span v-if="sort?.field === column.field" class="sort-arrow" aria-hidden="true">
-              {{ sort.direction === 'ascending' ? '▲' : '▼' }}</span
-            >
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Rows for all use cases. -->
-        <tr
-          v-for="useCase in rows"
-          :key="useCase.uid"
-          :class="{ 'delete-marked': markedForDelete(useCase) }"
-          @focusin="startEditing(useCase)"
-          @focusout="stopEditing"
-        >
-          <!-- Remove-use-case buttons; IN and THR cannot be deleted. -->
-          <td class="remove-col" :class="{ 'not-deletable': useCase.permanent }">
+    <!-- The table and, behind its frozen columns, a white backdrop as high as the table (see the styles). -->
+    <div class="sheet-grid" :style="{ '--frozen-span': `${frozenSpan + 8}px` }">
+      <div class="frozen-backdrop" aria-hidden="true"></div>
+      <table
+        ref="sheetTable"
+        border="1"
+        class="fixed-table"
+        :class="{ selecting: dragging }"
+        :style="{ width: `${sheetWidth}px` }"
+        @paste="onPaste"
+        @copy="onCopyOrCut"
+        @cut="onCopyOrCut"
+        @keydown="onSheetKeydown"
+      >
+        <caption class="add-row">
+          <div class="add-buttons">
+            <button type="button" class="add-button" @click="addUseCases(1)">+ Add use case</button>
             <button
-              v-if="!useCase.permanent"
-              class="remove-button"
-              tabindex="-1"
-              v-hint="'Delete this use case'"
-              @click="deleteUseCases([useCase])"
-              @mouseenter="markForDelete([useCase])"
-              @mouseleave="markForDelete([])"
+              v-for="count in ADD_MORE"
+              :key="count"
+              type="button"
+              class="add-button add-more"
+              :aria-label="`Add ${count} empty use cases`"
+              v-hint="`Add ${count} empty use cases`"
+              @click="addUseCases(count)"
             >
-              &times;
+              +{{ count }}
             </button>
-          </td>
-
-          <td
-            v-for="column in columns"
-            :key="column.field"
-            :data-cell="`${useCase.uid}:${column.field}`"
-            :class="[
-              cellClasses({ uid: useCase.uid, field: column.field }),
-              { 'needs-attention': needsAttention(useCase, column.field) },
-            ]"
-            @mousedown="(event) => onCellMousedown({ uid: useCase.uid, field: column.field }, event)"
-            @mouseenter="(event) => onCellMouseenter({ uid: useCase.uid, field: column.field }, event)"
-            @focusin="cellFocused({ uid: useCase.uid, field: column.field })"
-          >
-            <!-- Editable fields -->
-            <template v-if="column.editable">
-              <input
-                v-if="PERCENTAGE_INPUTS.includes(column.field)"
-                type="text"
-                inputmode="decimal"
-                :value="notApplicable(useCase, column.field) ? '' : fieldValue(useCase, column.field)"
-                @input="(event) => updatePercentage(useCase, column.field, event)"
-                :disabled="isLocked(useCase, column.field)"
-                :style="cellStyle(useCase, column.field)"
-              />
-
-              <div
-                v-else-if="TEXT_FIELDS.includes(column.field)"
-                class="text-field"
-                :class="{ 'left-aligned': column.field === 'description' }"
-                :style="cellStyle(useCase, column.field)"
-                @click="($event.currentTarget as HTMLElement).querySelector('textarea')?.focus()"
+          </div>
+        </caption>
+        <thead>
+          <tr>
+            <!-- Deletes all use cases of this level. -->
+            <th
+              class="remove-col frozen frozen-start"
+              :style="{ left: `${lefts[0]}px` }"
+              v-hint="`Delete all ${magma.activeTab} use cases`"
+              @click="confirmRemoveUseCaseLevel()"
+              @mouseenter="markForDelete(rows.filter((useCase) => !useCase.permanent))"
+              @mouseleave="markForDelete([])"
+              style="background-color: #e73030; color: white; cursor: pointer"
+            >
+              &#10806;
+            </th>
+            <th
+              v-for="(column, index) in columns"
+              :key="column.field"
+              v-hint="`${column.description} Click to sort.`"
+              class="explained sortable"
+              :class="[{ sorted: sort?.field === column.field }, frozenClass(index)]"
+              :aria-sort="ariaSort(column.field)"
+              :style="{ width: `${column.width}px`, ...frozenLeft(index) }"
+              @click="toggleSort(column.field)"
+            >
+              {{ column.title
+              }}<span v-if="sort?.field === column.field" class="sort-arrow" aria-hidden="true">
+                {{ sort.direction === 'ascending' ? '▲' : '▼' }}</span
               >
-                <textarea
-                  :value="shownText(useCase, column.field)"
-                  :class="{ 'id-preview': previewId(useCase, column.field) !== null }"
-                  @keydown="(event) => onTextKeydown(useCase, column.field, event)"
-                  @blur="column.field === 'id' && (idDraft = null)"
-                  @input="(event) => onTextInput(useCase, column.field, event)"
-                  @change="(event) => column.field === 'id' && renameUseCase(useCase, event)"
-                  :data-field="column.field"
-                  :data-saved="column.field === 'id' ? useCase.id : undefined"
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows for all use cases. -->
+          <tr
+            v-for="useCase in rows"
+            :key="useCase.uid"
+            :class="{ 'delete-marked': markedForDelete(useCase) }"
+            @focusin="startEditing(useCase)"
+            @focusout="stopEditing"
+          >
+            <!-- Remove-use-case buttons; IN and THR cannot be deleted. -->
+            <td
+              class="remove-col frozen"
+              :class="{ 'not-deletable': useCase.permanent }"
+              :style="{ left: `${lefts[0]}px` }"
+            >
+              <button
+                v-if="!useCase.permanent"
+                class="remove-button"
+                tabindex="-1"
+                v-hint="'Delete this use case'"
+                @click="deleteUseCases([useCase])"
+                @mouseenter="markForDelete([useCase])"
+                @mouseleave="markForDelete([])"
+              >
+                &times;
+              </button>
+            </td>
+
+            <td
+              v-for="(column, index) in columns"
+              :key="column.field"
+              :data-cell="`${useCase.uid}:${column.field}`"
+              :class="[
+                cellClasses({ uid: useCase.uid, field: column.field }),
+                { 'needs-attention': needsAttention(useCase, column.field) },
+                frozenClass(index),
+              ]"
+              :style="frozenLeft(index)"
+              @mousedown="(event) => onCellMousedown({ uid: useCase.uid, field: column.field }, event)"
+              @mouseenter="(event) => onCellMouseenter({ uid: useCase.uid, field: column.field }, event)"
+              @focusin="cellFocused({ uid: useCase.uid, field: column.field })"
+            >
+              <!-- Editable fields -->
+              <template v-if="column.editable">
+                <input
+                  v-if="PERCENTAGE_INPUTS.includes(column.field)"
+                  type="text"
+                  inputmode="decimal"
+                  :value="notApplicable(useCase, column.field) ? '' : fieldValue(useCase, column.field)"
+                  @input="(event) => updatePercentage(useCase, column.field, event)"
                   :disabled="isLocked(useCase, column.field)"
-                ></textarea>
+                  :style="cellStyle(useCase, column.field)"
+                />
+
+                <div
+                  v-else-if="TEXT_FIELDS.includes(column.field)"
+                  class="text-field"
+                  :class="{ 'left-aligned': column.field === 'description' }"
+                  :style="cellStyle(useCase, column.field)"
+                  @click="($event.currentTarget as HTMLElement).querySelector('textarea')?.focus()"
+                >
+                  <textarea
+                    :value="shownText(useCase, column.field)"
+                    :class="{ 'id-preview': previewId(useCase, column.field) !== null }"
+                    @keydown="(event) => onTextKeydown(useCase, column.field, event)"
+                    @blur="column.field === 'id' && (idDraft = null)"
+                    @input="(event) => onTextInput(useCase, column.field, event)"
+                    @change="(event) => column.field === 'id' && renameUseCase(useCase, event)"
+                    :data-field="column.field"
+                    :data-saved="column.field === 'id' ? useCase.id : undefined"
+                    :disabled="isLocked(useCase, column.field)"
+                  ></textarea>
+                </div>
+
+                <OptionPicker
+                  v-else-if="column.field === 'parentIds'"
+                  :model-value="useCase.parentIds?.[0]"
+                  :options="parentLevelUseCases"
+                  noun="use case"
+                  :style="cellStyle(useCase, column.field)"
+                  @update:model-value="(id) => updatePicked(useCase, 'parentIds', [id])"
+                />
+
+                <OptionPicker
+                  v-else-if="column.field === 'attackTechniqueId'"
+                  :model-value="useCase.attackTechniqueId"
+                  :options="tactics.techniqueOptions"
+                  :search="searchTechniques"
+                  noun="technique"
+                  @update:model-value="(id) => updatePicked(useCase, 'attackTechniqueId', id)"
+                />
+
+                <label
+                  v-else-if="column.field === 'visibilityFromAttackTechniqueOverride'"
+                  class="override-toggle"
+                  v-hint="column.description"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="useCase.visibilityFromAttackTechniqueOverride"
+                    @change="(event) => updateOverride(useCase, event)"
+                  />
+                  <span class="toggle-switch" aria-hidden="true"></span>
+                </label>
+              </template>
+
+              <!-- Calculated fields -->
+              <div v-else-if="column.field === 'L1nrChildren' || column.field === 'L2nrChildren'" class="uneditable">
+                {{ magma.getChildUseCases(useCase).length }}
               </div>
 
-              <OptionPicker
-                v-else-if="column.field === 'parentIds'"
-                :model-value="useCase.parentIds?.[0]"
-                :options="parentLevelUseCases"
-                noun="use case"
+              <div v-else-if="column.field === 'L1nrGrandChildren'" class="uneditable">
+                {{ magma.getGrandChildUseCases(useCase).length }}
+              </div>
+
+              <div v-else-if="PERCENTAGES_SHOWN.includes(column.field)" class="uneditable">
+                {{ formatPercentage(fieldValue(useCase, column.field)) }}
+              </div>
+
+              <input
+                v-else-if="column.field === 'risk'"
+                :value="useCase.permanent ? '' : formatPercentage(useCase.risk || 0)"
                 :style="cellStyle(useCase, column.field)"
-                @update:model-value="(id) => updatePicked(useCase, 'parentIds', [id])"
+                disabled
               />
 
-              <OptionPicker
-                v-else-if="column.field === 'attackTechniqueId'"
-                :model-value="useCase.attackTechniqueId"
-                :options="tactics.techniqueOptions"
-                :search="searchTechniques"
-                noun="technique"
-                @update:model-value="(id) => updatePicked(useCase, 'attackTechniqueId', id)"
-              />
+              <template v-else>
+                {{ fieldValue(useCase, column.field) }}
+              </template>
+            </td>
+          </tr>
 
-              <label
-                v-else-if="column.field === 'visibilityFromAttackTechniqueOverride'"
-                class="override-toggle"
-                v-hint="column.description"
-              >
-                <input
-                  type="checkbox"
-                  :checked="useCase.visibilityFromAttackTechniqueOverride"
-                  @change="(event) => updateOverride(useCase, event)"
-                />
-                <span class="toggle-switch" aria-hidden="true"></span>
-              </label>
-            </template>
-
-            <!-- Calculated fields -->
-            <div v-else-if="column.field === 'L1nrChildren' || column.field === 'L2nrChildren'" class="uneditable">
-              {{ magma.getChildUseCases(useCase).length }}
-            </div>
-
-            <div v-else-if="column.field === 'L1nrGrandChildren'" class="uneditable">
-              {{ magma.getGrandChildUseCases(useCase).length }}
-            </div>
-
-            <div v-else-if="PERCENTAGES_SHOWN.includes(column.field)" class="uneditable">
-              {{ formatPercentage(fieldValue(useCase, column.field)) }}
-            </div>
-
-            <input
-              v-else-if="column.field === 'risk'"
-              :value="useCase.permanent ? '' : formatPercentage(useCase.risk || 0)"
-              :style="cellStyle(useCase, column.field)"
-              disabled
-            />
-
-            <template v-else>
-              {{ fieldValue(useCase, column.field) }}
-            </template>
-          </td>
-        </tr>
-
-        <!-- The empty rows add a little space (the table's border spacing) above and below the averages. -->
-        <tr></tr>
-        <tr v-if="magma.activeTab == 'L1'">
-          <td style="border: none"></td>
-          <td style="border: none"></td>
-          <td style="border: none"></td>
-          <td style="background-color: #eee">Averages &rarr;</td>
-          <td style="border: none"></td>
-          <td style="border: none"></td>
-          <td style="background-color: #eee">{{ averages.visibility }}</td>
-          <td style="background-color: #eee">{{ averages.implementation }}</td>
-          <td style="background-color: #eee">{{ averages.effectiveness }}</td>
-          <td style="background-color: #eee">{{ averages.weight }}</td>
-          <td style="background-color: #eee">{{ averages.potential }}</td>
-        </tr>
-        <tr></tr>
-      </tbody>
-    </table>
+          <!-- The empty rows add a little space (the table's border spacing) above and below the averages. -->
+          <tr></tr>
+          <tr v-if="magma.activeTab == 'L1'">
+            <td style="border: none"></td>
+            <td style="border: none"></td>
+            <td style="border: none"></td>
+            <td style="background-color: #eee">Averages &rarr;</td>
+            <td style="border: none"></td>
+            <td style="border: none"></td>
+            <td style="background-color: #eee">{{ averages.visibility }}</td>
+            <td style="background-color: #eee">{{ averages.implementation }}</td>
+            <td style="background-color: #eee">{{ averages.effectiveness }}</td>
+            <td style="background-color: #eee">{{ averages.weight }}</td>
+            <td style="background-color: #eee">{{ averages.potential }}</td>
+          </tr>
+          <tr></tr>
+        </tbody>
+      </table>
+    </div>
+    <ScrollThumbs :area="sheetArea" />
   </div>
 </template>
 
 <style scoped>
 /* The sheet scrolls sideways from window edge to window edge (past the 0.5rem margin of the page, App.vue), starting
    and ending 0.5rem from the edges. It starts 3px below the tabs: with the 2px between the cells, its header row is
-   5px below them, like the content of the other tabs. */
+   5px below them, like the content of the other tabs. In a big enough window it also fills the window below the tabs
+   and scrolls down itself (.scroll-area in main.css, useScrollArea.ts); a cell that gets the cursor is then scrolled
+   into view below the frozen header row (34px: the row and the 2px above and below it). */
 .sheet-scroll {
   position: relative; /* for the line under a selection of cells */
-  overflow-x: auto;
   margin: 3px -0.5rem 0;
   padding: 0 0.5rem;
+  scroll-padding-top: 34px;
+}
+
+/* The column headers stay at the top of the sheet while it scrolls down, above the cells (the cursor ring is at 1, the
+   label of a selection at 5); once the sheet is scrolled, a soft shadow below them. */
+thead th {
+  position: sticky;
+  top: 2px;
+  z-index: 6;
+}
+
+/* A square white frame in the 2px around each header cell hides the rows that scroll underneath, also where the rounded
+   corners meet. */
+thead th::before {
+  content: '';
+  position: absolute;
+  inset: -3px; /* the 1px border and the 2px between the cells */
+  border: 2px solid white;
+  pointer-events: none;
+}
+
+.scrolled thead th {
+  box-shadow: 0 7px 5px -4px rgba(0, 0, 0, 0.22);
+}
+
+/* The delete column, ID and Use Case Name stay at the left while the sheet scrolls sideways, above the cells that
+   scroll under them (and also while selected, which makes a cell relative), with a white backdrop behind them (below). */
+.fixed-table td.frozen,
+.fixed-table th.frozen {
+  position: sticky;
+  z-index: 4;
+}
+
+.fixed-table thead th.frozen {
+  z-index: 7;
+}
+
+/* A cell that can scroll under them is scrolled into view beside them when the keys move the cursor to it (focusCell); a
+   frozen cell is always in view, so the sheet keeps its place. */
+.fixed-table td:not(.frozen) {
+  scroll-margin-left: var(--frozen-span);
+}
+
+thead th.frozen-start::before {
+  left: -11px;
+  border-left-width: 10px;
+}
+
+.scrolled-sideways thead th.frozen-last {
+  box-shadow: 7px 0 5px -4px rgba(0, 0, 0, 0.22);
+}
+
+.scrolled.scrolled-sideways thead th.frozen-last {
+  box-shadow:
+    0 7px 5px -4px rgba(0, 0, 0, 0.22),
+    7px 0 5px -4px rgba(0, 0, 0, 0.22);
+}
+
+/* Behind the frozen cells, a white backdrop as high as the table, in the same grid cell: it stays at the left, from the
+   edge of the sheet to past the name, above the cells that scroll under the frozen columns and below the frozen cells.
+   So nothing shows through the 0.5rem left of the sheet, the 2px between the frozen cells or their rounded corners.
+   Once the sheet is scrolled sideways, a soft shadow at its right. */
+.sheet-grid {
+  display: grid;
+}
+
+.sheet-grid > * {
+  grid-area: 1 / 1;
+}
+
+.frozen-backdrop {
+  position: sticky;
+  left: -8px; /* from the edge of the sheet, past its 0.5rem padding */
+  z-index: 3;
+  width: var(--frozen-span);
+  margin-left: -8px;
+  background-color: white;
+  pointer-events: none;
+}
+
+.scrolled-sideways .frozen-backdrop {
+  box-shadow: 7px 0 5px -4px rgba(0, 0, 0, 0.22);
 }
 
 /* A row is three lines of text high; longer text in a text field scrolls. The search fields (OptionPicker.vue) use the
@@ -1272,6 +1417,7 @@ button.remove-button {
 .add-buttons {
   position: sticky;
   left: 0;
+  z-index: 4; /* above the backdrop of the frozen columns */
   display: flex;
   gap: 4px;
   width: min(calc(100vw - 1rem), 100%);

@@ -308,6 +308,121 @@ test('the matrix fills the window below the controls and scrolls itself, with th
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true);
 });
 
+test('a sheet fills the window below the tabs and scrolls itself, with its column headers frozen at its top', async ({
+  page,
+}) => {
+  await openApp(page); // 1400 × 900
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/heatmap-colours.yaml`);
+  await openTab(page, 'L3');
+  const sheet = page.locator('.sheet-scroll');
+  const header = page.locator('table.fixed-table thead th').nth(1);
+  const box = async (locator: Locator) => (await locator.boundingBox())!;
+  // The page does not scroll: the sheet reaches to 8px above the bottom of the window.
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight)).toBe(true);
+  const sheetBox = await box(sheet);
+  expect(Math.round(sheetBox.y + sheetBox.height)).toBe(892);
+
+  // The wheel over the tabs scrolls the sheet; the column headers stay, with a shadow below them.
+  const headerTop = (await box(header)).y;
+  await page.mouse.move(300, 120);
+  await page.mouse.wheel(0, 500);
+  await expect.poll(() => sheet.evaluate((area) => area.scrollTop)).toBeGreaterThan(0);
+  expect((await box(header)).y).toBe(headerTop);
+  await expect(sheet).toHaveClass(/scrolled/);
+
+  // Going down with the arrows keeps the cell with the cursor in view, below the frozen headers.
+  await sheet.evaluate((area) => {
+    area.scrollTop = 0;
+  });
+  await page.locator('table.fixed-table tbody textarea[data-field="name"]').first().click();
+  for (let step = 0; step < 30; step += 1) {
+    await page.keyboard.press('ArrowDown');
+  }
+  const cursor = await page.evaluate(() => {
+    const cell = document.activeElement!.closest('td')!.getBoundingClientRect();
+    return { top: cell.top, bottom: cell.bottom };
+  });
+  const headerBox = await box(header);
+  expect(cursor.top).toBeGreaterThanOrEqual(headerBox.y + headerBox.height);
+  expect(cursor.bottom).toBeLessThanOrEqual(892);
+});
+
+test('a sheet that scrolls sideways keeps its first columns at the left, and its rows level', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 }); // L3 is wider than this window
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/heatmap-colours.yaml`);
+  await openTab(page, 'L3');
+  const sheet = page.locator('.sheet-scroll');
+  const firstId = page.locator('table.fixed-table tbody textarea[data-field="id"]').first();
+  const idLeft = (await firstId.boundingBox())!.x;
+  await sheet.evaluate((area) => {
+    area.scrollLeft = area.scrollWidth;
+  });
+  expect(await sheet.evaluate((area) => area.scrollLeft)).toBeGreaterThan(100);
+  await expect(sheet).toHaveClass(/scrolled-sideways/);
+  expect((await firstId.boundingBox())!.x).toBe(idLeft); // the delete column, ID and name stay
+
+  // The cursor in a frozen cell keeps the sheet's place; Tab to the description (under the frozen columns) brings it
+  // into view beside them.
+  const scrolledTo = await sheet.evaluate((area) => area.scrollLeft);
+  await page.locator('table.fixed-table tbody textarea[data-field="name"]').first().click();
+  expect(await sheet.evaluate((area) => area.scrollLeft)).toBe(scrolledTo);
+  await page.keyboard.press('Tab');
+  const frozenRight = await page.evaluate(
+    () => document.querySelector('table.fixed-table tbody td.frozen-last')!.getBoundingClientRect().right,
+  );
+  const cursorLeft = await page.evaluate(() => document.activeElement!.closest('td')!.getBoundingClientRect().left);
+  expect(cursorLeft).toBeGreaterThanOrEqual(frozenRight);
+
+  // A selection dragged across the frozen columns, either way, opens up the columns hidden behind them once it is made:
+  // its left side comes into view beside the frozen columns.
+  const centre = async (row: number, field: string) => {
+    const box = (await page
+      .locator(`table.fixed-table tbody tr:nth-child(${row}) td[data-cell$=":${field}"]`)
+      .boundingBox())!;
+    return { x: box.x + Math.min(20, box.width / 2), y: box.y + box.height / 2 };
+  };
+  for (const [from, to] of [
+    ['name', 'dataSource'],
+    ['dataSource', 'name'],
+  ] as const) {
+    await page.keyboard.press('Escape');
+    await sheet.evaluate((area) => {
+      area.scrollLeft = area.scrollWidth;
+    });
+    const start = await centre(2, from);
+    const end = await centre(3, to);
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    await page.mouse.move(end.x, end.y, { steps: 8 });
+    await page.mouse.up();
+    await expect(page.locator('td.cell-selected')).toHaveCount(8); // 2 rows from the name to the data source
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.querySelector('tbody tr:nth-child(2) td[data-cell$=":description"]')!.getBoundingClientRect().left,
+        ),
+      )
+      .toBeGreaterThanOrEqual(frozenRight);
+    // The label of the selection stays under its bottom left cell, the name, which moved along.
+    const nameLeft = (await page
+      .locator('table.fixed-table tbody tr:nth-child(3) td[data-cell$=":name"]')
+      .boundingBox())!.x;
+    await expect
+      .poll(async () => Math.round((await page.locator('.selection-label').boundingBox())!.x))
+      .toBe(Math.round(nameLeft));
+  }
+
+  // Every row is three lines high: a long picked parent or technique ends in an ellipsis instead of a fourth line.
+  const heights = await page
+    .locator('table.fixed-table tbody tr:has(td.remove-col)')
+    .evaluateAll((rows) => rows.map((row) => Math.round(row.getBoundingClientRect().height)));
+  expect(new Set(heights)).toEqual(new Set([heights[0]]));
+});
+
 test('the MaGMa page fits a phone: its tabs in two rows of three, and nothing sticks out of the window', async ({
   page,
 }) => {

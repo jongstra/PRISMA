@@ -1,5 +1,5 @@
-// A scroll area that fills the rest of the window, below the header and the controls: the ATT&CK matrix (AttackView.vue)
-// and the MaGMa heatmap (Heatmap.vue). In a window that is big enough (windowFill.ts) the page stops scrolling, the area
+// A scroll area that fills the rest of the window, below the header and the controls: the ATT&CK matrix (AttackView.vue),
+// the MaGMa heatmap (Heatmap.vue) and the MaGMa sheets (UseCaseTable.vue). In a window that is big enough (windowFill.ts) the page stops scrolling, the area
 // gets the height that is left and scrolls itself both ways, and the wheel and the keys that scrolled the page scroll the
 // area, wherever the mouse is. The area draws its own thin scroll bars (ScrollThumbs.vue), as the page does
 // (PageScrollbar.vue), so they also show on a Mac, where the system shows them only while scrolling. In a smaller
@@ -29,10 +29,12 @@ function scrollsItself(target: Element, step: ScrollStep): boolean {
   return false;
 }
 
-export function useScrollArea(area: Ref<HTMLElement | null>) {
+// `content` is what the area holds, whose size changes (filters, rows added); by default its first element.
+export function useScrollArea(area: Ref<HTMLElement | null>, content?: Ref<HTMLElement | null>) {
   const state = reactive({
     fills: false, // the area fills the window and the page does not scroll
     scrolled: false, // the area is scrolled down: a line below its frozen top
+    scrolledSideways: false, // the area is scrolled to the right: a shadow beside its frozen first columns (the sheets)
     frame: { top: 0, left: 0, width: 0, height: 0 }, // where the area is in the window, for the bars
     vertical: NO_BAR,
     horizontal: NO_BAR,
@@ -45,6 +47,7 @@ export function useScrollArea(area: Ref<HTMLElement | null>) {
       return;
     }
     state.scrolled = element.scrollTop > 0;
+    state.scrolledSideways = element.scrollLeft > 0;
     const { top, left, width, height } = element.getBoundingClientRect();
     state.frame = { top, left, width, height };
     state.vertical = state.fills
@@ -175,8 +178,9 @@ export function useScrollArea(area: Ref<HTMLElement | null>) {
     if (typeof ResizeObserver !== 'undefined') {
       observer = new ResizeObserver(scheduleLayout);
       observer.observe(document.body);
-      if (area.value?.firstElementChild) {
-        observer.observe(area.value.firstElementChild);
+      const held = content?.value ?? area.value?.firstElementChild;
+      if (held) {
+        observer.observe(held);
       }
     }
     document.fonts?.ready.then(scheduleLayout);
