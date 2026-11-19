@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // The score filter of the MaGMa heatmap: which scores it colours by (their product; all three together is the weight).
-// The button names the score, such as 'Weight' or 'V × I', and shows it in full on hover (see scoreName.ts).
+// The button names the score, such as 'Weight' or 'V × I', and shows it in full on hover (see scoreName.ts). The item
+// 'Weight' at the top of the list works as 'All' in the platforms filter: ticked while all three scores are, a dash
+// while some are; it ticks or unticks all three.
 import { computed } from 'vue';
 import CheckboxDropdown from '@/components/common/CheckboxDropdown.vue';
 import { magmaStore } from '@/stores/magma';
@@ -35,8 +37,19 @@ const summary = computed(() => name.value.short[0]!.toUpperCase() + name.value.s
 function change(score: string, checked: boolean) {
   magma[FIELDS[score as Score]] = checked;
 }
+
+function changeAll(checked: boolean) {
+  SCORES.forEach((score) => (magma[FIELDS[score]] = checked));
+}
 </script>
 
 <template>
-  <CheckboxDropdown :summary="summary" :items="items" :hint="name.long" @change="change" />
+  <CheckboxDropdown
+    :summary="summary"
+    :items="items"
+    all-label="Weight"
+    :hint="name.long"
+    @change="change"
+    @change-all="changeAll"
+  />
 </template>
