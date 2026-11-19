@@ -1,5 +1,5 @@
-// A scroll area that fills the window (useScrollArea.ts): the ATT&CK matrix on the DeTT&CT page and the MaGMa heatmap.
-// In a window that is wide and high enough, the page itself stops scrolling: the header and the controls stay in view,
+// A scroll area that fills the window (useScrollArea.ts): the ATT&CK matrix on the DeTT&CT page, the MaGMa heatmap and
+// the MaGMa sheets. In a window that is wide and high enough, the page itself stops scrolling: the header and the controls stay in view,
 // and the scroll area fills the rest of the window and scrolls itself. In a narrower or lower window (a phone, a tablet)
 // the controls take too much room, so the page scrolls as before.
 

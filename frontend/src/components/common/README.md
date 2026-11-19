@@ -28,7 +28,7 @@ Components and helpers that several pages use.
 | [`TechniqueTag.vue`](TechniqueTag.vue) | A group or data component in a technique's tooltip: white, red or green with a check mark when selected, a purple dot when in use |
 | [`TechniqueTooltip.vue`](TechniqueTooltip.vue) | The tooltip of a technique in the DeTT&CT matrix and the MaGMa heatmap: a light card with the name and ID in an indigo title strip |
 | [`tooltipPlacement.ts`](tooltipPlacement.ts) | Where a technique's tooltip goes: next to its button, inside the window |
-| [`useScrollArea.ts`](useScrollArea.ts) | A scroll area that fills the window below the controls (the matrix and the heatmap): the page stops scrolling, the wheel and keys scroll the area |
+| [`useScrollArea.ts`](useScrollArea.ts) | A scroll area that fills the window below the controls (the matrix, the heatmap and the MaGMa sheets): the page stops scrolling, the wheel and keys scroll the area |
 | [`useTagHover.ts`](useTagHover.ts) | Hovering a group or component in a pinned tooltip rings the other techniques it uses, until the mouse moves off it |
 | [`useTechniqueTooltip.ts`](useTechniqueTooltip.ts) | When a technique's tooltip is shown: on hover, or pinned by a click |
 | [`windowFill.ts`](windowFill.ts) | When a scroll area fills the window (940 × 700 or more), how high it is, and how far the wheel and keys scroll it |

@@ -1,9 +1,9 @@
-// A scroll area that fills the rest of the window, below the header and the controls: the ATT&CK matrix (AttackView.vue),
-// the MaGMa heatmap (Heatmap.vue) and the MaGMa sheets (UseCaseTable.vue). In a window that is big enough (windowFill.ts) the page stops scrolling, the area
-// gets the height that is left and scrolls itself both ways, and the wheel and the keys that scrolled the page scroll the
-// area, wherever the mouse is. The area draws its own thin scroll bars (ScrollThumbs.vue), as the page does
-// (PageScrollbar.vue), so they also show on a Mac, where the system shows them only while scrolling. In a smaller
-// window the page scrolls as before, and the area only scrolls sideways.
+// A scroll area that fills the rest of the window, below the header and the controls: the ATT&CK matrix
+// (AttackView.vue), the MaGMa heatmap (Heatmap.vue) and the MaGMa sheets (UseCaseTable.vue). In a window that is big
+// enough (windowFill.ts) the page stops scrolling, the area gets the height that is left and scrolls itself both ways,
+// and the wheel and the keys that scrolled the page scroll the area, wherever the mouse is. The area draws its own thin
+// scroll bars (ScrollThumbs.vue), as the page does (PageScrollbar.vue), so they also show on a Mac, where the system
+// shows them only while scrolling. In a smaller window the page scrolls as before, and the area only scrolls sideways.
 import { onBeforeUnmount, onMounted, reactive, type Ref } from 'vue';
 import { scrollTopForDrag, thumbGeometry, type ThumbGeometry } from './scrollbarGeometry';
 import { fillHeight, fillsWindow, keyScroll, wheelScroll, type ScrollStep } from './windowFill';
