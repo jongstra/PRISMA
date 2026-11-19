@@ -7,6 +7,7 @@ import { isDetectable } from '@/domain/attack/visibility';
 import { NOT_DETECTABLE_STYLE } from '@/components/common/notDetectableStyle';
 import { heatmapFill } from './heatmapFill';
 import TechniqueTag from '@/components/common/TechniqueTag.vue';
+import { hoverTag } from '@/components/common/useTagHover';
 import TechniqueTooltip from '@/components/common/TechniqueTooltip.vue';
 import { useTechniqueTooltip } from '@/components/common/useTechniqueTooltip';
 
@@ -62,8 +63,15 @@ const useCaseCounts = computed(() => {
 });
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
-const isGroupSelected = (name: string) =>
-  !!domain.groups.find((group: { name: string }) => group.name === name)?.selected;
+// The groups in the tooltip, as in the DeTT&CT matrix: hovering one rings its techniques, and a click selects it in the
+// heatmap's own selection (the one of its Search groups box).
+const isGroupSelected = (name: string) => !!domain.groups.find((group) => group.name === name)?.selectedInMagmaHeatmap;
+const toggleGroupSelected = (name: string) => {
+  const group = domain.groups.find((candidate) => candidate.name === name);
+  if (group) {
+    group.selectedInMagmaHeatmap = !group.selectedInMagmaHeatmap;
+  }
+};
 
 const showButton = computed(() => {
   // The heatmap value of the technique (based on the heatmap style checkmarks); 0 when there are no related use cases.
@@ -106,6 +114,7 @@ const occursInSelectedGroups = () => {
     :class="{
       pinned,
       'occurs-in-selected-groups': occursInSelectedGroups(),
+      'occurs-in-hovered-groups': store.hoveredGroupsTechniquesSet.has(technique.name),
       'has-use-cases': relatedUseCases.length > 0,
     }"
   >
@@ -154,6 +163,8 @@ const occursInSelectedGroups = () => {
           :name="group"
           kind="group"
           :selected="isGroupSelected(group)"
+          @mouseover="hoverTag(domain.groups, group)"
+          @click="toggleGroupSelected(group)"
         />
       </div>
       <span v-else class="tt-none">None</span>
@@ -181,7 +192,8 @@ button {
 }
 
 button:hover,
-button.pinned {
+button.pinned,
+button.occurs-in-hovered-groups.pinned {
   --outer-ring:
     rgba(0, 0, 0, 0.16) 0px 1px 3px, rgb(51, 51, 51) 0px 0px 0px 2.5px; /* On hover, a dark ring around the button. */
   z-index: 1001;
@@ -193,6 +205,11 @@ button.pinned {
 button.has-use-cases {
   border-color: rgb(42, 42, 42);
   --outer-ring: 0 0 0 2px rgb(42, 42, 42);
+}
+
+/* The techniques of a group hovered in a pinned tooltip: an orange ring, as in the DeTT&CT matrix. */
+button.occurs-in-hovered-groups {
+  --outer-ring: 0px 0px 3px 3px rgba(255, 174, 0, 1);
 }
 
 /* A selected group: a red border with a thin red line inside it, 2px together. */

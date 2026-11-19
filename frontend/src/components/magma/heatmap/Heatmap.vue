@@ -8,10 +8,14 @@ import HeatmapSliderFilter from './HeatmapSliderFilter.vue';
 import HeatmapSearchBar from './HeatmapSearchBar.vue';
 import HeatmapLegend from './HeatmapLegend.vue';
 import SelectionTool from '@/components/common/SelectionTool.vue';
+import { useEndTagHover } from '@/components/common/useTagHover';
 import ControlPanel from '@/components/common/ControlPanel.vue';
 import ControlBox from '@/components/common/ControlBox.vue';
 import { scoreName } from './scoreName';
 const store = tacticsStore();
+
+// Hovering a group in a pinned tooltip rings its techniques, until the mouse moves off it (as on the DeTT&CT page).
+useEndTagHover(() => store.currentDomain);
 const magma = magmaStore();
 
 // The legend is labelled with the score the heatmap colours by, such as 'Legend: weight %'.

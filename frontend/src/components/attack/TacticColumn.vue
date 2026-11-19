@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
 import TechniqueButton from './TechniqueButton.vue';
-import { tacticsStore, type Tactic, type Technique } from '@/stores/tactics';
+import type { Tactic, Technique } from '@/stores/tactics';
 import { averageVisibilityPercentage } from '@/domain/attack/visibility';
 import { vHint } from '../common/hint';
 
 const TACTIC_VISIBILITY_HINT =
   "The average visibility of this tactic's techniques; techniques that ATT&CK lists no data components for are left out.";
-const store = tacticsStore();
 
 defineProps<{ tactic: Tactic; techniques: Technique[] }>();
 
@@ -16,38 +14,6 @@ const tacticVisibility = (tactic: Tactic) => {
   const percentage = averageVisibilityPercentage(tactic.techniques);
   return percentage === null ? 'n/a' : `${Math.round(percentage)}%`;
 };
-
-// The matrix only shows tactic columns once the catalog is loaded, so the domain exists here.
-const domain = store.currentDomain!;
-
-// Method to handle movements outside of tooltip group buttons, to remove group.hovered properties.
-const handleMoveOutsideToDisableGroupHover = (event: MouseEvent) => {
-  if (!(event.target as HTMLElement).closest('.group-box')) {
-    domain.groups.forEach((group) => {
-      delete group.hovered;
-    });
-  }
-};
-// Method to handle movements outside of tooltip component buttons, to remove component.hovered properties.
-const handleMoveOutsideToDisableComponentHover = (event: MouseEvent) => {
-  if (!(event.target as HTMLElement).closest('.component-box')) {
-    domain.data_components.forEach((component) => {
-      delete component.hovered;
-    });
-  }
-};
-
-// Add the mouse move listeners on mount
-onMounted(() => {
-  document.addEventListener('mousemove', handleMoveOutsideToDisableGroupHover);
-  document.addEventListener('mousemove', handleMoveOutsideToDisableComponentHover);
-});
-
-// Remove the mouse move listeners on unmount
-onUnmounted(() => {
-  document.removeEventListener('mousemove', handleMoveOutsideToDisableGroupHover);
-  document.removeEventListener('mousemove', handleMoveOutsideToDisableComponentHover);
-});
 </script>
 
 <template>

@@ -4,6 +4,7 @@ import { tacticsStore, type Technique } from '@/stores/tactics';
 import { hasDataComponents, isDetectable } from '@/domain/attack/visibility';
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '../common/notDetectableStyle';
 import TechniqueTag from '../common/TechniqueTag.vue';
+import { hoverTag } from '../common/useTagHover';
 import { vHint } from '../common/hint';
 import TechniqueTooltip from '../common/TechniqueTooltip.vue';
 import { visibilityColour } from './visibilityColour';
@@ -24,26 +25,10 @@ const domain = store.currentDomain!;
 const buttonRef = ref<HTMLElement | null>(null);
 const { open: tooltipOpen, pinned, show: showTooltip, hide: hideTooltip, togglePin, unpin } = useTechniqueTooltip();
 
-const hoverGroup = (groupName: string) => {
-  domain.groups.forEach((group) => {
-    if (group.name === groupName) {
-      group.hovered = true;
-    }
-  });
-};
-
 const toggleGroupSelected = (groupName: string) => {
   domain.groups.forEach((group) => {
     if (group.name === groupName) {
       group.selected = !group.selected;
-    }
-  });
-};
-
-const hoverComponent = (componentName: string) => {
-  domain.data_components.forEach((component) => {
-    if (component.name === componentName) {
-      component.hovered = true;
     }
   });
 };
@@ -258,7 +243,7 @@ const occursInSelectedComponents = () => {
           kind="component"
           :selected="isComponentSelected(component)"
           :in-use="isComponentInUse(component)"
-          @mouseover="hoverComponent(component)"
+          @mouseover="hoverTag(domain.data_components, component)"
           @click="toggleComponentSelected(component)"
         />
       </div>
@@ -281,7 +266,7 @@ const occursInSelectedComponents = () => {
           :name="group"
           kind="group"
           :selected="isGroupSelected(group)"
-          @mouseover="hoverGroup(group)"
+          @mouseover="hoverTag(domain.groups, group)"
           @click="toggleGroupSelected(group)"
         />
       </div>

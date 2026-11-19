@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue';
 import TacticColumn from '../components/attack/TacticColumn.vue';
 import { tacticsStore } from '@/stores/tactics';
+import { useEndTagHover } from '@/components/common/useTagHover';
 import FileUploadButtonYaml from '@/components/attack/FileUploadButtonYaml.vue';
 import TechniqueAttributeFilter from '@/components/attack/TechniqueAttributeFilter.vue';
 import TechniqueVisibilityPercentageFilter from '@/components/attack/TechniqueVisibilityPercentageFilter.vue';
@@ -13,6 +14,9 @@ import ControlBox from '@/components/common/ControlBox.vue';
 import ControlPanel from '@/components/common/ControlPanel.vue';
 import { occurrenceLevel, visibilityRangeText } from '@/components/attack/controlValues';
 const store = tacticsStore();
+
+// Hovering a group or data component in a pinned tooltip rings its techniques, until the mouse moves off it.
+useEndTagHover(() => store.currentDomain);
 
 // The name of the DeTT&CT file loaded for the current domain, if any.
 const dettectFileName = computed(() => store.dettectFileNames[store.domain]);
