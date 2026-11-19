@@ -94,9 +94,10 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>, 
     start = null;
     dragging.value = false;
   };
-  // The list of a search field is shown outside the sheet (in the page body), but belongs to its cell.
+  // The list of a search field is shown outside the sheet (in the page body), but belongs to its cell; the line under the
+  // selection (with its delete button) belongs to the selection.
   const onMousedownOutside = (event: MouseEvent) => {
-    if (!(event.target as Element).closest?.('.fixed-table tbody, [role="listbox"]')) {
+    if (!(event.target as Element).closest?.('.fixed-table tbody, [role="listbox"], .selection-label')) {
       clear();
     }
   };

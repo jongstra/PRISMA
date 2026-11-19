@@ -145,7 +145,22 @@ function focusCell(cell: Cell) {
   }
 }
 
-// A short line under the selection: a change goes to all of it.
+// The use cases of the selected rows that can be deleted (IN and THR cannot), for the button under the selection.
+const deletableSelected = computed(() =>
+  selectedRows.value
+    .map((uid) => magma.getUseCaseByUid(uid))
+    .filter((useCase): useCase is UseCase => !!useCase && !useCase.permanent),
+);
+
+// While the mouse is on a delete button, the rows it would delete are marked: the row of a ×, the selected rows for the
+// button under the selection, or all rows but IN and THR for the button in the header.
+const markedUids = ref<string[]>([]);
+const markForDelete = (useCases: UseCase[]) => {
+  markedUids.value = useCases.map((useCase) => useCase.uid);
+};
+const markedForDelete = (useCase: UseCase) => markedUids.value.includes(useCase.uid);
+
+// A short line under the selection: a change goes to all of it. It has the button that deletes the selected rows.
 const selectionLabel = computed(() => {
   const count = selectedRows.value.length * selectedFields.value.length;
   return count > 1 ? `${count} cells selected · a change goes to all` : null;
@@ -214,28 +229,23 @@ const listIds = (useCases: UseCase[], max = 5) => {
   return useCases.length > max ? `${ids} and ${useCases.length - max} more` : ids;
 };
 
-// Deleting a use case needs no confirmation: a short message says what was deleted, with a button to undo it (as Ctrl+Z
-// does). Its child use cases are kept but lose their parent; the message names them, so they can get another parent.
-// The × of a row in a selection of several rows deletes all the selected rows, as one undo step.
-const removeUseCase = (useCase: UseCase) => {
-  const deleted =
-    selectedRows.value.length > 1 && selectedRows.value.includes(useCase.uid)
-      ? selectedRows.value
-          .map((uid) => magma.getUseCaseByUid(uid))
-          .filter((target): target is UseCase => !!target && !target.permanent)
-      : [useCase];
+// Deleting use cases needs no confirmation: a short message says what was deleted, with a button to undo it (as Ctrl+Z
+// does). Their child use cases are kept but lose their parent; the message names them, so they can get another parent.
+// The × of a row deletes that row; the button under a selection deletes the selected rows, as one undo step.
+const deleteUseCases = (deleted: UseCase[]) => {
   const children = [...new Set(deleted.flatMap((target) => magma.getChildUseCases(target)))].filter(
     (child) => !deleted.includes(child),
   );
-  magma.recordStep(deleted.length > 1 ? `Delete ${deleted.length} use cases` : `Delete ${useCase.id}`);
+  magma.recordStep(deleted.length > 1 ? `Delete ${deleted.length} use cases` : `Delete ${deleted[0]!.id}`);
   deleted.forEach((target) => magma.removeUseCaseByUid(target.uid));
   clearSelection();
+  markForDelete([]);
   const lost =
     children.length === 1
       ? `1 use case lost its parent: ${listIds(children)}.`
       : `${children.length} use cases lost their parent: ${listIds(children)}.`;
   const title =
-    deleted.length > 1 ? `Deleted ${deleted.length} use cases: ${listIds(deleted)}.` : `Deleted ${useCase.id}.`;
+    deleted.length > 1 ? `Deleted ${deleted.length} use cases: ${listIds(deleted)}.` : `Deleted ${deleted[0]!.id}.`;
   notifyUndoable(title, children.length > 0 ? lost : undefined, () => magma.undo(), UNDO_KEY);
 };
 
@@ -257,6 +267,7 @@ const confirmRemoveUseCaseLevel = () => {
       cancelButtonText: 'No, cancel',
       reverseButtons: true,
     }).then((result) => {
+      markForDelete([]);
       if (result.isConfirmed) {
         magma.recordStep(`Delete all ${magma.activeTab} use cases`);
         magma.removeActiveTabUseCases(tactics.domain);
@@ -426,6 +437,16 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
   <div ref="sheetScroll" class="sheet-scroll">
     <div v-if="selectionLabel && labelPosition" class="selection-label" :style="labelPosition">
       {{ selectionLabel }}
+      <button
+        v-if="deletableSelected.length > 0"
+        type="button"
+        class="delete-selected"
+        @click="deleteUseCases(deletableSelected)"
+        @mouseenter="markForDelete(deletableSelected)"
+        @mouseleave="markForDelete([])"
+      >
+        Delete {{ deletableSelected.length }} use case{{ deletableSelected.length > 1 ? 's' : '' }}
+      </button>
     </div>
     <table border="1" class="fixed-table" :class="{ selecting: dragging }" :style="{ width: `${sheetWidth}px` }">
       <caption class="add-row">
@@ -438,6 +459,8 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
             class="remove-col"
             v-hint="`Delete all ${magma.activeTab} use cases`"
             @click="confirmRemoveUseCaseLevel()"
+            @mouseenter="markForDelete(rows.filter((useCase) => !useCase.permanent))"
+            @mouseleave="markForDelete([])"
             style="background-color: #e73030; color: white; cursor: pointer"
           >
             &#10806;
@@ -461,20 +484,22 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
       </thead>
       <tbody>
         <!-- Rows for all use cases. -->
-        <tr v-for="useCase in rows" :key="useCase.uid" @focusin="startEditing(useCase)" @focusout="stopEditing">
+        <tr
+          v-for="useCase in rows"
+          :key="useCase.uid"
+          :class="{ 'delete-marked': markedForDelete(useCase) }"
+          @focusin="startEditing(useCase)"
+          @focusout="stopEditing"
+        >
           <!-- Remove-use-case buttons; IN and THR cannot be deleted. -->
-          <td
-            class="remove-col"
-            :class="{
-              'not-deletable': useCase.permanent,
-              'in-selection': selectedRows.length > 1 && selectedRows.includes(useCase.uid),
-            }"
-          >
+          <td class="remove-col" :class="{ 'not-deletable': useCase.permanent }">
             <button
               v-if="!useCase.permanent"
               class="remove-button"
               v-hint="'Delete this use case'"
-              @click="removeUseCase(useCase)"
+              @click="deleteUseCases([useCase])"
+              @mouseenter="markForDelete([useCase])"
+              @mouseleave="markForDelete([])"
             >
               &times;
             </button>
@@ -725,9 +750,15 @@ td.edge-right::after {
   border-right-width: 2px;
 }
 
-td.remove-col.in-selection {
+/* The rows that the button under the selection would delete, while the mouse is on it: tinted red. */
+tr.delete-marked button.remove-button {
   background-color: #a8201a;
-  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+tr.delete-marked > td:not(.remove-col),
+tr.delete-marked > td:not(.remove-col) > :is(input, .text-field, .uneditable),
+tr.delete-marked > td:not(.remove-col) > :deep(.option-picker) {
+  background-image: linear-gradient(rgba(231, 48, 48, 0.16), rgba(231, 48, 48, 0.16));
 }
 
 .selection-label {
@@ -739,7 +770,24 @@ td.remove-col.in-selection {
   color: white;
   font-size: 12px;
   white-space: nowrap;
-  pointer-events: none;
+  pointer-events: none; /* the cells under it can still be clicked, but not its button */
+}
+
+.delete-selected {
+  margin-left: 8px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 3px;
+  background-color: white;
+  color: #a8201a;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.delete-selected:hover {
+  background-color: #ffe5e5;
 }
 
 /* IN and THR cannot be deleted: their delete cell is hatched in red. */

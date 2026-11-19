@@ -503,7 +503,9 @@ describe('UseCaseTable: selecting cells', () => {
     await drag([0, 'Implementation %'], [2, 'Effectiveness %']);
     await table.vm.$nextTick();
     await table.vm.$nextTick();
-    expect(table.find('.selection-label').text()).toBe('6 cells selected · a change goes to all');
+    expect(table.find('.selection-label').text()).toMatch(
+      /^6 cells selected · a change goes to all\s+Delete 3 use cases$/,
+    );
     table.unmount();
   });
 
@@ -549,16 +551,65 @@ describe('UseCaseTable: selecting cells', () => {
     expect(selected()).toBe(0); // the drag does not reach into the ID column
   });
 
-  it('deletes all selected rows with the × of one of them, as one undo step', async () => {
-    const { drag, table, useCases, magma } = await showThreeL3UseCases();
+  it('deletes only its own row with the ×, also when the row is part of a selection', async () => {
+    const { drag, table, useCases } = await showThreeL3UseCases();
     await drag([0, 'Use Case Name'], [1, 'Description']);
-    expect(table.findAll('td.remove-col.in-selection')).toHaveLength(2);
     await table.findAll('tbody .remove-button')[1]!.trigger('click');
+    expect(useCases()).toHaveLength(2);
+    expect(Swal.fire).toHaveBeenLastCalledWith(
+      expect.objectContaining({ titleText: expect.stringMatching(/^Deleted /) }),
+    );
+  });
+
+  it('deletes the selected rows with the button under the selection, marked while the mouse is on it', async () => {
+    const { drag, table, useCases, magma } = await showThreeL3UseCases(true);
+    await drag([0, 'Use Case Name'], [1, 'Description']);
+    await table.vm.$nextTick();
+    await table.vm.$nextTick();
+    const button = table.find('.selection-label button');
+    expect(button.text()).toBe('Delete 2 use cases');
+    await button.trigger('mouseenter');
+    expect(table.findAll('tbody tr.delete-marked')).toHaveLength(2);
+    await button.trigger('mousedown', { button: 0 }); // a press on the button does not end the selection
+    await button.trigger('click');
     expect(useCases()).toHaveLength(1);
     expect(Swal.fire).toHaveBeenLastCalledWith(
       expect.objectContaining({ titleText: expect.stringMatching(/^Deleted 2 use cases: /) }),
     );
     magma.undo();
     expect(useCases()).toHaveLength(3);
+    table.unmount();
+  });
+
+  it('marks the rows a delete button would delete while the mouse is on it: its own row, or all but IN and THR', async () => {
+    const { table } = await showTable('L1'); // IN and THR on top, then a new use case
+    const marked = () =>
+      table.findAll('tbody tr').flatMap((row, index) => (row.classes('delete-marked') ? [index] : []));
+    const remove = table.find('tbody .remove-button');
+    await remove.trigger('mouseenter');
+    expect(marked()).toEqual([2]);
+    await remove.trigger('mouseleave');
+    expect(marked()).toEqual([]);
+    await table.find('thead th.remove-col').trigger('mouseenter');
+    expect(marked()).toEqual([2]);
+    await table.find('thead th.remove-col').trigger('mouseleave');
+    expect(marked()).toEqual([]);
+  });
+
+  it('does not count IN and THR for the button under the selection: they cannot be deleted', async () => {
+    const { cell, table } = await showTable('L1', true); // IN and THR on top, then a new use case
+    const select = async (lastRow: number) => {
+      await cell(0, 'Use Case Name').trigger('mousedown', { button: 0 });
+      await cell(lastRow, 'Use Case Name').trigger('mouseenter', { buttons: 1 });
+      window.dispatchEvent(new MouseEvent('mouseup'));
+      await table.vm.$nextTick();
+      await table.vm.$nextTick();
+    };
+    await select(2);
+    expect(table.find('.selection-label button').text()).toBe('Delete 1 use case');
+    await select(1);
+    expect(table.find('.selection-label').exists()).toBe(true);
+    expect(table.find('.selection-label button').exists()).toBe(false);
+    table.unmount();
   });
 });
