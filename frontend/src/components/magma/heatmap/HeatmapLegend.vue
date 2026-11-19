@@ -1,12 +1,22 @@
 <script setup lang="ts">
-// The legend of the MaGMa heatmap: not detectable (striped), no use cases (the base colour), and the green of a score from 0 to
-// 100% for techniques with use cases (the heatmap colours them continuously; these are samples). The label is in the
+// The legend of the MaGMa heatmap: not detectable (striped), no use cases (the base colour), and the green of a score for
+// techniques with use cases: 0%, then the four steps of heatmapFill.ts (up to 25, 50, 75 and 100%). The label is in the
 // ControlBox around it (Heatmap.vue).
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '@/components/common/notDetectableStyle';
 import { vHint } from '@/components/common/hint';
-import { heatmapFill } from './heatmapFill';
+import { HEATMAP_STEPS, heatmapFill } from './heatmapFill';
 
-const SAMPLES = [0, 25, 50, 75, 100];
+// Each swatch shows its step, named by its upper bound; its hint gives the range.
+const SAMPLES = [
+  { label: 0, hint: 'Score 0%' },
+  ...HEATMAP_STEPS.map((step, index) => ({
+    label: step.upTo,
+    hint:
+      index === 0
+        ? `Score above 0, up to ${step.upTo}%`
+        : `Score above ${HEATMAP_STEPS[index - 1]!.upTo}, up to ${step.upTo}%`,
+  })),
+];
 </script>
 
 <template>
@@ -15,12 +25,12 @@ const SAMPLES = [0, 25, 50, 75, 100];
     <div class="swatch" v-hint="'No use cases: no L3 use case detects this technique'">none</div>
     <div
       v-for="sample in SAMPLES"
-      :key="sample"
+      :key="sample.label"
       class="swatch"
-      :style="heatmapFill(sample)"
-      v-hint="`Score ${sample}%`"
+      :style="heatmapFill(sample.label)"
+      v-hint="sample.hint"
     >
-      {{ sample }}
+      {{ sample.label }}
     </div>
   </div>
 </template>
