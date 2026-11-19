@@ -100,6 +100,7 @@ const {
   cellClasses,
   onCellMousedown,
   onCellMouseenter,
+  onCellFocusin,
   clear: clearSelection,
 } = useCellSelection(
   computed(() => rows.value.map((useCase) => useCase.uid)),
@@ -131,18 +132,19 @@ const changeTargets = (useCase: UseCase, field: string): { useCase: UseCase; fie
   });
 };
 
-// The cell where a selection started gets the cursor, as in a spreadsheet: in a text or percentage, its text is
-// selected, so typing replaces it; on a search field, typing starts a search and Delete or Backspace clears it. A switch
-// does not get the cursor.
+// The active cell of a selection gets the cursor, as in a spreadsheet: in a text or percentage, its text is selected, so
+// typing replaces it; on a search field, typing starts a search and Delete or Backspace clears it; on a switch, Space
+// switches it. Says whether the cell could take the cursor: a calculated or locked cell cannot.
 function focusCell(cell: Cell) {
   const place = `[data-cell="${cell.uid}:${cell.field}"]`;
   const field = sheetScroll.value?.querySelector<HTMLElement>(
-    `${place} > input[type="text"], ${place} textarea, ${place} .option-picker .current`,
+    `${place} > input, ${place} textarea, ${place} .option-picker .current, ${place} .override-toggle input`,
   );
   field?.focus();
-  if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+  if ((field instanceof HTMLInputElement && field.type === 'text') || field instanceof HTMLTextAreaElement) {
     field.select();
   }
+  return !!field && document.activeElement === field;
 }
 
 // The use cases of the selected rows that can be deleted (IN and THR cannot), for the button under the selection.
@@ -435,7 +437,8 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
   <!-- The sheet scrolls sideways; the add button below it (in the caption, above the scroll bar) stays across the page
        with its text in view. -->
   <div ref="sheetScroll" class="sheet-scroll">
-    <div v-if="selectionLabel && labelPosition" class="selection-label" :style="labelPosition">
+    <!-- A press on it leaves the cursor in the active cell. -->
+    <div v-if="selectionLabel && labelPosition" class="selection-label" :style="labelPosition" @mousedown.prevent>
       {{ selectionLabel }}
       <button
         v-if="deletableSelected.length > 0"
@@ -512,6 +515,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
             :class="cellClasses({ uid: useCase.uid, field: column.field })"
             @mousedown="(event) => onCellMousedown({ uid: useCase.uid, field: column.field }, event)"
             @mouseenter="(event) => onCellMouseenter({ uid: useCase.uid, field: column.field }, event)"
+            @focusin="onCellFocusin({ uid: useCase.uid, field: column.field })"
           >
             <!-- Editable fields -->
             <template v-if="column.editable">
@@ -704,6 +708,13 @@ td.cell-selected textarea {
   background-color: transparent; /* the text field around it is tinted already */
 }
 
+/* A locked field lets a press through to its cell (a browser gives a locked field no mouse events), so a press on it in a
+   selection keeps the cursor where it was (see useCellSelection.ts). */
+td > input:disabled,
+.text-field textarea:disabled {
+  pointer-events: none;
+}
+
 /* The selected cell with the cursor, where typing goes: not tinted, with a ring in the colour of the selection. */
 td.cell-selected:focus-within,
 td.cell-selected:focus-within > :is(input, .text-field, .uneditable),
@@ -721,7 +732,7 @@ td.cell-selected:focus-within::before {
   pointer-events: none;
 }
 
-td.cell-selected:focus-within :is(input, .text-field),
+td.cell-selected:focus-within :is(input, .text-field, .override-toggle),
 td.cell-selected:focus-within :deep(.option-picker button) {
   outline: none; /* the ring replaces the browser's focus ring */
 }

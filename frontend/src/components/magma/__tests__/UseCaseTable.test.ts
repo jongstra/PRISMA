@@ -498,6 +498,53 @@ describe('UseCaseTable: selecting cells', () => {
     table.unmount();
   });
 
+  // A press as the browser gets it, so it can be seen whether the cell keeps the browser from moving the cursor.
+  const press = (element: Element) => {
+    const event = new MouseEvent('mousedown', { button: 0, bubbles: true, cancelable: true });
+    element.dispatchEvent(event);
+    return event;
+  };
+
+  it('gives a pressed cell of the selection the cursor, also beside its text: a selection always has one', async () => {
+    const { drag, cell, table } = await showThreeL3UseCases(true);
+    await drag([0, 'Use Case Name'], [2, 'Description']);
+    const description = cell(1, 'Description').find('textarea').element as HTMLTextAreaElement;
+    expect(press(cell(1, 'Description').find('.text-field').element).defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(description);
+    expect(press(description).defaultPrevented).toBe(false); // in the text itself, the browser places the cursor
+    await table.vm.$nextTick();
+    await table.vm.$nextTick();
+    // A press on the line under the selection, or its button, leaves the cursor where it is.
+    expect(press(table.find('.selection-label button').element).defaultPrevented).toBe(true);
+    table.unmount();
+  });
+
+  it('gives the cursor to the first selected cell that can take it, when the start cell cannot', async () => {
+    const { drag, cell, table } = await showThreeL3UseCases(true);
+    await drag([0, 'Weight %'], [2, 'Visibility %']); // the weight is calculated
+    const first = cell(0, 'Visibility %').find('input').element; // the first selected cell that can take the cursor
+    expect(document.activeElement).toBe(first);
+    expect(press(cell(1, 'Weight %').element).defaultPrevented).toBe(true); // keeps the cursor where it is
+    expect(document.activeElement).toBe(first);
+    cell(1, 'Visibility %').find('input').element.setAttribute('disabled', ''); // as when it comes from the technique
+    expect(press(cell(1, 'Visibility %').find('input').element).defaultPrevented).toBe(true);
+    await drag([0, 'Override'], [2, 'Override']); // a switch takes the cursor too: Space switches all of them
+    expect(document.activeElement).toBe(cell(0, 'Override').find('input').element);
+    table.unmount();
+  });
+
+  it('ends the selection when the cursor leaves it with the keyboard', async () => {
+    const { drag, cell, selected, table } = await showThreeL3UseCases(true);
+    await drag([0, 'Use Case Name'], [2, 'Use Case Name']);
+    (cell(1, 'Use Case Name').find('textarea').element as HTMLElement).focus();
+    await table.vm.$nextTick();
+    expect(selected()).toBe(3);
+    (cell(1, 'Description').find('textarea').element as HTMLElement).focus(); // Tab to the next cell
+    await table.vm.$nextTick();
+    expect(selected()).toBe(0);
+    table.unmount();
+  });
+
   it('says under the selection how many cells it has and that a change goes to all', async () => {
     const { drag, table } = await showThreeL3UseCases(true);
     await drag([0, 'Implementation %'], [2, 'Effectiveness %']);

@@ -2,7 +2,7 @@
 // A search field in the L2 and L3 sheets, for the parent use case and the ATT&CK technique: it shows the chosen option
 // with its ID in bold. Clicking it, or typing on it, opens a search field with a list of the options, filtered while
 // typing (see optionSearch.ts). A click or Enter chooses an option, Esc or leaving the field keeps the current one, and
-// × (or Delete or Backspace on the field) removes it ('none'). The list is shown in the page body, so the scrolling table does not cut it off (see
+// × (or Delete or Backspace on the field) removes it ('none'). After a choice or Esc, the cursor goes back to the field. The list is shown in the page body, so the scrolling table does not cut it off (see
 // listPlacement.ts).
 import { computed, nextTick, onUnmounted, ref, useId } from 'vue';
 import { searchOptions, type Option } from './optionSearch';
@@ -23,6 +23,7 @@ const emit = defineEmits<{ 'update:modelValue': [id: string] }>();
 const listId = useId();
 const field = ref<HTMLElement | null>(null);
 const input = ref<HTMLInputElement | null>(null);
+const currentButton = ref<HTMLButtonElement | null>(null);
 const list = ref<HTMLElement | null>(null);
 const open = ref(false);
 const query = ref('');
@@ -70,9 +71,16 @@ function close() {
   window.removeEventListener('resize', place);
 }
 
-function choose(id: string) {
+// Closes the list and gives the cursor back to the field, so it stays in its cell (the search field is gone).
+async function closeToField() {
   close();
+  await nextTick();
+  currentButton.value?.focus();
+}
+
+function choose(id: string) {
   emit('update:modelValue', id);
+  closeToField();
 }
 
 async function onInput(event: Event) {
@@ -96,7 +104,8 @@ function onKeydown(event: KeyboardEvent) {
     }
   } else if (event.key === 'Escape') {
     event.preventDefault();
-    close();
+    event.stopPropagation(); // Esc only closes the list (and does not end a selection of cells in the sheet)
+    closeToField();
   }
 }
 
@@ -169,6 +178,7 @@ onUnmounted(close);
     </template>
     <template v-else>
       <button
+        ref="currentButton"
         type="button"
         class="current"
         v-hint="current ? `${current.id} ${current.name}` : undefined"

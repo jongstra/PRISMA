@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import OptionPicker from '../OptionPicker.vue';
 import { searchTechniques } from '../optionSearch';
@@ -112,6 +112,24 @@ describe('OptionPicker', () => {
     await mountPicker('T1566').find('.clear').trigger('click');
     expect(chosen()).toEqual(['none']);
     expect(mountPicker('none').find('.clear').exists()).toBe(false);
+  });
+
+  it('gives the cursor back to the field after a choice or Esc, so it stays in the cell', async () => {
+    const current = () => picker.find('.current').element;
+    await mountPicker('T1059').find('.current').trigger('click');
+    await picker.find('input').trigger('keydown', { key: 'Enter' });
+    await picker.vm.$nextTick();
+    expect(document.activeElement).toBe(current());
+    await picker.find('.current').trigger('click');
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    const reachedWindow = vi.fn();
+    window.addEventListener('keydown', reachedWindow);
+    picker.find('input').element.dispatchEvent(escape);
+    window.removeEventListener('keydown', reachedWindow);
+    expect(reachedWindow).not.toHaveBeenCalled(); // Esc closes the list, and does not end a selection of cells
+    await picker.vm.$nextTick();
+    await picker.vm.$nextTick();
+    expect(document.activeElement).toBe(current());
   });
 
   it('clears the value with Delete or Backspace on the closed field, as the × does', async () => {
