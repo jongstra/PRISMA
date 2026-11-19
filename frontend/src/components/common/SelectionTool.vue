@@ -319,19 +319,22 @@ button::before {
   pointer-events: none;
 }
 
-/* The selected items appear and disappear smoothly. */
-.items-enter-active,
-.items-leave-active {
+/* The selected items fade in when they appear. When they are cleared they go at once: the search field moves back below
+   the label at the same moment, so a fade-out would make the box taller for a moment. */
+.items-enter-active {
   transition:
     max-height 0.15s ease,
     opacity 0.15s ease;
   overflow: hidden;
 }
 
-.items-enter-from,
-.items-leave-to {
+.items-enter-from {
   max-height: 0;
   opacity: 0;
+}
+
+.items-leave-active {
+  display: none;
 }
 
 /* Toggle switch styles */

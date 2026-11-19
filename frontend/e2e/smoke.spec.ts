@@ -85,6 +85,34 @@ for (const { domain, name, file, tactics } of [
   });
 }
 
+test('the groups box keeps its height while groups are selected and cleared', async ({ page }) => {
+  await openApp(page);
+  const box = page.locator('.selection-container').first();
+  const field = box.locator('input.search-box');
+  const height = async () => Math.round((await box.boundingBox())!.height);
+  const before = await height();
+  for (const group of ['APT28', 'APT29', 'FIN7', 'Lazarus Group', 'Wizard Spider']) {
+    await field.fill(group);
+    await page.locator('.suggestion-item', { hasText: group }).first().click();
+  }
+  expect(await height()).toBe(before);
+  // The height in every frame while the groups are cleared: no jump, also not for a moment.
+  await box.evaluate((element) => {
+    const heights: number[] = [];
+    (window as unknown as { heights: number[] }).heights = heights;
+    const start = performance.now();
+    const sample = () => {
+      heights.push(Math.round(element.getBoundingClientRect().height));
+      if (performance.now() - start < 400) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+  await page.locator('.clear-icon').first().click();
+  await page.waitForTimeout(500);
+  const heights = await page.evaluate(() => (window as unknown as { heights: number[] }).heights);
+  expect(Math.max(...heights)).toBe(before);
+});
+
 test('the Insights page shows its charts for the loaded DeTT&CT file', async ({ page }) => {
   await openApp(page);
   await page.locator('#fileInput').setInputFiles(`${EXAMPLES}/dettect/enterprise.yaml`);
