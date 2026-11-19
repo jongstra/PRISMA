@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ancestorCounts, heatmapValue } from '../heatmap';
+import { ancestorCounts, heatmapValue, tacticScore } from '../heatmap';
 
 const DOMAIN = 'enterprise-attack';
 const l3 = (id: string, parentIds: string[], visibility: number, implementation: number, effectiveness: number) => ({
@@ -52,5 +52,40 @@ describe('ancestorCounts', () => {
       ),
     ).toEqual({ l2: 2, l1: 2 });
     expect(ancestorCounts([allUseCases[4]], allUseCases)).toEqual({ l2: 1, l1: 1 });
+  });
+});
+
+describe('tacticScore', () => {
+  // A technique with use cases of these weights (visibility and implementation 100%, so the weight is the effectiveness).
+  const covered = (...weights: number[]) => ({
+    useCases: weights.map((weight, index) => l3(`UC-${index}`, [], 100, 100, weight)),
+    detectable: true,
+  });
+  const uncovered = { useCases: [], detectable: true };
+  const striped = { useCases: [], detectable: false }; // no use cases, and ATT&CK lists no data components for it
+
+  it('averages over all techniques, those without use cases as 0%, and also over those with use cases alone', () => {
+    const techniques = [covered(60), covered(80), ...Array(8).fill(uncovered)];
+    expect(tacticScore(techniques, all)).toEqual({
+      value: 14,
+      techniques: 10,
+      withUseCases: { value: 70, techniques: 2 },
+    });
+  });
+
+  it('leaves out the striped techniques, as the DeTT&CT tactic visibility does, but not one that has use cases', () => {
+    expect(tacticScore([striped, uncovered, covered(50)], all)).toMatchObject({ value: 25, techniques: 2 });
+    expect(tacticScore([{ ...covered(40), detectable: false }], all)).toMatchObject({ value: 40, techniques: 1 });
+  });
+
+  it('uses the selected metrics, as the techniques do', () => {
+    const technique = { useCases: [l3('UC', [], 50, 80, 100)], detectable: true };
+    expect(tacticScore([technique, uncovered], { ...none, visibility: true })).toMatchObject({ value: 25 });
+  });
+
+  it('is 0 without use cases, n/a (null) when every technique is striped, and absent without a selected metric', () => {
+    expect(tacticScore([uncovered, uncovered], all)).toEqual({ value: 0, techniques: 2, withUseCases: null });
+    expect(tacticScore([striped, striped], all)).toEqual({ value: null, techniques: 0, withUseCases: null });
+    expect(tacticScore([covered(50)], none)).toBeNull();
   });
 });

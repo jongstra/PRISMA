@@ -3,7 +3,9 @@
 // components) are referred to, not repeated. The numbers come from the same calculation as the matrix
 // (domain/attack/visibility.ts).
 import {
+  averageVisibilityPercentage,
   hasDataComponents,
+  isDetectable,
   ownVisibility,
   techniqueVisibility,
   type Completeness,
@@ -99,4 +101,25 @@ export function techniqueVisibilityExplanation(
     lines.push('', sentence.charAt(0).toUpperCase() + sentence.slice(1));
   }
   return lines.join('\n');
+}
+
+/**
+ * The hint on the visibility chip above a column of the matrix (TacticColumn.vue): its name, an empty line, then a
+ * bulleted line per fact, such as 'Visibility:\n\n• 7% over its 9 techniques\n• 2 n/a techniques left out'. The
+ * techniques that ATT&CK lists no data components for do not count. Like the hint on a tactic's score in the MaGMa
+ * heatmap (tacticScoreHint.ts).
+ */
+export function tacticVisibilityHint(techniques: TechniqueLike[]): string {
+  const percentage = averageVisibilityPercentage(techniques);
+  if (percentage === null) {
+    return 'n/a: no data components for its techniques';
+  }
+  const counted = techniques.filter(isDetectable).length;
+  const leftOut = techniques.length - counted;
+  const plural = (count: number) => `technique${count === 1 ? '' : 's'}`;
+  const facts = [
+    `${Math.round(percentage)}% over its ${counted} ${plural(counted)}`,
+    ...(leftOut > 0 ? [`${leftOut} n/a ${plural(leftOut)} left out`] : []),
+  ];
+  return ['Visibility:', '', ...facts.map((fact) => `• ${fact}`)].join('\n');
 }

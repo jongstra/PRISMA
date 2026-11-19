@@ -1,7 +1,54 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import HeatmapButton from './HeatmapButton.vue';
+import { tacticsStore, type Tactic, type Technique } from '@/stores/tactics';
+import { magmaStore } from '@/stores/magma';
+import { tacticScore } from '@/domain/magma/heatmap';
+import { isDetectable } from '@/domain/attack/visibility';
+import { NOT_DETECTABLE_STYLE } from '@/components/common/notDetectableStyle';
+import { vHint } from '@/components/common/hint';
+import { heatmapFill } from './heatmapFill';
+import { scoreName } from './scoreName';
+import { tacticScoreHint } from './tacticScoreHint';
 
-defineProps(['tactic', 'techniques']);
+const props = defineProps<{ tactic: Tactic; techniques: Technique[] }>();
+
+const store = tacticsStore();
+const magma = magmaStore();
+
+// The score of the tactic in a chip in the colour of the heatmap: the average over all its techniques, those without
+// use cases as 0% (domain/magma/heatmap.ts), whatever the filters show, like the number of techniques. No chip while no
+// score is ticked; its hint also gives the average over the techniques with use cases (tacticScoreHint.ts).
+const metrics = computed(() => ({
+  visibility: magma.heatmapVisibility,
+  implementation: magma.heatmapImplementation,
+  effectiveness: magma.heatmapEffectiveness,
+}));
+const score = computed(() =>
+  tacticScore(
+    props.tactic.techniques.map((technique) => ({
+      useCases: magma.l3UseCasesForTechnique(technique.external_id, store.domain),
+      detectable: isDetectable(technique),
+    })),
+    metrics.value,
+  ),
+);
+// The name of the score in the hint, written out: 'weight' for all three, otherwise 'implementation × effectiveness'.
+const writtenOutName = computed(() => {
+  const name = scoreName(metrics.value);
+  return name.short === 'weight' ? name.short : name.long;
+});
+const chip = computed(() => {
+  const current = score.value;
+  if (!current) {
+    return null;
+  }
+  return {
+    text: current.value === null ? 'n/a' : `${Math.round(current.value)}%`,
+    style: current.value === null ? NOT_DETECTABLE_STYLE : heatmapFill(current.value),
+    hint: tacticScoreHint(current, writtenOutName.value, props.tactic.techniques.length - current.techniques),
+  };
+});
 </script>
 
 <template>
@@ -12,9 +59,12 @@ defineProps(['tactic', 'techniques']);
         <p class="button-column-tactic-name">{{ tactic.name }}</p>
       </div>
 
-      <!-- Technique count statistic -->
+      <!-- The number of techniques, and the score of the tactic in a chip in the colour of the heatmap -->
       <div class="button-column-stats-div">
-        <p class="button-column-stat-1">{{ tactic.techniques.length }} techniques</p>
+        <p class="button-column-stats">
+          {{ tactic.techniques.length }} techniques
+          <span v-if="chip" v-hint="chip.hint" class="score-chip" :style="chip.style">{{ chip.text }}</span>
+        </p>
       </div>
     </div>
 
@@ -72,8 +122,24 @@ defineProps(['tactic', 'techniques']);
   font-weight: bold;
 }
 
-.button-column-stat-1 {
-  font-size: 12px;
+/* The number of techniques and the score of the tactic on one line: the score in a chip in the colour of the heatmap,
+   like the visibility chip of the DeTT&CT matrix (TacticColumn.vue). */
+.button-column-stats {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   margin-bottom: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.score-chip {
+  padding: 0 4px;
+  border: var(--border-control);
+  border-radius: 4px;
+  background-color: var(--color-technique);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 15px;
 }
 </style>

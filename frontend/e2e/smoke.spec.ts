@@ -295,10 +295,12 @@ test('the matrix fills the window below the controls and scrolls itself, with th
   expect((await firstName.boundingBox())!.y).toBe(nameTop);
   await expect(matrix).toHaveClass(/scrolled/);
 
-  // The heatmap fills the window the same way.
+  // The heatmap fills the window the same way, with the score of every tactic in a chip in its header.
   await openPage(page, 'MaGMa');
   await openTab(page, 'Heatmap');
   expect(await bottom(page.locator('.heatmap-container'))).toBe(892);
+  await expect(page.locator('.column-header .score-chip')).toHaveCount(14);
+  await expect(page.locator('.button-column-stats').first()).toHaveText(/^10 techniques\s*0%$/);
 
   // In a phone-sized window the page scrolls as before.
   await page.setViewportSize({ width: 375, height: 812 });

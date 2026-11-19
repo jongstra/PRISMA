@@ -4,7 +4,7 @@ The Heatmap tab of the MaGMa page: the ATT&CK matrix coloured by use case scores
 
 | Name | Description |
 |---|---|
-| [`__tests__/`](__tests__/) | Tests for the buttons, the legend, the score filter, the name of the score and the green of a score |
+| [`__tests__/`](__tests__/) | Tests for the buttons, the legend, the score filter, the name of the score, the hint on a tactic's score and the green of a score |
 | [`Heatmap.vue`](Heatmap.vue) | The tab itself: the controls in one row, and the matrix |
 | [`HeatmapButton.vue`](HeatmapButton.vue) | One technique in the heatmap, with its tooltip |
 | [`HeatmapButtonColumn.vue`](HeatmapButtonColumn.vue) | One tactic column of the heatmap |
@@ -15,3 +15,4 @@ The Heatmap tab of the MaGMa page: the ATT&CK matrix coloured by use case scores
 | [`HeatmapSliderFilter.vue`](HeatmapSliderFilter.vue) | Hides the techniques below a minimum score |
 | [`HeatmapUseCaseSwitch.vue`](HeatmapUseCaseSwitch.vue) | The switch that only shows the techniques with use cases |
 | [`scoreName.ts`](scoreName.ts) | The name of the score the heatmap colours by, such as 'weight' or 'V × I' |
+| [`tacticScoreHint.ts`](tacticScoreHint.ts) | The hint on the score chip above a column: the score over all its techniques and over those with use cases |

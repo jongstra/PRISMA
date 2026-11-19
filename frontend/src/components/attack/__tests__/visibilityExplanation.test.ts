@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { ownVisibilityExplanation, ownVisibilityRatio, techniqueVisibilityExplanation } from '../visibilityExplanation';
+import {
+  ownVisibilityExplanation,
+  ownVisibilityRatio,
+  tacticVisibilityHint,
+  techniqueVisibilityExplanation,
+} from '../visibilityExplanation';
 
 // Device completeness (0-5) of the data components in use; the others are not in use.
 const scores: Record<string, number> = { 'Process Creation': 4, 'Command Execution': 1 };
@@ -98,5 +103,24 @@ describe('ownVisibilityRatio', () => {
     expect(
       ownVisibilityRatio({ name: 'Native API', data_components: ['Process Creation', 'Script Execution'] }, scoreOf),
     ).toBe(0.4);
+  });
+});
+
+describe('tacticVisibilityHint', () => {
+  const detectable = (ratio: number) => ({ name: 'T', data_components: ['Process Creation'], visibility_ratio: ratio });
+  const notDetectable = { name: 'N', data_components: [], visibility_ratio: 0 };
+
+  it('names the visibility, then gives it over the techniques that count on a line of its own', () => {
+    expect(tacticVisibilityHint([detectable(0.1), detectable(0.2)])).toBe('Visibility:\n\n• 15% over its 2 techniques');
+  });
+
+  it('mentions the n/a techniques that are left out, on a line of their own', () => {
+    expect(tacticVisibilityHint([detectable(0.5), notDetectable, notDetectable])).toBe(
+      'Visibility:\n\n• 50% over its 1 technique\n• 2 n/a techniques left out',
+    );
+  });
+
+  it('explains n/a', () => {
+    expect(tacticVisibilityHint([notDetectable])).toBe('n/a: no data components for its techniques');
   });
 });

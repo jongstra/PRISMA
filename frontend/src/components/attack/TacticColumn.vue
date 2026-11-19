@@ -5,9 +5,7 @@ import { averageVisibilityPercentage } from '@/domain/attack/visibility';
 import { vHint } from '../common/hint';
 import { NOT_DETECTABLE_STYLE } from '../common/notDetectableStyle';
 import { visibilityColour } from './visibilityColour';
-
-const TACTIC_VISIBILITY_HINT =
-  "The average visibility of this tactic's techniques; techniques that ATT&CK lists no data components for are left out.";
+import { tacticVisibilityHint } from './visibilityExplanation';
 
 defineProps<{ tactic: Tactic; techniques: Technique[] }>();
 
@@ -36,7 +34,11 @@ const visibilityChipStyle = (tactic: Tactic) => {
       <div class="button-column-stats-div">
         <p class="button-column-stats">
           {{ tactic.techniques.length }} techniques
-          <span v-hint="TACTIC_VISIBILITY_HINT" class="visibility-chip" :style="visibilityChipStyle(tactic)">
+          <span
+            v-hint="tacticVisibilityHint(tactic.techniques)"
+            class="visibility-chip"
+            :style="visibilityChipStyle(tactic)"
+          >
             {{ tacticVisibility(tactic) }}
           </span>
         </p>
