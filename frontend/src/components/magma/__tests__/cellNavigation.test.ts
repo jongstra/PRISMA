@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { keyDirection, nextCell, type FieldState } from '../cellNavigation';
+import { growDirection, keyDirection, nextCell, type FieldState } from '../cellNavigation';
 
 // A sheet of 3 rows and 4 columns where column 2 is calculated, and row 1 column 3 is locked.
 const size = { rows: 3, columns: 4 };
@@ -76,5 +76,35 @@ describe('keyDirection', () => {
     expect(keyDirection(key('ArrowDown', { altKey: true }), other)).toBeNull();
     expect(keyDirection(key('ArrowRight', { metaKey: true }), text(5, 5))).toBeNull();
     expect(keyDirection(key('Enter', { ctrlKey: true }), text(2, 2))).toBeNull();
+  });
+});
+
+describe('growDirection', () => {
+  const key = (key: string, modifiers: Partial<KeyboardEventInit> = {}) =>
+    new KeyboardEvent('keydown', { key, shiftKey: true, ...modifiers });
+  const text = (start: number, end: number, length = 5, multiline = false): FieldState => ({
+    kind: multiline ? 'multiline' : 'text',
+    start,
+    end,
+    length,
+  });
+
+  it('grows the selection with Shift+arrows where a plain arrow would step to another cell', () => {
+    expect(growDirection(key('ArrowDown'), text(0, 5))).toBe('down');
+    expect(growDirection(key('ArrowRight'), text(0, 5))).toBe('right'); // all text selected, as on arrival
+    expect(growDirection(key('ArrowLeft'), text(0, 0))).toBe('left');
+    expect(growDirection(key('ArrowUp'), { kind: 'other', start: 0, end: 0, length: 0 })).toBe('up');
+  });
+
+  it('leaves Shift+arrows inside a text to select characters', () => {
+    expect(growDirection(key('ArrowRight'), text(2, 2))).toBeNull();
+    expect(growDirection(key('ArrowRight'), text(0, 3))).toBeNull();
+    expect(growDirection(key('ArrowDown'), text(3, 3, 9, true))).toBeNull();
+  });
+
+  it('needs Shift, and no Ctrl, ⌘ or Alt', () => {
+    expect(growDirection(key('ArrowDown', { shiftKey: false }), text(0, 5))).toBeNull();
+    expect(growDirection(key('ArrowDown', { metaKey: true }), text(0, 5))).toBeNull();
+    expect(growDirection(key('Tab'), text(0, 5))).toBeNull();
   });
 });

@@ -842,6 +842,47 @@ describe('UseCaseTable: moving between cells with the keyboard', () => {
     table.unmount();
   });
 
+  it('grows and shrinks a selection with Shift+arrows from the cell with the cursor, which keeps the cursor', async () => {
+    const { cell, selected, table } = await showThreeL3UseCases(true);
+    const name = field(cell(0, 'Use Case Name'));
+    name.focus(); // its (empty) text counts as all selected, as on arrival
+    press(name, 'ArrowDown', { shiftKey: true });
+    press(name, 'ArrowDown', { shiftKey: true });
+    press(name, 'ArrowRight', { shiftKey: true });
+    await table.vm.$nextTick();
+    expect(selected()).toBe(6);
+    expect(document.activeElement).toBe(name);
+    press(name, 'ArrowUp', { shiftKey: true });
+    await table.vm.$nextTick();
+    expect(selected()).toBe(4);
+    table.unmount();
+  });
+
+  it('grows a selection made with the mouse from its far corner, and a plain arrow ends it', async () => {
+    const { drag, cell, selected, table } = await showThreeL3UseCases(true);
+    await drag([0, 'Use Case Name'], [1, 'Use Case Name']);
+    press(field(cell(0, 'Use Case Name')), 'ArrowRight', { shiftKey: true });
+    await table.vm.$nextTick();
+    expect(selected()).toBe(4);
+    press(field(cell(0, 'Use Case Name')), 'ArrowDown');
+    await table.vm.$nextTick();
+    expect(selected()).toBe(0);
+    expect(document.activeElement).toBe(field(cell(1, 'Use Case Name')));
+    table.unmount();
+  });
+
+  it('leaves Shift+arrows inside a text to select characters', async () => {
+    const { cell, magma, useCases, selected, table } = await showThreeL3UseCases(true);
+    magma.updateUseCase(useCases()[0]!.uid, { name: 'Alpha' }, domain);
+    await table.vm.$nextTick();
+    const name = field(cell(0, 'Use Case Name')) as HTMLTextAreaElement;
+    name.focus();
+    name.setSelectionRange(2, 2);
+    expect(press(name, 'ArrowRight', { shiftKey: true })).toBe(false);
+    expect(selected()).toBe(0);
+    table.unmount();
+  });
+
   it('moves from a search field with the arrows, instead of opening its list', async () => {
     const { cell, table } = await showThreeL3UseCases(true);
     press(field(cell(0, 'ATT&CK Technique')), 'ArrowDown');

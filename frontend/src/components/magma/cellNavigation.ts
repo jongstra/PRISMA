@@ -1,6 +1,7 @@
 // Moving the cursor between the cells of a sheet with the keyboard, as in a spreadsheet: the arrows, Enter (down) and
 // Shift+Enter (up), Tab (right, then on to the next row) and Shift+Tab. In a text, the arrows move within the text and
 // step to the next cell at its edge; cells that cannot take the cursor (calculated or locked) are passed over.
+// Shift+arrows grow the selection of cells where a plain arrow would step to another cell (see growDirection).
 
 export type Direction = 'up' | 'down' | 'left' | 'right' | 'next' | 'previous';
 
@@ -24,14 +25,27 @@ export function keyDirection(event: KeyboardEvent, field: FieldState): Direction
     // Enter opens a search field and adds a line in the description.
     return field.kind === 'text' ? (event.shiftKey ? 'up' : 'down') : null;
   }
-  if (event.shiftKey) {
-    return null; // Shift+arrows select text
+  return event.shiftKey ? null : arrowDirection(event.key, field); // Shift+arrows: see growDirection
+}
+
+/** The direction in which Shift+arrow grows the selection of cells, or null when it selects text in the field. */
+export function growDirection(event: KeyboardEvent, field: FieldState): Arrow | null {
+  if (!event.shiftKey || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) {
+    return null;
   }
+  return arrowDirection(event.key, field);
+}
+
+type Arrow = 'up' | 'down' | 'left' | 'right';
+
+// An arrow leaves a search field or switch always, a text of one line up and down, and a text left or right (the
+// description also up or down) only from its edge or when all of it is selected.
+function arrowDirection(key: string, field: FieldState): Arrow | null {
   const other = field.kind === 'other';
   const all = field.start === 0 && field.end === field.length; // all text selected (or none there)
   const atStart = all || (field.start === 0 && field.end === 0);
   const atEnd = all || (field.start === field.length && field.end === field.length);
-  switch (event.key) {
+  switch (key) {
     case 'ArrowUp':
       return other || field.kind === 'text' || atStart ? 'up' : null;
     case 'ArrowDown':

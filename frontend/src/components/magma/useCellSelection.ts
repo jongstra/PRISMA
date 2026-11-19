@@ -15,6 +15,7 @@ import {
   type Cell,
   type CellSelection,
 } from './cellSelection';
+import { nextCell } from './cellNavigation';
 
 /** focusCell gives a cell the cursor, and says whether it could (a calculated or locked cell cannot). */
 export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>, focusCell: (cell: Cell) => boolean) {
@@ -108,6 +109,23 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>, 
   const clear = () => {
     selection.value = null;
   };
+  /**
+   * Grows or shrinks the selection one cell in a direction (Shift+arrow), from its far corner; without a selection,
+   * from the cell with the cursor. Returns the far corner, or null at the edge of the sheet.
+   */
+  function grow(cursor: Cell, direction: 'up' | 'down' | 'left' | 'right'): Cell | null {
+    const { anchor, focus } = active.value ? selection.value! : { anchor: cursor, focus: cursor };
+    const [row, column] = position(focus);
+    const size = { rows: rowUids.value.length, columns: fields.value.length };
+    const next = nextCell({ row, column }, direction, size, () => true);
+    if (!next) {
+      return null;
+    }
+    const corner = { uid: rowUids.value[next.row]!, field: fields.value[next.column]! };
+    selection.value = { anchor, focus: corner };
+    return corner;
+  }
+
   /** Selects the block from one cell to another, such as the cells that were just pasted. */
   const select = (anchor: Cell, focus: Cell) => {
     selection.value = { anchor, focus };
@@ -156,5 +174,6 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>, 
     onCellFocusin,
     clear,
     select,
+    grow,
   };
 }

@@ -255,6 +255,21 @@ test('the arrows, Enter and Tab move between the cells, as in a spreadsheet', as
   expect(await focused()).toBe('3:description');
   await page.keyboard.press('Tab');
   expect(await focused()).toBe('3:parentIds');
+
+  // Shift+arrows select cells, as dragging does: typing goes to all of them; a plain arrow ends the selection.
+  await names.first().click();
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('Shift+ArrowDown');
+  await page.keyboard.press('Shift+ArrowDown');
+  await expect(page.locator('td.cell-selected')).toHaveCount(3);
+  await page.keyboard.type('Same');
+  expect([await names.nth(0).inputValue(), await names.nth(1).inputValue(), await names.nth(2).inputValue()]).toEqual([
+    'Same',
+    'Same',
+    'Same',
+  ]);
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('td.cell-selected')).toHaveCount(0);
 });
 
 // The fields of a use case that a user enters (the other fields are calculated). The visibility of an L3 rule is entered

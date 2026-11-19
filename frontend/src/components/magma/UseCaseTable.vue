@@ -19,7 +19,7 @@ import type { Cell } from './cellSelection';
 import { letteredIds } from '@/domain/magma/letteredIds';
 import { parseCopiedCells } from './copiedCells';
 import { readPastedValue } from './pastedValues';
-import { keyDirection, nextCell, type FieldState } from './cellNavigation';
+import { growDirection, keyDirection, nextCell, type FieldState } from './cellNavigation';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -107,6 +107,7 @@ const {
   onCellFocusin,
   clear: clearSelection,
   select: selectCells,
+  grow: growSelection,
 } = useCellSelection(
   computed(() => rows.value.map((useCase) => useCase.uid)),
   computed(() => columns.value.map((column) => column.field)),
@@ -167,7 +168,8 @@ function focusableField(cell: Cell) {
 
 // Moving between the cells with the keyboard: the arrows, Enter and Shift+Enter, Tab and Shift+Tab (see
 // cellNavigation.ts). An open search field keeps its keys. Enter in the last row saves and keeps the cursor; Tab after
-// the last cell leaves the sheet.
+// the last cell leaves the sheet. Shift+arrows grow the selection (the cursor stays); a plain arrow ends it, as in a
+// spreadsheet.
 const onSheetKeydown = (event: KeyboardEvent) => {
   const target = event.target as HTMLElement;
   const place = target.closest<HTMLElement>('td[data-cell]')?.dataset.cell;
@@ -183,11 +185,25 @@ const onSheetKeydown = (event: KeyboardEvent) => {
         length: target.value.length,
       }
     : { kind: 'other', start: 0, end: 0, length: 0 };
+  const [uid, field] = place.split(':') as [string, string];
+  const growing = growDirection(event, state);
+  if (growing) {
+    event.preventDefault();
+    const corner = growSelection({ uid, field }, growing);
+    if (corner) {
+      sheetScroll.value
+        ?.querySelector(`[data-cell="${corner.uid}:${corner.field}"]`)
+        ?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    }
+    return;
+  }
   const direction = keyDirection(event, state);
   if (!direction) {
     return;
   }
-  const [uid, field] = place.split(':') as [string, string];
+  if (event.key.startsWith('Arrow')) {
+    clearSelection();
+  }
   const uids = rows.value.map((useCase) => useCase.uid);
   const fields = columns.value.map((column) => column.field);
   const next = nextCell(
