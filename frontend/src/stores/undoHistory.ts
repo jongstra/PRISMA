@@ -11,7 +11,7 @@ export interface Place {
 
 export interface Step<S> {
   state: S; // the state before the change (on the undo list) or after it (on the redo list)
-  description: string; // what was changed, such as 'Implementation % of DOS-1-2'
+  description: string; // what was changed, such as 'Implementation % of DOS-1-B'
   place: Place;
 }
 

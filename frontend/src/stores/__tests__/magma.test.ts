@@ -62,7 +62,7 @@ describe('magma store with the example files', () => {
 
   it('updates the business risks when an L3 use case under cumulative IN changes', () => {
     magma.updateUseCase(
-      magma.getUseCaseById('IN-1-1', 'enterprise-attack')!.uid,
+      magma.getUseCaseById('IN-1-A', 'enterprise-attack')!.uid,
       { effectiveness: 100 },
       'enterprise-attack',
     );
@@ -72,7 +72,7 @@ describe('magma store with the example files', () => {
   });
 
   it('updates parents and risks when an L3 use case is removed', () => {
-    magma.removeUseCaseByUid(magma.getUseCaseById('IN-1-1', 'enterprise-attack')!.uid);
+    magma.removeUseCaseByUid(magma.getUseCaseById('IN-1-A', 'enterprise-attack')!.uid);
     expect(value('IN', 'weight')).toBe('0.00');
     expect(value('DOS', 'risk')).toBe('100.00');
   });
@@ -263,8 +263,8 @@ describe('magma store: renaming and deleting use cases', () => {
   it('moves the children along when an ID is renamed, within the same domain only', () => {
     const weightBefore = magma.getUseCaseById('DOS', domain)!.weight;
     expect(magma.renameUseCase(magma.getUseCaseById('DOS-1', domain)!.uid, 'DOS-A')).toBeNull();
-    expect(parentsOf('DOS-1-1')).toEqual(['DOS-A']);
-    expect(parentsOf('DOS-1-2')).toEqual(['DOS-A']);
+    expect(parentsOf('DOS-1-A')).toEqual(['DOS-A']);
+    expect(parentsOf('DOS-1-B')).toEqual(['DOS-A']);
     expect(magma.getUseCaseById('DOS', domain)!.weight).toBe(weightBefore);
     expect(parentsOf('M-1', 'mobile-attack')).toEqual(['DOS-1']);
   });
@@ -275,7 +275,7 @@ describe('magma store: renaming and deleting use cases', () => {
     expect(magma.renameUseCase(uid, '  ')).toContain('cannot be empty');
     expect(magma.renameUseCase(magma.getUseCaseById('IN', domain)!.uid, 'IN2')).toContain('cannot be renamed');
     expect(magma.getUseCaseById('DOS-1', domain)).toBeDefined();
-    expect(parentsOf('DOS-1-1')).toEqual(['DOS-1']);
+    expect(parentsOf('DOS-1-A')).toEqual(['DOS-1']);
   });
 
   it('refuses an ID with a space or a comma inside, because IDs are references (parents, Excel lists)', () => {
@@ -287,12 +287,12 @@ describe('magma store: renaming and deleting use cases', () => {
 
   it('trims spaces around a new ID', () => {
     expect(magma.renameUseCase(magma.getUseCaseById('DOS-1', domain)!.uid, '  DOS-B ')).toBeNull();
-    expect(parentsOf('DOS-1-1')).toEqual(['DOS-B']);
+    expect(parentsOf('DOS-1-A')).toEqual(['DOS-B']);
   });
 
   it('keeps the children when their parent is deleted (they lose their parent)', () => {
     magma.removeUseCaseByUid(magma.getUseCaseById('DOS-1', domain)!.uid);
-    expect(parentsOf('DOS-1-1')).toEqual(['DOS-1']);
+    expect(parentsOf('DOS-1-A')).toEqual(['DOS-1']);
     expect(magma.getUseCaseById('DOS', domain)!.weight).toBe(0);
   });
 });
@@ -399,7 +399,7 @@ describe('magma store: grandchildren (the L3 use cases under an L1 use case)', (
     ]);
     const ids = magma.getGrandChildUseCases(magma.getUseCaseById('DOS', domain)!).map((useCase) => useCase.id);
     expect(ids.filter((id) => id === 'DOS-X')).toHaveLength(1);
-    expect(ids).toContain('DOS-1-1');
+    expect(ids).toContain('DOS-1-A');
   });
 });
 
@@ -415,55 +415,55 @@ describe('magma store: undo and redo', () => {
   });
 
   it('undoes a change, with the values that depend on it, and redoes it', () => {
-    const before = { implementation: l3('DOS-1-1').implementation, weight: l3('DOS-1-1').weight };
-    magma.recordStep('Implementation % of DOS-1-1', 'DOS-1-1:implementation');
-    magma.updateUseCase(l3('DOS-1-1').uid, { implementation: '10' }, 'enterprise-attack');
-    const changed = { implementation: l3('DOS-1-1').implementation, weight: l3('DOS-1-1').weight };
-    expect(magma.undoDescription).toBe('Implementation % of DOS-1-1');
+    const before = { implementation: l3('DOS-1-A').implementation, weight: l3('DOS-1-A').weight };
+    magma.recordStep('Implementation % of DOS-1-A', 'DOS-1-A:implementation');
+    magma.updateUseCase(l3('DOS-1-A').uid, { implementation: '10' }, 'enterprise-attack');
+    const changed = { implementation: l3('DOS-1-A').implementation, weight: l3('DOS-1-A').weight };
+    expect(magma.undoDescription).toBe('Implementation % of DOS-1-A');
     magma.undo();
-    expect({ implementation: l3('DOS-1-1').implementation, weight: l3('DOS-1-1').weight }).toEqual(before);
-    expect(magma.redoDescription).toBe('Implementation % of DOS-1-1');
+    expect({ implementation: l3('DOS-1-A').implementation, weight: l3('DOS-1-A').weight }).toEqual(before);
+    expect(magma.redoDescription).toBe('Implementation % of DOS-1-A');
     magma.redo();
-    expect({ implementation: l3('DOS-1-1').implementation, weight: l3('DOS-1-1').weight }).toEqual(changed);
+    expect({ implementation: l3('DOS-1-A').implementation, weight: l3('DOS-1-A').weight }).toEqual(changed);
   });
 
   it('makes one step of typing in one cell, until the cell is left', () => {
-    const uid = l3('DOS-1-1').uid;
+    const uid = l3('DOS-1-A').uid;
     for (const value of ['1', '12', '123']) {
-      magma.recordStep('Name of DOS-1-1', `${uid}:name`);
+      magma.recordStep('Name of DOS-1-A', `${uid}:name`);
       magma.updateUseCase(uid, { name: value }, 'enterprise-attack');
     }
     magma.endStepGroup();
-    magma.recordStep('Name of DOS-1-1', `${uid}:name`);
+    magma.recordStep('Name of DOS-1-A', `${uid}:name`);
     magma.updateUseCase(uid, { name: '1234' }, 'enterprise-attack');
     magma.undo();
-    expect(l3('DOS-1-1').name).toBe('123');
+    expect(l3('DOS-1-A').name).toBe('123');
     magma.undo();
-    expect(l3('DOS-1-1').name).toBe('L3 OUT UC DOS');
+    expect(l3('DOS-1-A').name).toBe('L3 OUT UC DOS');
     expect(magma.undoDescription).toBeNull();
   });
 
   it('undoes adding and deleting a use case', () => {
     const count = () => magma.L3UseCases('enterprise-attack').length;
     const start = count();
-    magma.recordStep('Delete DOS-1-1');
-    magma.removeUseCaseByUid(l3('DOS-1-1').uid);
+    magma.recordStep('Delete DOS-1-A');
+    magma.removeUseCaseByUid(l3('DOS-1-A').uid);
     magma.recordStep('Add a use case to L3');
     magma.addNewUseCase(3, 'enterprise-attack');
     expect(count()).toBe(start);
     magma.undo();
     magma.undo();
     expect(count()).toBe(start);
-    expect(l3('DOS-1-1')).toBeDefined();
+    expect(l3('DOS-1-A')).toBeDefined();
   });
 
   it('skips a step that changed nothing, such as a refused rename', () => {
-    magma.recordStep('Effectiveness % of DOS-1-1');
-    magma.updateUseCase(l3('DOS-1-1').uid, { effectiveness: '5' }, 'enterprise-attack');
-    magma.recordStep('ID of DOS-1-2');
-    expect(magma.renameUseCase(l3('DOS-1-2').uid, 'DOS-1-1')).not.toBeNull(); // refused: the ID exists
+    magma.recordStep('Effectiveness % of DOS-1-A');
+    magma.updateUseCase(l3('DOS-1-A').uid, { effectiveness: '5' }, 'enterprise-attack');
+    magma.recordStep('ID of DOS-1-B');
+    expect(magma.renameUseCase(l3('DOS-1-B').uid, 'DOS-1-A')).not.toBeNull(); // refused: the ID exists
     magma.undo();
-    expect(l3('DOS-1-1').effectiveness).not.toBe('5');
+    expect(l3('DOS-1-A').effectiveness).not.toBe('5');
   });
 
   it('shows the sheet and domain where the undone change was made', () => {
@@ -479,7 +479,7 @@ describe('magma store: undo and redo', () => {
   });
 
   it('forgets the history when a MaGMa file is loaded', () => {
-    magma.recordStep('Name of DOS-1-1');
+    magma.recordStep('Name of DOS-1-A');
     magma.loadUseCases(readFile(readExample('magma/example.yaml')));
     expect(magma.undoDescription).toBeNull();
   });

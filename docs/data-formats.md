@@ -47,7 +47,7 @@ A YAML list of use cases. **Save MaGMa YAML** writes all domains. **Load MaGMa Y
   parentIds: [DOS]
 - domain: enterprise-attack
   level: 3
-  id: DOS-1-1
+  id: DOS-1-A
   name: High traffic volume
   parentIds: [DOS-1]
   attackTechniqueId: T1498

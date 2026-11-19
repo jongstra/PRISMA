@@ -22,12 +22,12 @@ describe('notifySuccess', () => {
   it('can show a message with an Undo button that names the shortcut, and undoes when it is clicked', async () => {
     const undo = vi.fn();
     vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false } as Awaited<ReturnType<typeof Swal.fire>>);
-    await notifyUndoable('Deleted DOS-1-2.', '1 use case lost its parent: DOS-1-2-1.', undo, '⌘Z');
+    await notifyUndoable('Deleted DOS-1.', '1 use case lost its parent: DOS-1-A.', undo, '⌘Z');
     expect(Swal.fire).toHaveBeenLastCalledWith(
       expect.objectContaining({
         toast: true,
-        titleText: 'Deleted DOS-1-2.',
-        text: '1 use case lost its parent: DOS-1-2-1.',
+        titleText: 'Deleted DOS-1.',
+        text: '1 use case lost its parent: DOS-1-A.',
         showConfirmButton: true,
         confirmButtonText: 'Undo (⌘Z)',
         timer: 5000,
@@ -35,7 +35,7 @@ describe('notifySuccess', () => {
     );
     expect(undo).not.toHaveBeenCalled();
     vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as Awaited<ReturnType<typeof Swal.fire>>);
-    await notifyUndoable('Deleted DOS-1-2.', undefined, undo, '⌘Z');
+    await notifyUndoable('Deleted DOS-1.', undefined, undo, '⌘Z');
     expect(undo).toHaveBeenCalledOnce();
   });
 });

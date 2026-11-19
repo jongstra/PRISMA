@@ -106,7 +106,7 @@ test('the MaGMa page loads the example file and shows it on every tab', async ({
   await openTab(page, 'L2');
   expect(await sheetIds(page)).toEqual(expect.arrayContaining(['DOS-1', 'FIN-1', 'IN-1', 'THR-1']));
   await openTab(page, 'L3');
-  expect(await sheetIds(page)).toEqual(expect.arrayContaining(['DOS-1-1', 'FIN-1-1', 'THR-1-1']));
+  expect(await sheetIds(page)).toEqual(expect.arrayContaining(['DOS-1-A', 'FIN-1-A', 'THR-1-A']));
 
   await openTab(page, 'Heatmap');
   await expect(tacticColumns(page)).toHaveCount(14);

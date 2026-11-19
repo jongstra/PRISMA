@@ -26,7 +26,7 @@
   impact: 0
 - domain: enterprise-attack
   level: 3
-  id: DOS-1-1
+  id: DOS-1-A
   name: L3 OUT UC DOS
   parentIds:
     - DOS-1
@@ -39,7 +39,7 @@
   visibilityFromAttackTechniqueOverride: false
 - domain: enterprise-attack
   level: 3
-  id: DOS-1-2
+  id: DOS-1-B
   name: L3 OUT UC DOS 2
   parentIds:
     - DOS-1
@@ -78,7 +78,7 @@
   impact: 0
 - domain: enterprise-attack
   level: 3
-  id: FIN-1-1
+  id: FIN-1-A
   name: L3 OUT UC FIN
   parentIds:
     - FIN-1
@@ -114,7 +114,7 @@
   impact: 0
 - domain: enterprise-attack
   level: 3
-  id: IN-1-1
+  id: IN-1-A
   name: L3 IN UC
   parentIds:
     - IN-1
@@ -124,48 +124,6 @@
   weight: 0
   impact: 0
   attackTechniqueId: T1572
-  visibilityFromAttackTechniqueOverride: false
-- domain: enterprise-attack
-  level: 3
-  id: L3-2
-  name: Test 1
-  description: ""
-  parentIds:
-    - THR-1
-  visibility: 0
-  implementation: 0
-  effectiveness: 0
-  weight: 0
-  impact: 0
-  attackTechniqueId: T1001
-  visibilityFromAttackTechniqueOverride: false
-- domain: enterprise-attack
-  level: 3
-  id: L3-3
-  name: Test 2
-  description: ""
-  parentIds:
-    - THR-1
-  visibility: 0
-  implementation: 0
-  effectiveness: 0
-  weight: 0
-  impact: 0
-  attackTechniqueId: T1001
-  visibilityFromAttackTechniqueOverride: false
-- domain: enterprise-attack
-  level: 3
-  id: L3-4
-  name: Test 3
-  description: ""
-  parentIds:
-    - THR-1
-  visibility: 0
-  implementation: 0
-  effectiveness: 0
-  weight: 0
-  impact: 0
-  attackTechniqueId: T1001
   visibilityFromAttackTechniqueOverride: false
 - domain: enterprise-attack
   level: 1
@@ -192,7 +150,7 @@
   impact: 0
 - domain: enterprise-attack
   level: 3
-  id: THR-1-1
+  id: THR-1-A
   name: L3 THR UC
   parentIds:
     - THR-1
@@ -202,6 +160,48 @@
   weight: 0
   impact: 0
   attackTechniqueId: T1029
+  visibilityFromAttackTechniqueOverride: false
+- domain: enterprise-attack
+  level: 3
+  id: THR-1-B
+  name: Test 1
+  description: ""
+  parentIds:
+    - THR-1
+  visibility: 0
+  implementation: 0
+  effectiveness: 0
+  weight: 0
+  impact: 0
+  attackTechniqueId: T1001
+  visibilityFromAttackTechniqueOverride: false
+- domain: enterprise-attack
+  level: 3
+  id: THR-1-C
+  name: Test 2
+  description: ""
+  parentIds:
+    - THR-1
+  visibility: 0
+  implementation: 0
+  effectiveness: 0
+  weight: 0
+  impact: 0
+  attackTechniqueId: T1001
+  visibilityFromAttackTechniqueOverride: false
+- domain: enterprise-attack
+  level: 3
+  id: THR-1-D
+  name: Test 3
+  description: ""
+  parentIds:
+    - THR-1
+  visibility: 0
+  implementation: 0
+  effectiveness: 0
+  weight: 0
+  impact: 0
+  attackTechniqueId: T1001
   visibilityFromAttackTechniqueOverride: false
 - domain: mobile-attack
   level: 1

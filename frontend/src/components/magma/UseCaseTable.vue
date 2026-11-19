@@ -174,7 +174,7 @@ const addNewUseCase = () => {
   magma.addNewUseCase(level, tactics.domain);
 };
 
-// A short list of use case IDs for a message, e.g. "DOS-1-1, DOS-1-2 and 3 more".
+// A short list of use case IDs for a message, e.g. "DOS-1-A, DOS-1-B and 3 more".
 const listIds = (useCases: UseCase[], max = 5) => {
   const ids = useCases
     .slice(0, max)

@@ -113,7 +113,7 @@ export const magmaStore = defineStore('magma', {
   }),
 
   getters: {
-    // What undo and redo would change, such as 'Implementation % of DOS-1-2', or null when there is nothing to undo or redo.
+    // What undo and redo would change, such as 'Implementation % of DOS-1-B', or null when there is nothing to undo or redo.
     undoDescription: (state) => state.history.undo.at(-1)?.description ?? null,
     redoDescription: (state) => state.history.redo.at(-1)?.description ?? null,
 
