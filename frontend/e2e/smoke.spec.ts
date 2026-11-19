@@ -229,6 +229,7 @@ test('cells copied from a spreadsheet are pasted from the cell with the cursor, 
   expect((await names()).slice(-2)).toEqual(['Beaconing', 'Uploads']);
   await expect(page.locator('.swal2-toast')).toContainText('Pasted 2 rows into L3, 1 of them new.');
   await page.keyboard.press('ControlOrMeta+z');
+  await expect(page.locator('.swal2-toast')).toBeHidden({ timeout: 1500 }); // the message goes with the change
   expect(await names()).toEqual([...before, '']);
 });
 

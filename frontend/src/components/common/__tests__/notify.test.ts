@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import Swal from 'sweetalert2';
-import { notifySuccess, notifyUndoable } from '../notify';
+import { closeUndoableNotice, notifySuccess, notifyUndoable } from '../notify';
 
-vi.mock('sweetalert2', () => ({ default: { fire: vi.fn(), stopTimer: vi.fn(), resumeTimer: vi.fn() } }));
+vi.mock('sweetalert2', () => ({
+  default: { fire: vi.fn(), stopTimer: vi.fn(), resumeTimer: vi.fn(), getPopup: vi.fn(), close: vi.fn() },
+}));
 
 describe('notifySuccess', () => {
   it('shows a short message at the top right that closes by itself after 3 seconds', () => {
@@ -37,5 +39,18 @@ describe('notifySuccess', () => {
     vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as Awaited<ReturnType<typeof Swal.fire>>);
     await notifyUndoable('Deleted DOS-1.', undefined, undo, '⌘Z');
     expect(undo).toHaveBeenCalledOnce();
+  });
+
+  it('closes the message with the Undo button when the change is undone another way, but no other message', () => {
+    const popup = (className: string) => Object.assign(document.createElement('div'), { className });
+    vi.mocked(Swal.getPopup).mockReturnValue(popup('swal2-popup undoable-notice'));
+    closeUndoableNotice();
+    expect(Swal.close).toHaveBeenCalledOnce();
+    vi.mocked(Swal.getPopup).mockReturnValue(popup('swal2-popup'));
+    closeUndoableNotice();
+    expect(Swal.close).toHaveBeenCalledOnce();
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false } as Awaited<ReturnType<typeof Swal.fire>>);
+    notifyUndoable('Deleted DOS-1.', undefined, () => {}, '⌘Z'); // marked, so it can be told from other messages
+    expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ customClass: { popup: 'undoable-notice' } }));
   });
 });

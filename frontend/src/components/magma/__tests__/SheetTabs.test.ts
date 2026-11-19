@@ -6,8 +6,16 @@ import fs from 'node:fs';
 import { tacticsStore } from '@/stores/tactics';
 import { magmaStore } from '@/stores/magma';
 import SheetTabs from '../SheetTabs.vue';
+import Swal from 'sweetalert2';
 
-vi.mock('sweetalert2', () => ({ default: { fire: vi.fn(() => Promise.resolve({})), isVisible: vi.fn(() => false) } }));
+vi.mock('sweetalert2', () => ({
+  default: {
+    fire: vi.fn(() => Promise.resolve({})),
+    isVisible: vi.fn(() => false),
+    getPopup: vi.fn(() => Object.assign(document.createElement('div'), { className: 'undoable-notice' })),
+    close: vi.fn(),
+  },
+}));
 
 const catalog = JSON.parse(fs.readFileSync('public/tactics_and_techniques_by_domain.json', 'utf8'));
 const domain = 'enterprise-attack';
@@ -60,6 +68,15 @@ describe('SheetTabs: undo and redo', () => {
     expect(redoButton().attributes('disabled')).toBeUndefined();
     await redoButton().trigger('click');
     expect(description()).toBe('changed');
+  });
+
+  it('closes the message about a change (with its own Undo button) when the change is undone', async () => {
+    const { tabs, change } = showTabs();
+    change();
+    await nextTick();
+    await tabs.find('.undo-button').trigger('click');
+    expect(Swal.close).toHaveBeenCalled();
+    tabs.unmount();
   });
 
   it('undoes and redoes with Ctrl+Z and Ctrl+Shift+Z', async () => {

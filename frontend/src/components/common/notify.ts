@@ -33,6 +33,7 @@ export async function notifyUndoable(text: string, detail: string | undefined, u
     showConfirmButton: true,
     confirmButtonText: `Undo (${shortcut})`,
     confirmButtonColor: 'var(--color-accent)',
+    customClass: { popup: 'undoable-notice' },
     timer: 5000,
     timerProgressBar: true,
     didOpen: (toast) => {
@@ -42,5 +43,15 @@ export async function notifyUndoable(text: string, detail: string | undefined, u
   });
   if (result.isConfirmed) {
     undo();
+  }
+}
+
+/**
+ * Closes the message of notifyUndoable when a change is undone in another way (Ctrl+Z, the undo button of the sheets):
+ * its Undo button would undo something else by then. Another message stays.
+ */
+export function closeUndoableNotice() {
+  if (Swal.getPopup()?.classList.contains('undoable-notice')) {
+    Swal.close();
   }
 }

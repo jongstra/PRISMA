@@ -10,7 +10,7 @@ import { isYamlFile, readYamlFile } from '@/io/readYamlFile';
 import { importSummary, magmaFileDomains, readMagmaFile, writeMagmaFile } from '@/io/magmaFile';
 import { downloadFile } from '@/io/downloadFile';
 import { DOMAIN_NAMES, domainNames } from '@/domain/domains';
-import { notifySuccess } from '@/components/common/notify';
+import { closeUndoableNotice, notifySuccess } from '@/components/common/notify';
 import { importSummaryContent } from './importSummaryContent';
 
 const magma = magmaStore();
@@ -18,7 +18,11 @@ const tabs = ['L1', 'L2', 'L3', 'Heatmap', 'Insights', 'Summary'];
 
 // Undo and redo (see recordStep in the store) show the sheet and domain of the change, so it can be seen.
 const keys = shortcuts(isMac());
-const undo = () => magma.undo();
+// An undo also closes the message about the last change (with its own Undo button): it no longer fits.
+const undo = () => {
+  closeUndoableNotice();
+  magma.undo();
+};
 const redo = () => magma.redo();
 
 // Ctrl+Z and Ctrl+Shift+Z (⌘Z and ⇧⌘Z on a Mac) anywhere on the MaGMa page, except in a field with its own undo and
