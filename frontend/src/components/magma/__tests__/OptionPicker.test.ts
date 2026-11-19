@@ -121,6 +121,21 @@ describe('OptionPicker', () => {
     expect(mountPicker('none').find('.clear').exists()).toBe(false);
   });
 
+  it('says in the hint of the × that it clears the field, not that it deletes something', () => {
+    expect(mountPicker('T1566').find('.clear').attributes('aria-description')).toBe('Clear the technique');
+    picker.unmount();
+    picker = mount(OptionPicker, {
+      props: {
+        modelValue: 'IN-1',
+        options: [{ id: 'IN-1', name: 'Recon' }],
+        noun: 'use case',
+        clearHint: 'Clear the parent use case',
+      },
+      global: { stubs: { teleport: true } },
+    });
+    expect(picker.find('.clear').attributes('aria-description')).toBe('Clear the parent use case');
+  });
+
   it('gives the cursor back to the field after a choice or Esc, so it stays in the cell', async () => {
     const current = () => picker.find('.current').element;
     await mountPicker('T1059').find('.current').trigger('click');

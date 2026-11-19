@@ -15,8 +15,9 @@ const props = withDefaults(
     options: Option[];
     search?: (options: Option[], query: string) => Option[];
     noun?: string; // what an option is, for the texts: 'technique' or 'use case'
+    clearHint?: string; // the hint of the × that clears the field; 'Clear the <noun>' by default
   }>(),
-  { modelValue: undefined, search: searchOptions, noun: 'option' },
+  { modelValue: undefined, search: searchOptions, noun: 'option', clearHint: undefined },
 );
 const emit = defineEmits<{ 'update:modelValue': [id: string] }>();
 
@@ -194,7 +195,14 @@ onUnmounted(close);
           <template v-else>None</template>
         </span>
       </button>
-      <button v-if="hasValue" type="button" class="clear" tabindex="-1" v-hint="`No ${noun}`" @click="choose('none')">
+      <button
+        v-if="hasValue"
+        type="button"
+        class="clear"
+        tabindex="-1"
+        v-hint="clearHint ?? `Clear the ${noun}`"
+        @click="choose('none')"
+      >
         ×
       </button>
     </template>

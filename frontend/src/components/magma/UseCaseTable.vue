@@ -1012,6 +1012,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
                   :model-value="useCase.parentIds?.[0]"
                   :options="parentLevelUseCases"
                   noun="use case"
+                  clear-hint="Clear the parent use case"
                   :style="cellStyle(useCase, column.field)"
                   @update:model-value="(id) => updatePicked(useCase, 'parentIds', [id])"
                 />
