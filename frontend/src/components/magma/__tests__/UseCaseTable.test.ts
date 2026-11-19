@@ -99,7 +99,11 @@ describe('UseCaseTable', () => {
     expect(cell(2, 'IN Impact %').find('input').element.style.backgroundColor).toBe('white');
     magma.updateUseCase(useCase.uid, { outImpact: 40 } as never, domain);
     await table.vm.$nextTick();
-    expect(cell(2, 'IN Impact %').find('input').element.style.backgroundColor).toBe('crimson');
+    const impact = cell(2, 'IN Impact %').find('input').element;
+    expect([impact.style.backgroundColor, impact.style.color]).toEqual([
+      'var(--color-invalid)',
+      'var(--color-invalid-text)',
+    ]);
   });
 
   it('hatches the impacts and the risk of IN and THR in grey, without a value: they do not apply', async () => {
@@ -144,7 +148,8 @@ describe('UseCaseTable', () => {
     const { magma, cell } = await showTable('L2');
     const field = () => cell(0, 'Parent Use Case');
     expect(field().find('.current').text()).toBe('None');
-    expect((field().find('.option-picker').element as HTMLElement).style.backgroundColor).toBe('crimson');
+    expect((field().find('.option-picker').element as HTMLElement).style.backgroundColor).toBe('var(--color-invalid)');
+    expect(field().classes()).toContain('needs-attention'); // with a red line inside, see the styles
     await field().find('.current').trigger('click');
     await field().find('input').setValue('THR');
     await field().find('input').trigger('keydown', { key: 'Enter' });
@@ -321,7 +326,7 @@ describe('UseCaseTable', () => {
     expect(rows().map(nameOf)).toEqual(['b', 'c']);
   });
 
-  it('hatches the delete cells of IN and THR in red: they cannot be deleted', async () => {
+  it('hatches the delete cells of IN and THR: they cannot be deleted', async () => {
     const { table } = await showTable('L1');
     const deleteCells = table.findAll('tbody td.remove-col').slice(0, 3);
     expect(deleteCells.map((cell) => cell.classes().includes('not-deletable'))).toEqual([true, true, false]);

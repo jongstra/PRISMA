@@ -227,6 +227,7 @@ input {
 }
 
 .current {
+  color: inherit; /* the sheet makes it dark red in a cell that needs attention */
   white-space: normal;
   overflow-wrap: break-word;
   cursor: pointer;

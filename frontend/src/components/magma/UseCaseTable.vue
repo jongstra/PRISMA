@@ -626,15 +626,23 @@ const isLocked = (useCase: UseCase, field: string) =>
 const notApplicable = (useCase: UseCase, field: string) =>
   !!useCase.permanent && ['inImpact', 'thrImpact', 'outImpact', 'risk'].includes(field);
 
-const cellStyle = (useCase: UseCase, field: string) =>
-  notApplicable(useCase, field)
-    ? { backgroundImage: NOT_DETECTABLE_STYLE.backgroundImage }
-    : { backgroundColor: getBackgroundColor(useCase, field) };
+// A cell that needs attention (a missing parent, a duplicate ID, impacts that do not add up to 100) is light red, with
+// dark red text and a red line inside; the line gives way to the cursor ring and a selection (see the styles).
+const INVALID = 'var(--color-invalid)';
+const needsAttention = (useCase: UseCase, field: string) =>
+  !notApplicable(useCase, field) && getBackgroundColor(useCase, field) === INVALID;
+const cellStyle = (useCase: UseCase, field: string) => {
+  if (notApplicable(useCase, field)) {
+    return { backgroundImage: NOT_DETECTABLE_STYLE.backgroundImage };
+  }
+  const backgroundColor = getBackgroundColor(useCase, field);
+  return backgroundColor === INVALID ? { backgroundColor, color: 'var(--color-invalid-text)' } : { backgroundColor };
+};
 
 const getBackgroundColor = (useCase: UseCase, field: string) => {
   if (['inImpact', 'thrImpact', 'outImpact'].includes(field)) {
     const total = Number(useCase.inImpact ?? 0) + Number(useCase.thrImpact ?? 0) + Number(useCase.outImpact ?? 0);
-    return total == 100 ? 'white' : 'crimson';
+    return total == 100 ? 'white' : INVALID;
   }
 
   if (field === 'risk') {
@@ -660,7 +668,7 @@ const getBackgroundColor = (useCase: UseCase, field: string) => {
     if (noDuplicateId) {
       return 'white';
     } else {
-      return 'crimson';
+      return INVALID;
     }
   }
 
@@ -671,7 +679,7 @@ const getBackgroundColor = (useCase: UseCase, field: string) => {
     if (validParentIds) {
       return 'white';
     } else {
-      return 'crimson';
+      return INVALID;
     }
   }
 };
@@ -797,7 +805,10 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
             v-for="column in columns"
             :key="column.field"
             :data-cell="`${useCase.uid}:${column.field}`"
-            :class="cellClasses({ uid: useCase.uid, field: column.field })"
+            :class="[
+              cellClasses({ uid: useCase.uid, field: column.field }),
+              { 'needs-attention': needsAttention(useCase, column.field) },
+            ]"
             @mousedown="(event) => onCellMousedown({ uid: useCase.uid, field: column.field }, event)"
             @mouseenter="(event) => onCellMouseenter({ uid: useCase.uid, field: column.field }, event)"
             @focusin="cellFocused({ uid: useCase.uid, field: column.field })"
@@ -998,6 +1009,18 @@ td.cell-selected textarea {
 
 /* A locked field lets a press through to its cell (a browser gives a locked field no mouse events), so a press on it in a
    selection keeps the cursor where it was (see useCellSelection.ts). */
+/* A cell that needs attention has a red line inside, until it has the cursor or is selected: then the ring or the
+   selection outline is the only line. */
+td.needs-attention > :is(input, .text-field),
+td.needs-attention > :deep(.option-picker) {
+  box-shadow: inset 0 0 0 2px var(--color-invalid-edge);
+}
+
+td.needs-attention:is(:focus-within, .cell-selected) > :is(input, .text-field),
+td.needs-attention:is(:focus-within, .cell-selected) > :deep(.option-picker) {
+  box-shadow: none;
+}
+
 td > input:disabled,
 .text-field textarea:disabled {
   pointer-events: none;
@@ -1089,10 +1112,10 @@ tr.delete-marked > td:not(.remove-col) > :deep(.option-picker) {
   background-color: #ffe5e5;
 }
 
-/* IN and THR cannot be deleted: their delete cell is hatched in red. */
+/* IN and THR cannot be deleted: their delete cell is hatched in a soft red. */
 td.remove-col.not-deletable {
-  background-color: #fbe4e1;
-  background-image: repeating-linear-gradient(135deg, #de7b72 0 4px, #fbe4e1 4px 8px);
+  background-color: #fbecea;
+  background-image: repeating-linear-gradient(135deg, #f0c2bd 0 2px, #fbecea 2px 6px);
 }
 
 /* A click on a column header sorts the sheet by it (the pointing hand says it can be clicked; its description still shows
@@ -1249,6 +1272,7 @@ input,
 }
 
 .text-field textarea {
+  color: inherit; /* dark red in a cell that needs attention */
   field-sizing: content;
   width: 100%;
   max-height: var(--sheet-text-max-height);

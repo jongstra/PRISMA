@@ -39,6 +39,9 @@
   --color-slider-range: firebrick; /* the chosen part of a slider */
   --color-slider-track: #b9bfc8; /* the rest of the slider */
   --color-remove: #e73030; /* remove a use case, clear a sheet field */
+  --color-invalid: #fbd0cc; /* a sheet cell that needs attention: a missing parent, a duplicate ID, impacts ≠ 100 */
+  --color-invalid-text: #8f1a14;
+  --color-invalid-edge: #d64545; /* the line inside such a cell, which gives way to the cursor ring and a selection */
   --color-add: #3d9a4f; /* the add use case button */
   --color-add-hover: #338a44;
   --color-add-border: #1f6b31;
