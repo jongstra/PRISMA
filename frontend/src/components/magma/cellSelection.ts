@@ -42,3 +42,6 @@ export const inBlock = (block: Block, row: number, column: number) =>
 
 /** The uids of the rows in the block, in the order of the sheet. */
 export const blockRowUids = (block: Block, rowUids: string[]) => rowUids.slice(block.rows[0], block.rows[1] + 1);
+
+/** The fields of the columns in the block, in the order of the sheet. */
+export const blockFields = (block: Block, fields: string[]) => fields.slice(block.columns[0], block.columns[1] + 1);

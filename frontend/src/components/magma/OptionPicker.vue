@@ -2,7 +2,7 @@
 // A search field in the L2 and L3 sheets, for the parent use case and the ATT&CK technique: it shows the chosen option
 // with its ID in bold. Clicking it, or typing on it, opens a search field with a list of the options, filtered while
 // typing (see optionSearch.ts). A click or Enter chooses an option, Esc or leaving the field keeps the current one, and
-// × removes it ('none'). The list is shown in the page body, so the scrolling table does not cut it off (see
+// × (or Delete or Backspace on the field) removes it ('none'). The list is shown in the page body, so the scrolling table does not cut it off (see
 // listPlacement.ts).
 import { computed, nextTick, onUnmounted, ref, useId } from 'vue';
 import { searchOptions, type Option } from './optionSearch';
@@ -100,11 +100,17 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-// On the closed field, the arrow keys open the list, and typing a letter or digit starts a search with it.
+// On the closed field, the arrow keys open the list, typing a letter or digit starts a search with it, and Delete or
+// Backspace removes the option (the delete key of a Mac keyboard is Backspace).
 function onFieldKeydown(event: KeyboardEvent) {
   if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
     event.preventDefault();
     openList();
+  } else if (event.key === 'Delete' || event.key === 'Backspace') {
+    event.preventDefault();
+    if (hasValue.value) {
+      choose('none');
+    }
   } else if (event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
     event.preventDefault();
     openList(event.key);

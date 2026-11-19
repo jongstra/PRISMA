@@ -12,8 +12,9 @@ vi.mock('sweetalert2', () => ({ default: { fire: vi.fn(() => Promise.resolve({})
 const catalog = JSON.parse(fs.readFileSync('public/tactics_and_techniques_by_domain.json', 'utf8'));
 const domain = 'enterprise-attack';
 
-// Shows the table of one level, with the default use cases plus one new use case on that level.
-async function showTable(level: 'L1' | 'L2' | 'L3') {
+// Shows the table of one level, with the default use cases plus one new use case on that level. A table that is
+// attached to the page can have the cursor in its fields (unmount it at the end of the test).
+async function showTable(level: 'L1' | 'L2' | 'L3', attach = false) {
   const pinia = createPinia();
   setActivePinia(pinia);
   const tactics = tacticsStore();
@@ -22,7 +23,7 @@ async function showTable(level: 'L1' | 'L2' | 'L3') {
   magma.initializeDefaultUseCases();
   magma.addNewUseCase(Number(level[1]), domain);
   magma.activeTab = level;
-  const table = mount(UseCaseTable, { global: { plugins: [pinia] } });
+  const table = mount(UseCaseTable, { global: { plugins: [pinia] }, attachTo: attach ? document.body : undefined });
   const headers = () =>
     table
       .findAll('thead th')
@@ -395,8 +396,8 @@ describe('UseCaseTable', () => {
 });
 
 // Three L3 use cases, and dragging over cells as a mouse does: press in one cell, enter others with the button held.
-async function showThreeL3UseCases() {
-  const shown = await showTable('L3');
+async function showThreeL3UseCases(attach = false) {
+  const shown = await showTable('L3', attach);
   shown.magma.addNewUseCase(3, domain);
   shown.magma.addNewUseCase(3, domain);
   await shown.table.vm.$nextTick();
@@ -421,6 +422,89 @@ describe('UseCaseTable: selecting cells', () => {
     expect(magma.undoDescription).toBe('Implementation % of 3 use cases');
     magma.undo();
     expect(useCases().map((useCase) => useCase.implementation)).toEqual([null, null, null]);
+  });
+
+  it('sends a change in a block to all selected cells of the same kind: a percentage to the percentages', async () => {
+    const { drag, selected, cell, useCases, magma } = await showThreeL3UseCases();
+    await drag([0, 'Implementation %'], [2, 'Effectiveness %']);
+    expect(selected()).toBe(6);
+    await cell(1, 'Implementation %').find('input').setValue('80');
+    expect(useCases().map((useCase) => [useCase.implementation, useCase.effectiveness])).toEqual([
+      ['80', '80'],
+      ['80', '80'],
+      ['80', '80'],
+    ]);
+    expect(magma.undoDescription).toBe('Implementation % and Effectiveness % of 3 use cases');
+    magma.undo();
+    expect(useCases().map((useCase) => [useCase.implementation, useCase.effectiveness])).toEqual([
+      [null, null],
+      [null, null],
+      [null, null],
+    ]);
+  });
+
+  it('sends a text to the selected texts only, on one line in the name and data source', async () => {
+    const { drag, cell, useCases } = await showThreeL3UseCases();
+    await drag([0, 'Use Case Name'], [1, 'Implementation %']);
+    await cell(0, 'Description').find('textarea').setValue('Checked\nby hand');
+    expect(useCases().map((useCase) => [useCase.name, useCase.description, useCase.dataSource])).toEqual([
+      ['Checked by hand', 'Checked\nby hand', 'Checked by hand'],
+      ['Checked by hand', 'Checked\nby hand', 'Checked by hand'],
+      ['', '', undefined], // a new use case has no data source yet
+    ]);
+    expect(useCases().map((useCase) => useCase.implementation)).toEqual([null, null, null]);
+  });
+
+  it('sends a choice in a search field in a block to its own column only', async () => {
+    const { drag, table, useCases } = await showThreeL3UseCases();
+    await drag([0, 'Parent Use Case'], [2, 'ATT&CK Technique']);
+    const picker = table
+      .findAllComponents({ name: 'OptionPicker' })
+      .filter((found) => found.props('noun') === 'technique')[0]!;
+    picker.vm.$emit('update:modelValue', 'T1566');
+    expect(useCases().map((useCase) => useCase.attackTechniqueId)).toEqual(['T1566', 'T1566', 'T1566']);
+    expect(useCases().map((useCase) => useCase.dataSource)).toEqual([undefined, undefined, undefined]);
+  });
+
+  it('gives the cell where a selection started the cursor, with its text selected, so typing replaces it', async () => {
+    const { drag, cell, useCases, magma, table } = await showThreeL3UseCases(true);
+    useCases().forEach((useCase, row) => magma.updateUseCase(useCase.uid, { name: `Rule ${row}` }, domain));
+    await table.vm.$nextTick();
+    const field = (row: number, header: string) =>
+      cell(row, header).find('input, textarea').element as HTMLInputElement;
+    await drag([2, 'Use Case Name'], [0, 'Description']); // upwards, pressed beside the text (no cursor yet)
+    expect(document.activeElement).toBe(field(2, 'Use Case Name'));
+    expect([field(2, 'Use Case Name').selectionStart, field(2, 'Use Case Name').selectionEnd]).toEqual([0, 6]);
+
+    await cell(0, 'Implementation %').trigger('mousedown', { button: 0 });
+    window.dispatchEvent(new MouseEvent('mouseup'));
+    await cell(2, 'Effectiveness %').trigger('mousedown', { button: 0, shiftKey: true });
+    expect(document.activeElement).toBe(field(0, 'Implementation %'));
+    table.unmount();
+  });
+
+  it('gives a search field where a selection started the cursor, so Delete or Backspace clears all of them', async () => {
+    const { drag, cell, useCases, magma, table } = await showThreeL3UseCases(true);
+    useCases().forEach((useCase) => magma.updateUseCase(useCase.uid, { attackTechniqueId: 'T1566' }, domain));
+    await table.vm.$nextTick();
+    await drag([0, 'ATT&CK Technique'], [2, 'ATT&CK Technique']);
+    const field = cell(0, 'ATT&CK Technique').find('.current');
+    expect(document.activeElement).toBe(field.element);
+    await field.trigger('keydown', { key: 'Backspace' });
+    expect(useCases().map((useCase) => useCase.attackTechniqueId)).toEqual(['none', 'none', 'none']);
+    expect(magma.undoDescription).toBe('ATT&CK Technique of 3 use cases');
+    magma.undo();
+    expect(useCases().map((useCase) => useCase.attackTechniqueId)).toEqual(['T1566', 'T1566', 'T1566']);
+    table.unmount();
+  });
+
+  it('says under the selection how many cells it has and that a change goes to all', async () => {
+    const { drag, table } = await showThreeL3UseCases(true);
+    await drag([0, 'Implementation %'], [2, 'Effectiveness %']);
+    await table.vm.$nextTick();
+    await table.vm.$nextTick();
+    expect(table.find('.selection-label').text()).toBe('6 cells selected · a change goes to all');
+    table.unmount();
   });
 
   it('keeps the selection for a click in it, so a choice in a search field goes to all of them', async () => {

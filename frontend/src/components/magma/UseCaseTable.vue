@@ -15,6 +15,7 @@ import { typedPercentage } from './percentageInput';
 import { isMac, shortcuts } from './undoKeys';
 import { notifyUndoable } from '@/components/common/notify';
 import { useCellSelection } from './useCellSelection';
+import type { Cell } from './cellSelection';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -65,14 +66,19 @@ const stopEditing = (event: FocusEvent) => {
 // changes in one cell make one step until the cell is left: the cell is the group of the step.
 const UNDO_KEY = shortcuts(isMac()).undo;
 const titleOf = (field: string) => columns.value.find((column) => column.field === field)?.title ?? field;
-// A change in a cell: recorded as an undo step, then made in the cell and, when the cell is part of a selection within
-// its column, in all the selected cells (see changeTargets).
-const changeCells = (useCase: UseCase, field: string, change: (target: UseCase) => void) => {
+// A change in a cell: recorded as an undo step, then made in the cell and, when the cell is selected, in the other
+// selected cells of the same kind (see changeTargets).
+const changeCells = (useCase: UseCase, field: string, change: (target: UseCase, field: string) => void) => {
   const targets = changeTargets(useCase, field);
-  const what = targets.length > 1 ? `${targets.length} use cases` : useCase.id;
-  magma.recordStep(`${titleOf(field)} of ${what}`, `${useCase.uid}:${field}`);
-  targets.forEach(change);
+  const titles = [...new Set(targets.map((target) => titleOf(target.field)))];
+  const rowCount = new Set(targets.map((target) => target.useCase.uid)).size;
+  const what = rowCount > 1 ? `${rowCount} use cases` : useCase.id;
+  magma.recordStep(`${listed(titles)} of ${what}`, `${useCase.uid}:${field}`);
+  targets.forEach((target) => change(target.useCase, target.field));
 };
+// 'A', 'A and B', 'A, B and C'.
+const listed = (items: string[]) =>
+  items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items.at(-1)}` : items[0];
 
 const rows = computed(() =>
   sortedRows(
@@ -83,12 +89,12 @@ const rows = computed(() =>
   ),
 );
 
-// Selecting cells with the mouse (see useCellSelection.ts). A change in one cell of a selection within one column goes to
-// all of them, and the × of a selected row deletes all selected rows. The ID column cannot be selected: each ID must stay
-// unique. Switching the sheet, the domain or the sort ends the selection.
+// Selecting cells with the mouse (see useCellSelection.ts). A change in a selected cell goes to all selected cells of
+// the same kind, and the × of a selected row deletes all selected rows. The ID column cannot be selected: each ID must
+// stay unique. Switching the sheet, the domain or the sort ends the selection.
 const {
   rows: selectedRows,
-  fillField,
+  columns: selectedFields,
   bottomLeft,
   dragging,
   cellClasses,
@@ -98,26 +104,51 @@ const {
 } = useCellSelection(
   computed(() => rows.value.map((useCase) => useCase.uid)),
   computed(() => columns.value.map((column) => column.field).filter((field) => field !== 'id')),
+  focusCell,
 );
 watch([() => magma.activeTab, () => tactics.domain, sort], clearSelection);
 
-// The use cases a change in a cell goes to: the selected ones when the cell is part of a selection within its column
-// (but not those whose cell cannot be changed), otherwise only its own.
-const changeTargets = (useCase: UseCase, field: string): UseCase[] => {
-  const uids =
-    fillField.value === field && selectedRows.value.includes(useCase.uid) ? selectedRows.value : [useCase.uid];
-  return uids
-    .map((uid) => magma.getUseCaseByUid(uid))
-    .filter((target): target is UseCase => !!target && !isLocked(target, field) && !notApplicable(target, field));
+// The kind of value a column takes: a percentage, a text, or (for a search field or switch) a value of its own.
+const kindOf = (field: string) =>
+  PERCENTAGE_INPUTS.includes(field) ? 'percentage' : TEXT_FIELDS.includes(field) ? 'text' : field;
+const isEditable = (field: string) => !!columns.value.find((column) => column.field === field)?.editable;
+
+// The cells a change in a cell goes to: when the cell is selected, all selected cells that take the same kind of value
+// (but not those that cannot be changed), otherwise only the cell itself.
+const changeTargets = (useCase: UseCase, field: string): { useCase: UseCase; field: string }[] => {
+  const selected = selectedRows.value.includes(useCase.uid) && selectedFields.value.includes(field);
+  const uids = selected ? selectedRows.value : [useCase.uid];
+  const fields = selected
+    ? selectedFields.value.filter((other) => kindOf(other) === kindOf(field) && isEditable(other))
+    : [field];
+  return uids.flatMap((uid) => {
+    const target = magma.getUseCaseByUid(uid);
+    return target
+      ? fields
+          .filter((other) => !isLocked(target, other) && !notApplicable(target, other))
+          .map((other) => ({ useCase: target, field: other }))
+      : [];
+  });
 };
 
-// A short line under the selection, when a change or the × does something with all of it.
-const selectionLabel = computed(() => {
-  const count = selectedRows.value.length;
-  if (fillField.value) {
-    return `${count} cells selected · a change goes to all`;
+// The cell where a selection started gets the cursor, as in a spreadsheet: in a text or percentage, its text is
+// selected, so typing replaces it; on a search field, typing starts a search and Delete or Backspace clears it. A switch
+// does not get the cursor.
+function focusCell(cell: Cell) {
+  const place = `[data-cell="${cell.uid}:${cell.field}"]`;
+  const field = sheetScroll.value?.querySelector<HTMLElement>(
+    `${place} > input[type="text"], ${place} textarea, ${place} .option-picker .current`,
+  );
+  field?.focus();
+  if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+    field.select();
   }
-  return count > 1 ? `${count} rows selected · × deletes all` : null;
+}
+
+// A short line under the selection: a change goes to all of it.
+const selectionLabel = computed(() => {
+  const count = selectedRows.value.length * selectedFields.value.length;
+  return count > 1 ? `${count} cells selected · a change goes to all` : null;
 });
 const sheetScroll = ref<HTMLElement | null>(null);
 const labelPosition = ref<{ top: string; left: string } | null>(null);
@@ -257,14 +288,19 @@ const onTextKeydown = (field: string, event: KeyboardEvent) => {
   }
 };
 
+const oneLine = (text: string) => text.replace(/\r?\n|\r/g, ' ');
+
 // A changed text field: line breaks become spaces in a field of one line. The ID is only renamed when the field is left.
 const onTextInput = (useCase: UseCase, field: string, event: Event) => {
   const textarea = event.target as HTMLTextAreaElement;
   if (SINGLE_LINE_FIELDS.includes(field) && /[\r\n]/.test(textarea.value)) {
-    textarea.value = textarea.value.replace(/\r?\n|\r/g, ' ');
+    textarea.value = oneLine(textarea.value);
   }
   if (field !== 'id') {
-    changeCells(useCase, field, (target) => updateObjectField(target.uid, field, textarea.value));
+    const text = textarea.value;
+    changeCells(useCase, field, (target, other) =>
+      updateObjectField(target.uid, other, SINGLE_LINE_FIELDS.includes(other) ? oneLine(text) : text),
+    );
   }
 };
 
@@ -275,7 +311,7 @@ const updateObjectField = (uid: string, field: string, value: string | string[] 
 
 // A parent or technique chosen in its search field.
 const updatePicked = (useCase: UseCase, field: string, value: string | string[] | undefined) => {
-  changeCells(useCase, field, (target) => updateObjectField(target.uid, field, value));
+  changeCells(useCase, field, (target, other) => updateObjectField(target.uid, other, value));
 };
 
 // A typed percentage: kept to digits with one decimal point and at most 100 (see percentageInput.ts), then saved. When
@@ -288,7 +324,7 @@ const updatePercentage = (useCase: UseCase, field: string, event: Event) => {
     input.value = percentage;
     input.setSelectionRange(Math.max(cursor, 0), Math.max(cursor, 0));
   }
-  changeCells(useCase, field, (target) => updateObjectField(target.uid, field, percentage));
+  changeCells(useCase, field, (target, other) => updateObjectField(target.uid, other, percentage));
 };
 
 // Turning the override off takes the visibility from the ATT&CK technique again (by setting the technique again).
@@ -641,6 +677,28 @@ td.cell-selected > :deep(.option-picker) {
 
 td.cell-selected textarea {
   background-color: transparent; /* the text field around it is tinted already */
+}
+
+/* The selected cell with the cursor, where typing goes: not tinted, with a ring in the colour of the selection. */
+td.cell-selected:focus-within,
+td.cell-selected:focus-within > :is(input, .text-field, .uneditable),
+td.cell-selected:focus-within > :deep(.option-picker) {
+  background-image: none;
+}
+
+td.cell-selected:focus-within::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 3px;
+  border: 2px solid var(--color-accent);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+td.cell-selected:focus-within :is(input, .text-field),
+td.cell-selected:focus-within :deep(.option-picker button) {
+  outline: none; /* the ring replaces the browser's focus ring */
 }
 
 td.cell-selected::after {

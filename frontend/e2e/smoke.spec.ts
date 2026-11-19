@@ -1,7 +1,7 @@
 // Browser smoke tests: the built app opens in Chrome, its pages work together, and files load and save. They check that
 // nothing is broken, not every detail (the unit tests in src/ do that). Run them with npm run test-e2e.
 import { readFileSync } from 'node:fs';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { parse } from 'yaml';
 
 const EXAMPLES = '../examples';
@@ -133,27 +133,52 @@ test('a change in a sheet can be undone and redone, with the keyboard and the bu
   await expect(name).toHaveValue(before);
 });
 
-test('cells selected by dragging change together, and the change can be undone', async ({ page }) => {
+test('a change in cells selected by dragging goes to all of the same kind, and can be undone', async ({ page }) => {
   await openApp(page);
   await openPage(page, 'MaGMa');
   await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
   await openTab(page, 'L3');
-  const column = await page
-    .locator('table.fixed-table thead th')
-    .evaluateAll((headers) => headers.findIndex((th) => th.textContent!.trim().startsWith('Implementation')));
-  const cell = (row: number) => page.locator('table.fixed-table tbody tr').nth(row).locator('td').nth(column);
-  const values = () => Promise.all([0, 1, 2].map((row) => cell(row).locator('input').inputValue()));
-  const before = await values();
-  const from = (await cell(0).boundingBox())!;
-  const to = (await cell(2).boundingBox())!;
-  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
-  await page.mouse.up();
+  const columnIndex = (title: string) =>
+    page
+      .locator('table.fixed-table thead th')
+      .evaluateAll((headers, title) => headers.findIndex((th) => th.textContent!.trim().startsWith(title)), title);
+  const cell = async (row: number, title: string) =>
+    page
+      .locator('table.fixed-table tbody tr')
+      .nth(row)
+      .locator('td')
+      .nth(await columnIndex(title));
+  const values = (title: string) =>
+    Promise.all([0, 1, 2].map(async (row) => (await cell(row, title)).locator('input, textarea').inputValue()));
+  const drag = async (from: { x: number; y: number }, to: Locator) => {
+    const end = (await to.boundingBox())!;
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(end.x + end.width / 2, end.y + end.height / 2, { steps: 10 });
+    await page.mouse.up();
+  };
+
+  // Percentages: typing goes to both percentage columns of the block.
+  const before = [await values('Implementation'), await values('Effectiveness')];
+  const start = (await (await cell(0, 'Implementation')).boundingBox())!;
+  await drag({ x: start.x + start.width / 2, y: start.y + start.height / 2 }, await cell(2, 'Effectiveness'));
   await page.keyboard.type('90');
-  expect(await values()).toEqual(['90', '90', '90']);
+  expect([await values('Implementation'), await values('Effectiveness')]).toEqual([
+    ['90', '90', '90'],
+    ['90', '90', '90'],
+  ]);
   await page.keyboard.press('ControlOrMeta+z');
-  expect(await values()).toEqual(before);
+  expect([await values('Implementation'), await values('Effectiveness')]).toEqual(before);
+
+  // Texts: a drag that starts beside the text still gives that cell the cursor, so typing goes to all selected texts.
+  const name = (await (await cell(0, 'Use Case Name')).boundingBox())!;
+  await drag({ x: name.x + 8, y: name.y + 6 }, await cell(2, 'Description'));
+  await expect((await cell(0, 'Use Case Name')).locator('textarea')).toBeFocused();
+  await page.keyboard.type('Checked');
+  expect([await values('Use Case Name'), await values('Description')]).toEqual([
+    ['Checked', 'Checked', 'Checked'],
+    ['Checked', 'Checked', 'Checked'],
+  ]);
 });
 
 // The fields of a use case that a user enters (the other fields are calculated). The visibility of an L3 rule is entered

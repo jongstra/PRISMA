@@ -113,4 +113,13 @@ describe('OptionPicker', () => {
     expect(chosen()).toEqual(['none']);
     expect(mountPicker('none').find('.clear').exists()).toBe(false);
   });
+
+  it('clears the value with Delete or Backspace on the closed field, as the × does', async () => {
+    await mountPicker('T1566').find('.current').trigger('keydown', { key: 'Delete' });
+    expect(chosen()).toEqual(['none']);
+    await mountPicker('T1566').find('.current').trigger('keydown', { key: 'Backspace' });
+    expect(chosen()).toEqual(['none']);
+    await mountPicker('none').find('.current').trigger('keydown', { key: 'Backspace' });
+    expect(chosen()).toBeUndefined(); // nothing to clear
+  });
 });

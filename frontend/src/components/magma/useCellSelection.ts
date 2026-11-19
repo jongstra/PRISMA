@@ -1,12 +1,21 @@
 // Selecting a block of cells in a sheet with the mouse, as in a spreadsheet: press in a cell and drag to another, or click
 // a cell and shift-click another. Dragging inside one cell still selects text in it; the cell selection starts when the
-// mouse enters a second cell. A click in a selected cell keeps the selection, so a search field or switch there changes
-// all selected cells; a click elsewhere in the sheet, a click outside it or Esc ends it. Only the given columns can be
-// selected (the ID column cannot). See cellSelection.ts.
+// mouse enters a second cell. When the selection is made, the cell where it started gets the cursor (focusCell), as in a
+// spreadsheet. A click in a selected cell keeps the selection, so a search field or switch there changes all selected
+// cells; a click elsewhere in the sheet, a click outside it or Esc ends it. Only the given columns can be selected (the
+// ID column cannot). See cellSelection.ts.
 import { computed, onMounted, onUnmounted, ref, type Ref } from 'vue';
-import { blockRowUids, blockSize, inBlock, selectionBlock, type Cell, type CellSelection } from './cellSelection';
+import {
+  blockFields,
+  blockRowUids,
+  blockSize,
+  inBlock,
+  selectionBlock,
+  type Cell,
+  type CellSelection,
+} from './cellSelection';
 
-export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>) {
+export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>, focusCell: (cell: Cell) => void) {
   const selection = ref<CellSelection | null>(null);
   const dragging = ref(false);
   let start: Cell | null = null; // the cell where the mouse button was pressed: dragging from it starts a selection
@@ -15,10 +24,7 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>) 
   // Only a block of more than one cell counts as a selection; one cell is where the next shift-click starts from.
   const active = computed(() => !!block.value && blockSize(block.value) > 1);
   const rows = computed(() => (active.value ? blockRowUids(block.value!, rowUids.value) : []));
-  // The column of a selection within one column: a change in one of its cells goes to all of them.
-  const fillField = computed(() =>
-    active.value && block.value!.columns[0] === block.value!.columns[1] ? fields.value[block.value!.columns[0]]! : null,
-  );
+  const columns = computed(() => (active.value ? blockFields(block.value!, fields.value) : []));
 
   // The cell at the bottom left of the selection: the line that explains the selection goes under it.
   const bottomLeft = computed<Cell | null>(() =>
@@ -57,6 +63,7 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>) 
     if (event.shiftKey && selection.value) {
       event.preventDefault(); // no text selection and no focus change: the block grows to this cell
       selection.value = { ...selection.value, focus: cell };
+      focusCell(selection.value.anchor);
       return;
     }
     start = cell;
@@ -80,13 +87,9 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>) 
     selection.value = null;
   };
 
-  // When a drag ends, the text of the field where it started is selected, so typing replaces it (as in a spreadsheet).
   const onMouseup = () => {
-    if (dragging.value) {
-      const field = document.activeElement;
-      if (field instanceof HTMLTextAreaElement || field instanceof HTMLInputElement) {
-        field.select();
-      }
+    if (dragging.value && selection.value) {
+      focusCell(selection.value.anchor);
     }
     start = null;
     dragging.value = false;
@@ -113,5 +116,5 @@ export function useCellSelection(rowUids: Ref<string[]>, fields: Ref<string[]>) 
     window.removeEventListener('keydown', onKeydown);
   });
 
-  return { rows, fillField, bottomLeft, dragging, cellClasses, onCellMousedown, onCellMouseenter, clear };
+  return { rows, columns, bottomLeft, dragging, cellClasses, onCellMousedown, onCellMouseenter, clear };
 }

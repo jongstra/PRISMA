@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { blockRowUids, blockSize, inBlock, selectionBlock } from '../cellSelection';
+import { blockFields, blockRowUids, blockSize, inBlock, selectionBlock } from '../cellSelection';
 
 const rows = ['a', 'b', 'c', 'd'];
 const fields = ['name', 'implementation', 'effectiveness'];
@@ -24,11 +24,13 @@ describe('selectionBlock', () => {
 describe('a block', () => {
   const block = { rows: [1, 3] as [number, number], columns: [1, 1] as [number, number] };
 
-  it('knows its size, its cells and its rows', () => {
+  it('knows its size, its cells, its rows and its columns', () => {
     expect(blockSize(block)).toBe(3);
     expect(inBlock(block, 2, 1)).toBe(true);
     expect(inBlock(block, 2, 2)).toBe(false);
     expect(inBlock(block, 0, 1)).toBe(false);
     expect(blockRowUids(block, rows)).toEqual(['b', 'c', 'd']);
+    expect(blockFields(block, fields)).toEqual([fields[1]]);
+    expect(blockFields({ ...block, columns: [0, 2] }, fields)).toEqual(fields.slice(0, 3));
   });
 });
