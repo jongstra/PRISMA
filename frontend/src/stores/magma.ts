@@ -162,8 +162,9 @@ export const magmaStore = defineStore('magma', {
         'ics-attack': 3,
       };
 
+      // By ID with the numbers in it in order (L3-2 before L3-10), the same on every computer (English rules).
       return state.useCases.slice().sort((a, b) => {
-        return domainOrder[a.domain] - domainOrder[b.domain] || a.id.localeCompare(b.id);
+        return domainOrder[a.domain] - domainOrder[b.domain] || a.id.localeCompare(b.id, 'en', { numeric: true });
       });
     },
     getAllIds(state) {

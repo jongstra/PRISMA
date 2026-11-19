@@ -324,6 +324,21 @@ describe('magma store: loading a MaGMa file', () => {
     expect(magma.sheetSorts).toEqual({});
   });
 
+  it('saves the use cases by domain, then by ID with the numbers in them in order (L3-2 before L3-10)', () => {
+    magma.loadUseCases(
+      ['L3-10', 'L3-2', 'L3-1', 'DOS-1-B', 'DOS-1-A'].map((id) => ({
+        domain: 'mobile-attack',
+        level: 3,
+        id,
+        name: id,
+      })),
+    );
+    const saved = magma.domainSortedUseCases
+      .filter((u) => u.domain === 'mobile-attack' && u.level === 3)
+      .map((u) => u.id);
+    expect(saved).toEqual(['DOS-1-A', 'DOS-1-B', 'L3-1', 'L3-2', 'L3-10']);
+  });
+
   it('restores the saved domains from a file saved by PRISMA, and keeps domains the file has no use cases for', () => {
     const saved = saveFile(magma); // Contains IN/THR for every domain, and use cases for Enterprise and Mobile.
     const before = ids();
