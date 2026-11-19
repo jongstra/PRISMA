@@ -16,6 +16,7 @@ import { isMac, shortcuts } from './undoKeys';
 import { notifyUndoable } from '@/components/common/notify';
 import { useCellSelection } from './useCellSelection';
 import type { Cell } from './cellSelection';
+import { letteredIds } from '@/domain/magma/letteredIds';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -90,8 +91,8 @@ const rows = computed(() =>
 );
 
 // Selecting cells with the mouse (see useCellSelection.ts). A change in a selected cell goes to all selected cells of
-// the same kind, and the × of a selected row deletes all selected rows. The ID column cannot be selected: each ID must
-// stay unique. Switching the sheet, the domain or the sort ends the selection.
+// the same kind; a base typed in a selected ID gives the selected rows lettered IDs (see idPreview). Switching the
+// sheet, the domain or the sort ends the selection.
 const {
   rows: selectedRows,
   columns: selectedFields,
@@ -104,14 +105,20 @@ const {
   clear: clearSelection,
 } = useCellSelection(
   computed(() => rows.value.map((useCase) => useCase.uid)),
-  computed(() => columns.value.map((column) => column.field).filter((field) => field !== 'id')),
+  computed(() => columns.value.map((column) => column.field)),
   focusCell,
 );
 watch([() => magma.activeTab, () => tactics.domain, sort], clearSelection);
 
 // The kind of value a column takes: a percentage, a text, or (for a search field or switch) a value of its own.
 const kindOf = (field: string) =>
-  PERCENTAGE_INPUTS.includes(field) ? 'percentage' : TEXT_FIELDS.includes(field) ? 'text' : field;
+  field === 'id'
+    ? 'id'
+    : PERCENTAGE_INPUTS.includes(field)
+      ? 'percentage'
+      : TEXT_FIELDS.includes(field)
+        ? 'text'
+        : field;
 const isEditable = (field: string) => !!columns.value.find((column) => column.field === field)?.editable;
 
 // The cells a change in a cell goes to: when the cell is selected, all selected cells that take the same kind of value
@@ -162,8 +169,45 @@ const markForDelete = (useCases: UseCase[]) => {
 };
 const markedForDelete = (useCase: UseCase) => markedUids.value.includes(useCase.uid);
 
+// While a base such as THR-1 is typed in a selected ID, the selected rows (but IN and THR) get lettered IDs when the
+// cell is left: THR-1-E, THR-1-F … in the order of the sheet, after the letters already in use (see letteredIds.ts).
+// The other selected IDs show what they will become. Esc puts the old IDs back.
+const idDraft = ref<{ uid: string; text: string } | null>(null);
+const idPreview = computed(() => {
+  const draft = idDraft.value;
+  const base = draft?.text.trim() ?? '';
+  if (
+    !draft ||
+    !selectedFields.value.includes('id') ||
+    !selectedRows.value.includes(draft.uid) ||
+    /^$|[\s,]/.test(base)
+  ) {
+    return new Map<string, string>();
+  }
+  const renamed = deletableSelected.value; // the selected use cases but IN and THR
+  if (renamed.length < 2) {
+    return new Map<string, string>();
+  }
+  const otherIds = magma.getAllIds(tactics.domain).filter((id) => !renamed.some((useCase) => useCase.id === id));
+  const ids = letteredIds(base, renamed.length, otherIds);
+  return new Map(renamed.map((useCase, index) => [useCase.uid, ids[index]!]));
+});
+// The new ID a selected ID cell shows while a base is typed in another one, or null.
+const previewId = (useCase: UseCase, field: string) =>
+  field === 'id' && useCase.uid !== idDraft.value?.uid ? (idPreview.value.get(useCase.uid) ?? null) : null;
+// The text a text field shows: an ID as it is being typed (the sheet redraws while it is typed, and must not put the
+// old ID back), an ID a selection will get, or the value.
+const shownText = (useCase: UseCase, field: string) =>
+  field === 'id' && idDraft.value?.uid === useCase.uid
+    ? idDraft.value.text
+    : (previewId(useCase, field) ?? textValue(useCase, field));
+
 // A short line under the selection: a change goes to all of it. It has the button that deletes the selected rows.
 const selectionLabel = computed(() => {
+  const newIds = [...idPreview.value.values()];
+  if (newIds.length > 1) {
+    return `${newIds.length} IDs selected · Enter names them ${newIds[0]} to ${newIds.at(-1)}`;
+  }
   const count = selectedRows.value.length * selectedFields.value.length;
   return count > 1 ? `${count} cells selected · a change goes to all` : null;
 });
@@ -287,6 +331,17 @@ const confirmRemoveUseCaseLevel = () => {
 // again.
 const renameUseCase = (useCase: UseCase, event: Event) => {
   const field = event.target as HTMLTextAreaElement;
+  const lettered = [...idPreview.value].map(([uid, id]) => ({ uid, id }));
+  idDraft.value = null;
+  if (lettered.some((rename) => rename.uid === useCase.uid)) {
+    magma.recordStep(`ID of ${lettered.length} use cases`);
+    const problem = magma.renameUseCases(lettered); // the letters are free, so this is not refused
+    if (problem) {
+      field.value = useCase.id;
+      Swal.fire({ icon: 'error', titleText: 'IDs not changed', text: problem });
+    }
+    return;
+  }
   const problem = magma.renameProblem(useCase.uid, field.value);
   if (problem) {
     field.value = useCase.id;
@@ -297,11 +352,20 @@ const renameUseCase = (useCase: UseCase, event: Event) => {
   }
 };
 
-// Enter in a field of one line ends editing, instead of adding a line.
-const onTextKeydown = (field: string, event: KeyboardEvent) => {
+// Enter in a field of one line ends editing, instead of adding a line; in a selection, the cell keeps the cursor. Esc in
+// an ID puts the old ID back (and the old IDs of a selection).
+const onTextKeydown = (useCase: UseCase, field: string, event: KeyboardEvent) => {
+  const textarea = event.target as HTMLTextAreaElement;
   if (event.key === 'Enter' && SINGLE_LINE_FIELDS.includes(field) && !event.isComposing) {
     event.preventDefault();
-    (event.target as HTMLTextAreaElement).blur();
+    textarea.blur(); // an ID is renamed, and the next typing is a new undo step
+    if (selectedRows.value.includes(useCase.uid) && selectedFields.value.includes(field)) {
+      textarea.focus();
+      textarea.select();
+    }
+  } else if (event.key === 'Escape' && field === 'id') {
+    textarea.value = useCase.id;
+    idDraft.value = null;
   }
 };
 
@@ -313,7 +377,9 @@ const onTextInput = (useCase: UseCase, field: string, event: Event) => {
   if (SINGLE_LINE_FIELDS.includes(field) && /[\r\n]/.test(textarea.value)) {
     textarea.value = oneLine(textarea.value);
   }
-  if (field !== 'id') {
+  if (field === 'id') {
+    idDraft.value = { uid: useCase.uid, text: textarea.value };
+  } else {
     const text = textarea.value;
     changeCells(useCase, field, (target, other) =>
       updateObjectField(target.uid, other, SINGLE_LINE_FIELDS.includes(other) ? oneLine(text) : text),
@@ -554,11 +620,14 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
                 @click="($event.currentTarget as HTMLElement).querySelector('textarea')?.focus()"
               >
                 <textarea
-                  :value="textValue(useCase, column.field)"
-                  @keydown="(event) => onTextKeydown(column.field, event)"
+                  :value="shownText(useCase, column.field)"
+                  :class="{ 'id-preview': previewId(useCase, column.field) !== null }"
+                  @keydown="(event) => onTextKeydown(useCase, column.field, event)"
+                  @blur="column.field === 'id' && (idDraft = null)"
                   @input="(event) => onTextInput(useCase, column.field, event)"
                   @change="(event) => column.field === 'id' && renameUseCase(useCase, event)"
                   :data-field="column.field"
+                  :data-saved="column.field === 'id' ? useCase.id : undefined"
                   :disabled="isLocked(useCase, column.field)"
                 ></textarea>
               </div>
@@ -1021,6 +1090,12 @@ input,
 .text-field:focus-within {
   outline: auto 1px;
   outline: -webkit-focus-ring-color auto 1px; /* the browser's own focus ring colour, where it exists */
+}
+
+/* An ID that a selection will get when the cell with the typed base is left. */
+.text-field textarea.id-preview {
+  color: #6b7280;
+  font-style: italic;
 }
 
 .text-field textarea:focus {

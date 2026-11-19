@@ -285,6 +285,33 @@ describe('magma store: renaming and deleting use cases', () => {
     expect(magma.getUseCaseById('DOS-1', domain)).toBeDefined();
   });
 
+  it('renames several use cases in one go, also to an ID another one of them gives up, with their children', () => {
+    const uid = (id: string) => magma.getUseCaseById(id, domain)!.uid;
+    expect(
+      magma.renameUseCases([
+        { uid: uid('DOS-1'), id: 'FIN-1' },
+        { uid: uid('FIN-1'), id: 'FIN-2' },
+      ]),
+    ).toBeNull();
+    expect(parentsOf('DOS-1-A')).toEqual(['FIN-1']);
+    expect(parentsOf('FIN-1-A')).toEqual(['FIN-2']);
+    expect(magma.getUseCaseById('DOS-1', domain)).toBeUndefined();
+  });
+
+  it('renames none of them when one new ID is refused', () => {
+    const uid = (id: string) => magma.getUseCaseById(id, domain)!.uid;
+    const tryRename = (ids: [string, string]) =>
+      magma.renameUseCases([
+        { uid: uid('DOS-1'), id: ids[0] },
+        { uid: uid('FIN-1'), id: ids[1] },
+      ]);
+    expect(tryRename(['X-A', 'THR-1'])).toContain('already exists'); // THR-1 stays
+    expect(tryRename(['X-A', 'X-A'])).toContain('already exists');
+    expect(tryRename(['X-A', 'X B'])).toBe('An ID cannot contain spaces or commas.');
+    expect(magma.getUseCaseById('DOS-1', domain)).toBeDefined();
+    expect(magma.getUseCaseById('FIN-1', domain)).toBeDefined();
+  });
+
   it('trims spaces around a new ID', () => {
     expect(magma.renameUseCase(magma.getUseCaseById('DOS-1', domain)!.uid, '  DOS-B ')).toBeNull();
     expect(parentsOf('DOS-1-A')).toEqual(['DOS-B']);

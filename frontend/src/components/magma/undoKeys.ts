@@ -20,11 +20,15 @@ export const shortcuts = (mac: boolean) =>
 
 /**
  * Whether Ctrl+Z belongs to the field itself (the browser undoes the typing): a field outside the sheets, the search field
- * of a parent or technique, and an ID field (the ID is only renamed when the field is left, so its typing is not a step).
+ * of a parent or technique, and an ID field while an ID is typed in it (the ID is only renamed when the field is left, so
+ * its typing is not a step; once it is renamed, Ctrl+Z undoes the rename). An ID field has its saved ID in data-saved.
  */
 export function fieldHasOwnUndo(element: Element | null): boolean {
   if (!(element instanceof HTMLElement) || !element.matches('input, textarea, [contenteditable]')) {
     return false;
   }
-  return !element.closest('.fixed-table') || !!element.closest('.option-picker') || element.dataset.field === 'id';
+  if (element.dataset.field === 'id') {
+    return (element as HTMLTextAreaElement).value !== element.dataset.saved;
+  }
+  return !element.closest('.fixed-table') || !!element.closest('.option-picker');
 }

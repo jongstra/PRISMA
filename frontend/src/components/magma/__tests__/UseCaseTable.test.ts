@@ -606,12 +606,55 @@ describe('UseCaseTable: selecting cells', () => {
     expect(selected()).toBe(0);
   });
 
-  it('cannot select the ID column: each ID must stay unique', async () => {
-    const { drag, selected } = await showThreeL3UseCases();
+  // Typing without leaving the field (setValue would also leave it: a change event).
+  const typeIn = async (field: ReturnType<ReturnType<typeof mount>['find']>, text: string) => {
+    (field.element as HTMLTextAreaElement).value = text;
+    await field.trigger('input');
+  };
+
+  it('gives the selected IDs the typed base with letters, shown while typing, in sheet order and as one undo step', async () => {
+    const { drag, cell, useCases, magma, table } = await showThreeL3UseCases(true);
+    const original = useCases().map((useCase) => useCase.id);
+    magma.renameUseCase(useCases()[2]!.uid, 'THR-1-A'); // not selected: its letter is taken
+    await table.vm.$nextTick();
+    const id = (row: number) => cell(row, 'ID').find('textarea');
+    await drag([0, 'ID'], [1, 'ID']);
+    await typeIn(id(0), 'THR-1');
+    await table.vm.$nextTick();
+    expect((id(0).element as HTMLTextAreaElement).value).toBe('THR-1'); // the typed text stays
+    expect((id(1).element as HTMLTextAreaElement).value).toBe('THR-1-C'); // what it will become, in grey
+    expect(id(1).classes()).toContain('id-preview');
+    await table.vm.$nextTick();
+    await table.vm.$nextTick();
+    expect(table.find('.selection-label').text()).toMatch(/^2 IDs selected · Enter names them THR-1-B to THR-1-C\s/);
+    await id(0).trigger('change'); // Enter, or leaving the cell
+    expect(useCases().map((useCase) => useCase.id)).toEqual(['THR-1-B', 'THR-1-C', 'THR-1-A']);
+    expect(magma.undoDescription).toBe('ID of 2 use cases');
+    magma.undo();
+    expect(useCases().map((useCase) => useCase.id)).toEqual([original[0], original[1], 'THR-1-A']);
+    table.unmount();
+  });
+
+  it('puts the old IDs back with Esc', async () => {
+    const { drag, cell, useCases, table } = await showThreeL3UseCases(true);
+    const original = useCases().map((useCase) => useCase.id);
+    const id = (row: number) => cell(row, 'ID').find('textarea').element as HTMLTextAreaElement;
     await drag([0, 'ID'], [2, 'ID']);
-    expect(selected()).toBe(0);
-    await drag([0, 'Use Case Name'], [2, 'ID']);
-    expect(selected()).toBe(0); // the drag does not reach into the ID column
+    await typeIn(cell(0, 'ID').find('textarea'), 'THR-1');
+    await cell(0, 'ID').find('textarea').trigger('keydown', { key: 'Escape' });
+    await table.vm.$nextTick();
+    expect([id(0).value, id(1).value, id(2).value]).toEqual(original);
+    expect(useCases().map((useCase) => useCase.id)).toEqual(original);
+    table.unmount();
+  });
+
+  it('keeps the cursor in a selected cell when Enter ends editing in it', async () => {
+    const { drag, cell, table } = await showThreeL3UseCases(true);
+    await drag([0, 'Use Case Name'], [2, 'Use Case Name']);
+    const name = cell(0, 'Use Case Name').find('textarea');
+    await name.trigger('keydown', { key: 'Enter' });
+    expect(document.activeElement).toBe(name.element);
+    table.unmount();
   });
 
   it('deletes only its own row with the ×, also when the row is part of a selection', async () => {

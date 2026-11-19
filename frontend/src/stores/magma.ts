@@ -388,7 +388,7 @@ export const magmaStore = defineStore('magma', {
     },
 
     // Why renaming a use case to newId is refused, or null when it can be renamed (also when the ID stays the same).
-    renameProblem(uid: string, newId: string): string | null {
+    renameProblem(uid: string, newId: string, renamedUids: string[] = []): string | null {
       const useCase = this.getUseCaseByUid(uid);
       if (!useCase) {
         return `No use case with uid "${uid}" exists.`;
@@ -407,7 +407,9 @@ export const magmaStore = defineStore('magma', {
       if (id === useCase.id) {
         return null;
       }
-      if (id === 'none' || this.getUseCaseById(id, useCase.domain)) {
+      // An ID that another use case gives up in the same rename (renamedUids) is free.
+      const holder = this.getUseCaseById(id, useCase.domain);
+      if (id === 'none' || (holder && !renamedUids.includes(holder.uid))) {
         return `A use case with ID "${id}" already exists in this domain. Choose another ID.`;
       }
       return null;
@@ -433,6 +435,36 @@ export const magmaStore = defineStore('magma', {
         for (const child of this.getChildUseCases({ ...useCase, id: oldId })) {
           child.parentIds = child.parentIds!.map((parentId) => (parentId === oldId ? id : parentId));
         }
+      }
+      this.recalculateAll();
+      return null;
+    },
+
+    // Renames several use cases in one go, such as a selection that gets lettered IDs (THR-1-E, THR-1-F …): a new ID may
+    // be the old ID of another one of them. Their children move along. Returns why it is refused (then nothing is
+    // renamed), or null.
+    renameUseCases(renames: { uid: string; id: string }[]): string | null {
+      const uids = renames.map((rename) => rename.uid);
+      const newIds = renames.map((rename) => rename.id.trim());
+      for (const [index, rename] of renames.entries()) {
+        const problem = this.renameProblem(rename.uid, rename.id, uids);
+        if (problem) {
+          return problem;
+        }
+        if (newIds.indexOf(newIds[index]!) !== index) {
+          return `A use case with ID "${newIds[index]}" already exists in this domain. Choose another ID.`;
+        }
+      }
+
+      // The children are found by the old IDs, before any of them changes.
+      const useCases = uids.map((uid) => this.getUseCaseByUid(uid)!);
+      const newIdOf = new Map(useCases.map((useCase, index) => [useCase.id, newIds[index]!]));
+      const children = new Set(useCases.flatMap((useCase) => this.getChildUseCases(useCase)));
+      useCases.forEach((useCase, index) => {
+        useCase.id = newIds[index]!;
+      });
+      for (const child of children) {
+        child.parentIds = child.parentIds!.map((parentId) => newIdOf.get(parentId) ?? parentId);
       }
       this.recalculateAll();
       return null;

@@ -181,6 +181,31 @@ test('a change in cells selected by dragging goes to all of the same kind, and c
   ]);
 });
 
+test('IDs selected in the ID column get the typed base with letters after the ones in use', async ({ page }) => {
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  await openTab(page, 'L3');
+  await page.getByRole('button', { name: 'Add 5 empty use cases' }).click();
+  const ids = () =>
+    page
+      .locator('table.fixed-table tbody textarea[data-field="id"]')
+      .evaluateAll((fields) => fields.map((field) => (field as HTMLTextAreaElement).value));
+  const before = await ids();
+  const id = (index: number) => page.locator('table.fixed-table tbody textarea[data-field="id"]').nth(index);
+  const from = (await id(before.length - 5).boundingBox())!;
+  const to = (await id(before.length - 1).boundingBox())!;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 10 });
+  await page.mouse.up();
+  await page.keyboard.type('THR-1'); // THR-1-A to D exist
+  await page.keyboard.press('Enter');
+  expect((await ids()).slice(-5)).toEqual(['THR-1-E', 'THR-1-F', 'THR-1-G', 'THR-1-H', 'THR-1-I']);
+  await page.keyboard.press('ControlOrMeta+z');
+  expect(await ids()).toEqual(before);
+});
+
 // The fields of a use case that a user enters (the other fields are calculated). The visibility of an L3 rule is entered
 // only when Override is on; otherwise it comes from DeTT&CT.
 const ENTERED = ['name', 'description', 'parentIds', 'attackTechniqueId', 'visibilityFromAttackTechniqueOverride'];

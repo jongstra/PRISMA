@@ -28,18 +28,21 @@ describe('shortcuts', () => {
 });
 
 describe('fieldHasOwnUndo', () => {
-  it('leaves undo to a field outside the sheets, to a search field and to an ID field (renamed when it is left)', () => {
+  it('leaves undo to a field outside the sheets, a search field and an ID being typed (renamed when it is left)', () => {
     document.body.innerHTML = `
       <input id="outside">
       <table class="fixed-table"><tbody><tr>
         <td><textarea id="name"></textarea></td>
-        <td><textarea id="id" data-field="id"></textarea></td>
+        <td><textarea id="id" data-field="id" data-saved="DOS-1"></textarea></td>
         <td><div class="option-picker"><input id="search"></div></td>
         <td><button id="button">x</button></td>
       </tr></tbody></table>`;
     const own = (id: string) => fieldHasOwnUndo(document.getElementById(id));
     expect(own('outside')).toBe(true);
     expect(own('search')).toBe(true);
+    (document.getElementById('id') as HTMLTextAreaElement).value = 'DOS-1';
+    expect(own('id')).toBe(false); // nothing typed: undo is the sheet's, such as a rename that was just made
+    (document.getElementById('id') as HTMLTextAreaElement).value = 'DOS-';
     expect(own('id')).toBe(true);
     expect(own('name')).toBe(false);
     expect(own('button')).toBe(false);
