@@ -1,0 +1,1180 @@
+# MaGMa heatmap colour test: fictional rules with chosen scores, so the heatmap (MaGMa > Heatmap, score Weight)
+# shows every colour step in every tactic column: 0% (white, thick border), up to 25, 50, 75 and above 75%.
+# The rules set their own visibility (Override on), so the colours do not depend on the DeTT&CT file.
+# Made for checking how the heatmap looks; it is not an example of real detection rules.
+- domain: enterprise-attack
+  level: 2
+  id: CT-REC
+  name: 'Colour test: Reconnaissance'
+  parentIds:
+    - IN
+- domain: enterprise-attack
+  level: 3
+  id: CT-REC-A
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-REC
+  dataSource: Test
+  attackTechniqueId: T1595
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-REC-B
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-REC
+  dataSource: Test
+  attackTechniqueId: T1592
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 40
+  effectiveness: 39
+- domain: enterprise-attack
+  level: 3
+  id: CT-REC-C
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-REC
+  dataSource: Test
+  attackTechniqueId: T1589
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 67
+  effectiveness: 66
+- domain: enterprise-attack
+  level: 3
+  id: CT-REC-D
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-REC
+  dataSource: Test
+  attackTechniqueId: T1590
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 81
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: CT-REC-E
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-REC
+  dataSource: Test
+  attackTechniqueId: T1591
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 97
+  effectiveness: 98
+- domain: enterprise-attack
+  level: 3
+  id: CT-REC-F
+  name: 'Test rule, weight 22%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-REC
+  dataSource: Test
+  attackTechniqueId: T1598
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 49
+  effectiveness: 50
+- domain: enterprise-attack
+  level: 2
+  id: CT-RD
+  name: 'Colour test: Resource Development'
+  parentIds:
+    - IN
+- domain: enterprise-attack
+  level: 3
+  id: CT-RD-A
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-RD
+  dataSource: Test
+  attackTechniqueId: T1650
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 40
+  effectiveness: 39
+- domain: enterprise-attack
+  level: 3
+  id: CT-RD-B
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-RD
+  dataSource: Test
+  attackTechniqueId: T1583
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 67
+  effectiveness: 66
+- domain: enterprise-attack
+  level: 3
+  id: CT-RD-C
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-RD
+  dataSource: Test
+  attackTechniqueId: T1586
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 81
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: CT-RD-D
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-RD
+  dataSource: Test
+  attackTechniqueId: T1584
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 97
+  effectiveness: 98
+- domain: enterprise-attack
+  level: 3
+  id: CT-RD-E
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-RD
+  dataSource: Test
+  attackTechniqueId: T1587
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-RD-F
+  name: 'Test rule, weight 48%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-RD
+  dataSource: Test
+  attackTechniqueId: T1585
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 69
+  effectiveness: 70
+- domain: enterprise-attack
+  level: 2
+  id: CT-IA
+  name: 'Colour test: Initial Access'
+  parentIds:
+    - IN
+- domain: enterprise-attack
+  level: 3
+  id: CT-IA-A
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IA
+  dataSource: Test
+  attackTechniqueId: T1659
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 67
+  effectiveness: 66
+- domain: enterprise-attack
+  level: 3
+  id: CT-IA-B
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IA
+  dataSource: Test
+  attackTechniqueId: T1189
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 81
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: CT-IA-C
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IA
+  dataSource: Test
+  attackTechniqueId: T1190
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 97
+  effectiveness: 98
+- domain: enterprise-attack
+  level: 3
+  id: CT-IA-D
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IA
+  dataSource: Test
+  attackTechniqueId: T1133
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-IA-E
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IA
+  dataSource: Test
+  attackTechniqueId: T1200
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 39
+  effectiveness: 38
+- domain: enterprise-attack
+  level: 3
+  id: CT-IA-F
+  name: 'Test rule, weight 72%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IA
+  dataSource: Test
+  attackTechniqueId: T1566
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 87
+  effectiveness: 87
+- domain: enterprise-attack
+  level: 2
+  id: CT-EXE
+  name: 'Colour test: Execution'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXE-A
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXE
+  dataSource: Test
+  attackTechniqueId: T1651
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 81
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXE-B
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXE
+  dataSource: Test
+  attackTechniqueId: T1059
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 97
+  effectiveness: 98
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXE-C
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXE
+  dataSource: Test
+  attackTechniqueId: T1609
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXE-D
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXE
+  dataSource: Test
+  attackTechniqueId: T1610
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 39
+  effectiveness: 38
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXE-E
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXE
+  dataSource: Test
+  attackTechniqueId: T1675
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 65
+  effectiveness: 65
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXE-F
+  name: 'Test rule, weight 82%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXE
+  dataSource: Test
+  attackTechniqueId: T1203
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 95
+  effectiveness: 96
+- domain: enterprise-attack
+  level: 2
+  id: CT-PER
+  name: 'Colour test: Persistence'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-PER-A
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PER
+  dataSource: Test
+  attackTechniqueId: T1098
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 97
+  effectiveness: 98
+- domain: enterprise-attack
+  level: 3
+  id: CT-PER-B
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PER
+  dataSource: Test
+  attackTechniqueId: T1197
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-PER-C
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PER
+  dataSource: Test
+  attackTechniqueId: T1547
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 39
+  effectiveness: 38
+- domain: enterprise-attack
+  level: 3
+  id: CT-PER-D
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PER
+  dataSource: Test
+  attackTechniqueId: T1037
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 65
+  effectiveness: 65
+- domain: enterprise-attack
+  level: 3
+  id: CT-PER-E
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PER
+  dataSource: Test
+  attackTechniqueId: T1671
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 85
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: CT-PER-F
+  name: 'Test rule, weight 8%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PER
+  dataSource: Test
+  attackTechniqueId: T1554
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 28
+  effectiveness: 29
+- domain: enterprise-attack
+  level: 2
+  id: CT-PE
+  name: 'Colour test: Privilege Escalation'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-PE-A
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PE
+  dataSource: Test
+  attackTechniqueId: T1548
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-PE-B
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PE
+  dataSource: Test
+  attackTechniqueId: T1134
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 39
+  effectiveness: 38
+- domain: enterprise-attack
+  level: 3
+  id: CT-PE-C
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PE
+  dataSource: Test
+  attackTechniqueId: T1543
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 65
+  effectiveness: 65
+- domain: enterprise-attack
+  level: 3
+  id: CT-PE-D
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PE
+  dataSource: Test
+  attackTechniqueId: T1484
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 85
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: CT-PE-E
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PE
+  dataSource: Test
+  attackTechniqueId: T1611
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 95
+  effectiveness: 95
+- domain: enterprise-attack
+  level: 3
+  id: CT-PE-F
+  name: 'Test rule, weight 35%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-PE
+  dataSource: Test
+  attackTechniqueId: T1546
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 61
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 2
+  id: CT-DE
+  name: 'Colour test: Defense Evasion'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-DE-A
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DE
+  dataSource: Test
+  attackTechniqueId: T1612
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 39
+  effectiveness: 38
+- domain: enterprise-attack
+  level: 3
+  id: CT-DE-B
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DE
+  dataSource: Test
+  attackTechniqueId: T1622
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 65
+  effectiveness: 65
+- domain: enterprise-attack
+  level: 3
+  id: CT-DE-C
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DE
+  dataSource: Test
+  attackTechniqueId: T1140
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 85
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: CT-DE-D
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DE
+  dataSource: Test
+  attackTechniqueId: T1006
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 95
+  effectiveness: 95
+- domain: enterprise-attack
+  level: 3
+  id: CT-DE-E
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DE
+  dataSource: Test
+  attackTechniqueId: T1672
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-DE-F
+  name: 'Test rule, weight 58%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DE
+  dataSource: Test
+  attackTechniqueId: T1480
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 80
+  effectiveness: 81
+- domain: enterprise-attack
+  level: 2
+  id: CT-CA
+  name: 'Colour test: Credential Access'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-CA-A
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-CA
+  dataSource: Test
+  attackTechniqueId: T1557
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 65
+  effectiveness: 65
+- domain: enterprise-attack
+  level: 3
+  id: CT-CA-B
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-CA
+  dataSource: Test
+  attackTechniqueId: T1110
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 85
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: CT-CA-C
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-CA
+  dataSource: Test
+  attackTechniqueId: T1555
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 95
+  effectiveness: 95
+- domain: enterprise-attack
+  level: 3
+  id: CT-CA-D
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-CA
+  dataSource: Test
+  attackTechniqueId: T1212
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-CA-E
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-CA
+  dataSource: Test
+  attackTechniqueId: T1187
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 41
+  effectiveness: 41
+- domain: enterprise-attack
+  level: 3
+  id: CT-CA-F
+  name: 'Test rule, weight 95%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-CA
+  dataSource: Test
+  attackTechniqueId: T1606
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 97
+  effectiveness: 98
+- domain: enterprise-attack
+  level: 2
+  id: CT-DIS
+  name: 'Colour test: Discovery'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-DIS-A
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DIS
+  dataSource: Test
+  attackTechniqueId: T1087
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 85
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: CT-DIS-B
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DIS
+  dataSource: Test
+  attackTechniqueId: T1010
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 95
+  effectiveness: 95
+- domain: enterprise-attack
+  level: 3
+  id: CT-DIS-C
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DIS
+  dataSource: Test
+  attackTechniqueId: T1217
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-DIS-D
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DIS
+  dataSource: Test
+  attackTechniqueId: T1580
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 41
+  effectiveness: 41
+- domain: enterprise-attack
+  level: 3
+  id: CT-DIS-E
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DIS
+  dataSource: Test
+  attackTechniqueId: T1538
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 63
+  effectiveness: 63
+- domain: enterprise-attack
+  level: 3
+  id: CT-DIS-F
+  name: 'Test rule, weight 22%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-DIS
+  dataSource: Test
+  attackTechniqueId: T1526
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 48
+  effectiveness: 48
+- domain: enterprise-attack
+  level: 2
+  id: CT-LM
+  name: 'Colour test: Lateral Movement'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-LM-A
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-LM
+  dataSource: Test
+  attackTechniqueId: T1210
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 95
+  effectiveness: 95
+- domain: enterprise-attack
+  level: 3
+  id: CT-LM-B
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-LM
+  dataSource: Test
+  attackTechniqueId: T1534
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-LM-C
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-LM
+  dataSource: Test
+  attackTechniqueId: T1570
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 41
+  effectiveness: 41
+- domain: enterprise-attack
+  level: 3
+  id: CT-LM-D
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-LM
+  dataSource: Test
+  attackTechniqueId: T1563
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 63
+  effectiveness: 63
+- domain: enterprise-attack
+  level: 3
+  id: CT-LM-E
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-LM
+  dataSource: Test
+  attackTechniqueId: T1021
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 83
+  effectiveness: 82
+- domain: enterprise-attack
+  level: 3
+  id: CT-LM-F
+  name: 'Test rule, weight 48%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-LM
+  dataSource: Test
+  attackTechniqueId: T1091
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 73
+  effectiveness: 73
+- domain: enterprise-attack
+  level: 2
+  id: CT-COL
+  name: 'Colour test: Collection'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-COL-A
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COL
+  dataSource: Test
+  attackTechniqueId: T1560
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-COL-B
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COL
+  dataSource: Test
+  attackTechniqueId: T1123
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 41
+  effectiveness: 41
+- domain: enterprise-attack
+  level: 3
+  id: CT-COL-C
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COL
+  dataSource: Test
+  attackTechniqueId: T1119
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 63
+  effectiveness: 63
+- domain: enterprise-attack
+  level: 3
+  id: CT-COL-D
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COL
+  dataSource: Test
+  attackTechniqueId: T1185
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 83
+  effectiveness: 82
+- domain: enterprise-attack
+  level: 3
+  id: CT-COL-E
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COL
+  dataSource: Test
+  attackTechniqueId: T1115
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 100
+  effectiveness: 100
+- domain: enterprise-attack
+  level: 3
+  id: CT-COL-F
+  name: 'Test rule, weight 72%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COL
+  dataSource: Test
+  attackTechniqueId: T1074
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 85
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 2
+  id: CT-COM
+  name: 'Colour test: Command and Control'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-COM-A
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COM
+  dataSource: Test
+  attackTechniqueId: T1071
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 41
+  effectiveness: 41
+- domain: enterprise-attack
+  level: 3
+  id: CT-COM-B
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COM
+  dataSource: Test
+  attackTechniqueId: T1092
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 63
+  effectiveness: 63
+- domain: enterprise-attack
+  level: 3
+  id: CT-COM-C
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COM
+  dataSource: Test
+  attackTechniqueId: T1132
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 83
+  effectiveness: 82
+- domain: enterprise-attack
+  level: 3
+  id: CT-COM-D
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COM
+  dataSource: Test
+  attackTechniqueId: T1001
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 100
+  effectiveness: 100
+- domain: enterprise-attack
+  level: 3
+  id: CT-COM-E
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COM
+  dataSource: Test
+  attackTechniqueId: T1568
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-COM-F
+  name: 'Test rule, weight 82%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-COM
+  dataSource: Test
+  attackTechniqueId: T1573
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 93
+  effectiveness: 93
+- domain: enterprise-attack
+  level: 2
+  id: CT-EXF
+  name: 'Colour test: Exfiltration'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXF-A
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXF
+  dataSource: Test
+  attackTechniqueId: T1020
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 63
+  effectiveness: 63
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXF-B
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXF
+  dataSource: Test
+  attackTechniqueId: T1030
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 83
+  effectiveness: 82
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXF-C
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXF
+  dataSource: Test
+  attackTechniqueId: T1048
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 100
+  effectiveness: 100
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXF-D
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXF
+  dataSource: Test
+  attackTechniqueId: T1041
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXF-E
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXF
+  dataSource: Test
+  attackTechniqueId: T1011
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 40
+  effectiveness: 39
+- domain: enterprise-attack
+  level: 3
+  id: CT-EXF-F
+  name: 'Test rule, weight 8%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-EXF
+  dataSource: Test
+  attackTechniqueId: T1052
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 30
+  effectiveness: 30
+- domain: enterprise-attack
+  level: 2
+  id: CT-IMP
+  name: 'Colour test: Impact'
+  parentIds:
+    - THR
+- domain: enterprise-attack
+  level: 3
+  id: CT-IMP-A
+  name: 'Test rule, weight 65%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IMP
+  dataSource: Test
+  attackTechniqueId: T1531
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 83
+  effectiveness: 82
+- domain: enterprise-attack
+  level: 3
+  id: CT-IMP-B
+  name: 'Test rule, weight 90%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IMP
+  dataSource: Test
+  attackTechniqueId: T1485
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 100
+  effectiveness: 100
+- domain: enterprise-attack
+  level: 3
+  id: CT-IMP-C
+  name: 'Test rule, weight 0%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IMP
+  dataSource: Test
+  attackTechniqueId: T1486
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 0
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: CT-IMP-D
+  name: 'Test rule, weight 15%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IMP
+  dataSource: Test
+  attackTechniqueId: T1565
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 95
+  implementation: 40
+  effectiveness: 39
+- domain: enterprise-attack
+  level: 3
+  id: CT-IMP-E
+  name: 'Test rule, weight 40%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IMP
+  dataSource: Test
+  attackTechniqueId: T1491
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 90
+  implementation: 67
+  effectiveness: 66
+- domain: enterprise-attack
+  level: 3
+  id: CT-IMP-F
+  name: 'Test rule, weight 35%'
+  description: Fictional rule for checking the heatmap colours.
+  parentIds:
+    - CT-IMP
+  dataSource: Test
+  attackTechniqueId: T1561
+  visibilityFromAttackTechniqueOverride: true
+  visibility: 100
+  implementation: 59
+  effectiveness: 59
