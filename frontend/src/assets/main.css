@@ -4,7 +4,7 @@
 :root {
   /* Lines */
   --color-frame: #8a919c; /* control panels, chart cards */
-  --color-box-border: #a7adb6; /* control boxes, selection tools, sheet tabs */
+  --color-box-border: #a7adb6; /* control boxes, selection tools, undo and redo buttons */
   --color-control-border: #6b7280; /* buttons, fields, legend swatches, sheet cells */
   --border-frame: 1px solid var(--color-frame);
   --border-box: 1px solid var(--color-box-border);
@@ -18,8 +18,7 @@
 
   /* Surfaces */
   --color-panel: #dde1e6; /* control panels */
-  --color-box: #eceef2; /* control boxes, chart card titles, sheet tabs */
-  --color-tab-bar: #f4f5f7; /* the bar with the sheet tabs */
+  --color-box: #eceef2; /* control boxes, chart card titles */
   --color-sheet-header: rgb(196, 213, 234); /* the column headers of the sheets */
   --color-list: #f6f7f9; /* drop-down lists with checkboxes */
   --color-track: #e9ecf0; /* the line behind a chart bar */

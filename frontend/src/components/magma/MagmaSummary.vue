@@ -123,13 +123,13 @@ const counts = computed(() => [
 </template>
 
 <style scoped>
-/* Two columns of cards, 10px apart and 10px below the tabs, together as wide as the menu bars (960px), so they end
+/* Two columns of cards, 10px apart and 5px below the tabs, together as wide as the menu bars (960px), so they end
    where the Load and Save buttons end. The cards fill their column; the wide cards take both. */
 .magma-summary {
   display: grid;
   grid-template-columns: repeat(2, 475px);
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .magma-summary > * {

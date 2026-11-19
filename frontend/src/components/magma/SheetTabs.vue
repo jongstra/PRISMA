@@ -126,15 +126,17 @@ const importYaml = async (event: Event) => {
 
 <template>
   <div class="sheet-tabs">
-    <button
-      v-for="tab in tabs"
-      :key="tab"
-      class="sheet-tab"
-      :class="{ active: magma.activeTab === tab }"
-      @click="magma.activeTab = tab"
-    >
-      {{ tab }}
-    </button>
+    <div class="tab-group">
+      <button
+        v-for="tab in tabs"
+        :key="tab"
+        class="sheet-tab"
+        :class="{ active: magma.activeTab === tab }"
+        @click="magma.activeTab = tab"
+      >
+        {{ tab }}
+      </button>
+    </div>
     <div class="undo-redo">
       <button
         class="undo-button"
@@ -168,43 +170,64 @@ const importYaml = async (event: Event) => {
 </template>
 
 <style scoped>
-/* The tabs, and at the right the Load and Save buttons, which end where the control panels end (960px wide). */
+/* The tabs, and at the right undo, redo, Load and Save, which end where the menu bars of the header end (960px wide).
+   The content of every tab starts 5px below them, as the page content starts 5px below the header. */
 .sheet-tabs {
   display: flex;
   align-items: center;
-  padding-right: max(0px, calc(100% - 960px));
-  background-color: var(--color-tab-bar);
-  border-bottom: 1px solid var(--color-box-border);
+  max-width: 960px;
 }
 
-/* As high as the Load and Save buttons, so the tabs start at the top, where the content of the other pages starts. */
-.sheet-tab {
+/* The tabs are a menu bar like the two in the header (App.vue): one grey box, the chosen tab a purple button, and a thin
+   line between the others. The box is as high as the Load and Save buttons (30px); its text is a bit smaller than the
+   header's, as it is a level below. */
+.tab-group {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 78px;
-  height: 30px;
-  padding: 0 8px;
-  margin-right: 2px;
-  background-color: var(--color-box);
-  border: 1px solid var(--color-box-border);
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  width: 560px;
+  padding: 2px;
+  background-color: var(--color-menu-bar);
+  border: 1px solid var(--color-header-line);
+  border-radius: var(--radius-frame);
+}
+
+.sheet-tab {
   position: relative;
+  flex-grow: 1;
+  width: 0; /* all tabs equally wide */
+  height: 24px;
+  margin: 0 2px;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--radius-box);
+  color: var(--color-menu-text);
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: bold;
-  text-align: center; /* Center the text within each tab */
+  transition: 0.1s;
 }
 
 .sheet-tab:hover {
-  background-color: hsla(160, 100%, 37%, 0.2);
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.sheet-tab + .sheet-tab::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 4px;
+  bottom: 4px;
+  border-left: 1px solid var(--color-header-line);
 }
 
 .sheet-tab.active {
   background-color: var(--color-accent);
   color: white;
-  border-bottom-color: transparent;
+}
+
+.sheet-tab.active::before,
+.sheet-tab.active + .sheet-tab::before {
+  display: none;
 }
 
 /* The same look as the Load button of the DeTT&CT page (FileUploadButtonYaml.vue). */

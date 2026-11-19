@@ -1028,11 +1028,12 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
 
 <style scoped>
 /* The sheet scrolls sideways from window edge to window edge (past the 0.5rem margin of the page, App.vue), starting
-   and ending 0.5rem from the edges. */
+   and ending 0.5rem from the edges. It starts 3px below the tabs: with the 2px between the cells, its header row is
+   5px below them, like the content of the other tabs. */
 .sheet-scroll {
   position: relative; /* for the line under a selection of cells */
   overflow-x: auto;
-  margin: 0 -0.5rem;
+  margin: 3px -0.5rem 0;
   padding: 0 0.5rem;
 }
 

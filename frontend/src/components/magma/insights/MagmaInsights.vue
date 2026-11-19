@@ -34,12 +34,12 @@ const magma = magmaStore();
 </template>
 
 <style scoped>
-/* The charts in rows of three, 10px apart, 10px below the tabs and as wide as the menu bars. */
+/* The charts in rows of three, 10px apart, 5px below the tabs and as wide as the menu bars. */
 .magma-insights {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   max-width: 960px;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 </style>

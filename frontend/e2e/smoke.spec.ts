@@ -158,6 +158,36 @@ test('the Insights page shows its charts for the loaded DeTT&CT file', async ({ 
   await expect(page.getByText('Visibility % per Platform')).toBeVisible();
 });
 
+test('the MaGMa tabs are a menu bar like the ones above, with the content of every tab 5px below it', async ({
+  page,
+}) => {
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  const bar = page.locator('.sheet-tabs');
+  await expect(bar.locator('.tab-group .sheet-tab')).toHaveCount(6);
+  const right = async (locator: Locator) => {
+    const box = (await locator.boundingBox())!;
+    return Math.round(box.x + box.width);
+  };
+  expect(await right(page.locator('.save-button'))).toBe(await right(page.locator('.navigation')));
+
+  const firstBox: Record<string, string> = {
+    L1: '.fixed-table th',
+    L2: '.fixed-table th',
+    L3: '.fixed-table th',
+    Heatmap: '.heatmap-controls',
+    Insights: '.magma-insights .chart-card',
+    Summary: '.magma-summary .chart-card',
+  };
+  for (const [tab, selector] of Object.entries(firstBox)) {
+    await openTab(page, tab);
+    const barBox = (await bar.boundingBox())!;
+    const contentTop = (await page.locator(selector).first().boundingBox())!.y;
+    expect(Math.round(contentTop - (barBox.y + barBox.height)), tab).toBe(5);
+  }
+});
+
 test('the MaGMa page loads the example file and shows it on every tab', async ({ page }) => {
   await openApp(page);
   await openPage(page, 'MaGMa');
