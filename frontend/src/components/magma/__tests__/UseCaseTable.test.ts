@@ -4,6 +4,7 @@ import { setActivePinia, createPinia } from 'pinia';
 import fs from 'node:fs';
 import { tacticsStore } from '@/stores/tactics';
 import { magmaStore } from '@/stores/magma';
+import Swal from 'sweetalert2';
 import UseCaseTable from '../UseCaseTable.vue';
 
 vi.mock('sweetalert2', () => ({ default: { fire: vi.fn(() => Promise.resolve({})) } }));
@@ -336,5 +337,29 @@ describe('UseCaseTable', () => {
         '258px',
       ]);
     }
+  });
+
+  it('makes one undo step of typing in a cell, described by the column and the use case', async () => {
+    const { magma, cell } = await showTable('L3');
+    const name = () => cell(0, 'Use Case Name').find('textarea');
+    const before = (name().element as HTMLTextAreaElement).value;
+    const id = magma.L3UseCases(domain)[0]!.id;
+    await name().setValue('A');
+    await name().setValue('AB');
+    expect(magma.undoDescription).toBe(`Use Case Name of ${id}`);
+    magma.undo();
+    expect(magma.L3UseCases(domain)[0]!.name).toBe(before);
+    expect(magma.undoDescription).toBeNull();
+  });
+
+  it('can undo deleting a use case', async () => {
+    const { magma, table } = await showTable('L3');
+    const count = magma.L3UseCases(domain).length;
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as Awaited<ReturnType<typeof Swal.fire>>);
+    await table.find('tbody .remove-button').trigger('click');
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(magma.L3UseCases(domain)).toHaveLength(count - 1);
+    magma.undo();
+    expect(magma.L3UseCases(domain)).toHaveLength(count);
   });
 });

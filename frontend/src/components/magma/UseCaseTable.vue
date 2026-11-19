@@ -12,6 +12,7 @@ import { vHint } from '@/components/common/hint';
 import { NOT_DETECTABLE_STYLE } from '@/components/common/notDetectableStyle';
 import { nextSort, sortedRows, type SortValue } from './useCaseSort';
 import { typedPercentage } from './percentageInput';
+import { isMac, shortcuts } from './undoKeys';
 
 const magma = magmaStore();
 const tactics = tacticsStore();
@@ -54,8 +55,16 @@ const stopEditing = (event: FocusEvent) => {
   const row = event.currentTarget as HTMLElement;
   if (!(event.relatedTarget instanceof Node && row.contains(event.relatedTarget))) {
     editing.value = null;
+    magma.endStepGroup(); // typing in the row ends: a next change makes a new undo step
   }
 };
+
+// Each change in the sheet first records an undo step (see recordStep in the store), described by what it changes. The
+// changes in one cell make one step until the cell is left: the cell is the group of the step.
+const UNDO_KEY = shortcuts(isMac()).undo;
+const titleOf = (field: string) => columns.value.find((column) => column.field === field)?.title ?? field;
+const recordCellStep = (useCase: UseCase, field: string) =>
+  magma.recordStep(`${titleOf(field)} of ${useCase.id}`, `${useCase.uid}:${field}`);
 
 const rows = computed(() =>
   sortedRows(
@@ -99,6 +108,7 @@ const averages = computed(() => {
 
 const addNewUseCase = () => {
   const level = parseFloat(magma.activeTab.slice(-1));
+  magma.recordStep(`Add a use case to ${magma.activeTab}`);
   magma.addNewUseCase(level, tactics.domain);
 };
 
@@ -120,7 +130,7 @@ const confirmRemoveUseCase = (useCase: UseCase) => {
       : `"${useCase.id}" still has ${children.length} child use case(s): ${listIds(children)}. They will lose their parent (and turn red), so you can move them to another parent.\n\n`;
   Swal.fire({
     titleText: `Delete use case '${useCase.id}'?`,
-    text: childrenWarning + "You won't be able to revert this.",
+    text: `${childrenWarning}You can undo this (${UNDO_KEY}).`,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
@@ -130,6 +140,7 @@ const confirmRemoveUseCase = (useCase: UseCase) => {
     reverseButtons: true,
   }).then((result) => {
     if (result.isConfirmed) {
+      magma.recordStep(`Delete ${useCase.id}`);
       magma.removeUseCaseByUid(useCase.uid);
     }
   });
@@ -144,7 +155,7 @@ const confirmRemoveUseCaseLevel = () => {
       orphans.size === 0 ? '' : `\n\n${orphans.size} use case(s) on the level below will lose their parent.`;
     Swal.fire({
       title: `You are about to delete all ${magma.activeTab} use cases`,
-      text: `This is a permanent and irreversible action.${orphansWarning}\n\nDo you wish to proceed?`,
+      text: `You can undo this (${UNDO_KEY}).${orphansWarning}\n\nDo you wish to proceed?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -154,6 +165,7 @@ const confirmRemoveUseCaseLevel = () => {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
+        magma.recordStep(`Delete all ${magma.activeTab} use cases`);
         magma.removeActiveTabUseCases(tactics.domain);
       }
     });
@@ -165,10 +177,13 @@ const confirmRemoveUseCaseLevel = () => {
 // again.
 const renameUseCase = (useCase: UseCase, event: Event) => {
   const field = event.target as HTMLTextAreaElement;
-  const problem = magma.renameUseCase(useCase.uid, field.value);
+  const problem = magma.renameProblem(useCase.uid, field.value);
   if (problem) {
     field.value = useCase.id;
     Swal.fire({ icon: 'error', titleText: 'ID not changed', text: problem });
+  } else if (field.value.trim() !== useCase.id) {
+    magma.recordStep(`ID of ${useCase.id}`);
+    magma.renameUseCase(useCase.uid, field.value);
   }
 };
 
@@ -187,6 +202,7 @@ const onTextInput = (useCase: UseCase, field: string, event: Event) => {
     textarea.value = textarea.value.replace(/\r?\n|\r/g, ' ');
   }
   if (field !== 'id') {
+    recordCellStep(useCase, field);
     updateObjectField(useCase.uid, field, textarea.value);
   }
 };
@@ -194,6 +210,12 @@ const onTextInput = (useCase: UseCase, field: string, event: Event) => {
 // The value of a field as the sheet gives it: text (also for numbers), the list of parent IDs, or the override checkbox.
 const updateObjectField = (uid: string, field: string, value: string | string[] | boolean | undefined) => {
   magma.updateUseCase(uid, { [field]: value }, tactics.domain);
+};
+
+// A parent or technique chosen in its search field.
+const updatePicked = (useCase: UseCase, field: string, value: string | string[] | undefined) => {
+  recordCellStep(useCase, field);
+  updateObjectField(useCase.uid, field, value);
 };
 
 // A typed percentage: kept to digits with one decimal point and at most 100 (see percentageInput.ts), then saved. When
@@ -206,12 +228,14 @@ const updatePercentage = (useCase: UseCase, field: string, event: Event) => {
     input.value = percentage;
     input.setSelectionRange(Math.max(cursor, 0), Math.max(cursor, 0));
   }
+  recordCellStep(useCase, field);
   updateObjectField(useCase.uid, field, percentage);
 };
 
 // Turning the override off takes the visibility from the ATT&CK technique again (by setting the technique again).
 const updateOverride = (useCase: UseCase, event: Event) => {
   const checked = (event.target as HTMLInputElement).checked;
+  recordCellStep(useCase, 'visibilityFromAttackTechniqueOverride');
   updateObjectField(useCase.uid, 'visibilityFromAttackTechniqueOverride', checked);
   if (!checked) {
     updateObjectField(useCase.uid, 'attackTechniqueId', useCase.attackTechniqueId);
@@ -376,6 +400,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
                   @keydown="(event) => onTextKeydown(column.field, event)"
                   @input="(event) => onTextInput(useCase, column.field, event)"
                   @change="(event) => column.field === 'id' && renameUseCase(useCase, event)"
+                  :data-field="column.field"
                   :disabled="isLocked(useCase, column.field)"
                 ></textarea>
               </div>
@@ -386,7 +411,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
                 :options="parentLevelUseCases"
                 noun="use case"
                 :style="cellStyle(useCase, column.field)"
-                @update:model-value="(id) => updateObjectField(useCase.uid, 'parentIds', [id])"
+                @update:model-value="(id) => updatePicked(useCase, 'parentIds', [id])"
               />
 
               <OptionPicker
@@ -395,7 +420,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
                 :options="tactics.techniqueOptions"
                 :search="searchTechniques"
                 noun="technique"
-                @update:model-value="(id) => updateObjectField(useCase.uid, 'attackTechniqueId', id)"
+                @update:model-value="(id) => updatePicked(useCase, 'attackTechniqueId', id)"
               />
 
               <label

@@ -117,6 +117,22 @@ test('the MaGMa page loads the example file and shows it on every tab', async ({
   await expect(page.locator('.magma-summary .averages')).toContainText('Implementation74.8%');
 });
 
+test('a change in a sheet can be undone and redone, with the keyboard and the buttons', async ({ page }) => {
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  await openTab(page, 'L1');
+  const name = page.locator('table.fixed-table tbody tr').nth(2).locator('textarea').nth(1);
+  const before = await name.inputValue();
+  await name.fill('Changed name');
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect(name).toHaveValue(before);
+  await page.locator('.redo-button').click();
+  await expect(name).toHaveValue('Changed name');
+  await page.locator('.undo-button').click();
+  await expect(name).toHaveValue(before);
+});
+
 // The fields of a use case that a user enters (the other fields are calculated). The visibility of an L3 rule is entered
 // only when Override is on; otherwise it comes from DeTT&CT.
 const ENTERED = ['name', 'description', 'parentIds', 'attackTechniqueId', 'visibilityFromAttackTechniqueOverride'];

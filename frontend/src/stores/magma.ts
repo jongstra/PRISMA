@@ -1,5 +1,16 @@
 import { defineStore } from 'pinia';
 import type { SheetSort } from '@/components/magma/useCaseSort';
+import {
+  emptyHistory,
+  endGroup,
+  inOpenGroup,
+  recordStep,
+  redoStep,
+  undoStep,
+  type History,
+  type Place,
+  type Step,
+} from './undoHistory';
 import { v4 as uuidv4 } from 'uuid';
 import { tacticsStore } from '@/stores/tactics';
 import { recalculateUseCases } from '@/domain/magma/calculations';
@@ -98,9 +109,14 @@ export const magmaStore = defineStore('magma', {
     heatmapSearchQuery: '' as string,
     savedUseCases: '[]', // what the user had entered at the last load or save, see hasUnsavedChanges
     sheetSorts: {} as Partial<Record<string, SheetSort | null>>, // the column each sheet (L1, L2, L3) is sorted by
+    history: emptyHistory<string>(), // the undo history: copies of the use cases (as JSON) from before each change
   }),
 
   getters: {
+    // What undo and redo would change, such as 'Implementation % of DOS-1-2', or null when there is nothing to undo or redo.
+    undoDescription: (state) => state.history.undo.at(-1)?.description ?? null,
+    redoDescription: (state) => state.history.redo.at(-1)?.description ?? null,
+
     getUseCaseById(state) {
       return (id: string, domain?: string) =>
         state.useCases.find((useCase) => useCase['id'] === id && (!domain || useCase.domain === domain));
@@ -370,9 +386,8 @@ export const magmaStore = defineStore('magma', {
       this.recalculateAll();
     },
 
-    // Rename a use case. Its child use cases (in the same domain) move along to the new ID. Returns a message explaining
-    // why the rename is refused, or null when the use case was renamed.
-    renameUseCase(uid: string, newId: string): string | null {
+    // Why renaming a use case to newId is refused, or null when it can be renamed (also when the ID stays the same).
+    renameProblem(uid: string, newId: string): string | null {
       const useCase = this.getUseCaseByUid(uid);
       if (!useCase) {
         return `No use case with uid "${uid}" exists.`;
@@ -393,6 +408,18 @@ export const magmaStore = defineStore('magma', {
       }
       if (id === 'none' || this.getUseCaseById(id, useCase.domain)) {
         return `A use case with ID "${id}" already exists in this domain. Choose another ID.`;
+      }
+      return null;
+    },
+
+    // Rename a use case. Its child use cases (in the same domain) move along to the new ID. Returns a message explaining
+    // why the rename is refused (see renameProblem), or null when the use case was renamed.
+    renameUseCase(uid: string, newId: string): string | null {
+      const problem = this.renameProblem(uid, newId);
+      const useCase = this.getUseCaseByUid(uid);
+      const id = newId.trim();
+      if (problem || !useCase || id === useCase.id) {
+        return problem;
       }
 
       // Move the children along, unless another use case still has the old ID (then they keep that parent).
@@ -511,7 +538,42 @@ export const magmaStore = defineStore('magma', {
       const result = this.importUseCases(useCases);
       this.markAsSaved();
       this.sheetSorts = {}; // a loaded file is shown in its own order
+      this.history = emptyHistory(); // a loaded file starts a new history
       return result;
+    },
+
+    // Undo and redo (see undoHistory.ts). The sheets call recordStep before each change, with a description of it and, for
+    // typing in a cell, the cell as group: the keystrokes in one cell make one step, until the cell is left (endStepGroup).
+    // The step remembers the sheet and domain of the change; undo and redo return them, so the change can be shown.
+    recordStep(description: string, group: string | null = null) {
+      if (inOpenGroup(this.history, group)) {
+        return;
+      }
+      const place: Place = { tab: this.activeTab, domain: tacticsStore().domain };
+      this.history = recordStep(this.history, { state: JSON.stringify(this.useCases), description, place }, group);
+    },
+
+    endStepGroup() {
+      this.history = endGroup(this.history);
+    },
+
+    undo(): Place | null {
+      const result = undoStep(this.history, JSON.stringify(this.useCases));
+      return result && this.restoreStep(result);
+    },
+
+    redo(): Place | null {
+      const result = redoStep(this.history, JSON.stringify(this.useCases));
+      return result && this.restoreStep(result);
+    },
+
+    // Puts back the use cases of an undone or redone step, with the visibility of their techniques from the DeTT&CT file
+    // that is loaded now, and recalculates.
+    restoreStep({ step, history }: { step: Step<string>; history: History<string> }) {
+      this.history = history;
+      this.useCases = JSON.parse(step.state);
+      this.updateAllL3UseCasesBasedOnDettectVisibility();
+      return step.place;
     },
 
     // What the user entered, without what PRISMA calculates (such as a visibility taken from the DeTT&CT file, weights

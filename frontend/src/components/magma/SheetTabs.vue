@@ -1,7 +1,13 @@
 <script setup lang="ts">
-// The tab bar of the MaGMa page, with the buttons to load and save the use cases as a MaGMa YAML file.
+// The tab bar of the MaGMa page, with the buttons to undo and redo changes to the use cases, and to load and save them as
+// a MaGMa YAML file.
 import Swal from 'sweetalert2';
+import { onMounted, onUnmounted } from 'vue';
 import { magmaStore, type UseCaseFromFile } from '@/stores/magma';
+import { tacticsStore } from '@/stores/tactics';
+import type { Place } from '@/stores/undoHistory';
+import { vHint } from '@/components/common/hint';
+import { fieldHasOwnUndo, isMac, shortcuts, undoKey } from './undoKeys';
 import { isYamlFile, readYamlFile } from '@/io/readYamlFile';
 import { importSummary, magmaFileDomains, readMagmaFile, writeMagmaFile } from '@/io/magmaFile';
 import { downloadFile } from '@/io/downloadFile';
@@ -10,7 +16,37 @@ import { notifySuccess } from '@/components/common/notify';
 import { importSummaryContent } from './importSummaryContent';
 
 const magma = magmaStore();
+const tactics = tacticsStore();
 const tabs = ['L1', 'L2', 'L3', 'Heatmap', 'Insights', 'Summary'];
+
+// Undo and redo (see recordStep in the store) show the sheet and domain of the change, so it can be seen.
+const keys = shortcuts(isMac());
+const show = (place: Place | null) => {
+  if (place) {
+    magma.activeTab = place.tab;
+    tactics.setDomain(place.domain);
+  }
+};
+const undo = () => show(magma.undo());
+const redo = () => show(magma.redo());
+
+// Ctrl+Z and Ctrl+Shift+Z (⌘Z and ⇧⌘Z on a Mac) anywhere on the MaGMa page, except in a field with its own undo and
+// while a dialog is open (a short message at the top right, such as 'MaGMa file loaded', is not a dialog).
+const dialogOpen = () => Swal.isVisible() && !Swal.getPopup()?.classList.contains('swal2-toast');
+const onKeydown = (event: KeyboardEvent) => {
+  const action = undoKey(event);
+  if (!action || fieldHasOwnUndo(event.target as Element) || dialogOpen()) {
+    return;
+  }
+  event.preventDefault();
+  if (action === 'undo') {
+    undo();
+  } else {
+    redo();
+  }
+};
+onMounted(() => window.addEventListener('keydown', onKeydown));
+onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 
 const exportYaml = () => {
   downloadFile(writeMagmaFile(magma.domainSortedUseCases), 'magma_data.yaml', 'text/yaml');
@@ -104,6 +140,32 @@ const importYaml = async (event: Event) => {
     >
       {{ tab }}
     </button>
+    <div class="undo-redo">
+      <button
+        class="undo-button"
+        :disabled="!magma.undoDescription"
+        v-hint="magma.undoDescription ? `Undo: ${magma.undoDescription} (${keys.undo})` : undefined"
+        aria-label="Undo"
+        @click="undo"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 14 4 9l5-5" />
+          <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+        </svg>
+      </button>
+      <button
+        class="redo-button"
+        :disabled="!magma.redoDescription"
+        v-hint="magma.redoDescription ? `Redo: ${magma.redoDescription} (${keys.redo})` : undefined"
+        aria-label="Redo"
+        @click="redo"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m15 14 5-5-5-5" />
+          <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />
+        </svg>
+      </button>
+    </div>
     <input id="importYamlFile" type="file" @change="importYaml" style="display: none" />
     <label for="importYamlFile" class="load-button">Load MaGMa YAML</label>
     <label class="save-button" @click="exportYaml">Save MaGMa YAML</label>
@@ -167,8 +229,41 @@ const importYaml = async (event: Event) => {
   cursor: pointer;
 }
 
-.load-button {
+/* Undo and redo: curved arrows, greyed out when there is nothing to undo or redo. */
+.undo-redo {
+  display: flex;
+  gap: 3px;
   margin-left: auto;
+  margin-right: 6px;
+}
+
+.undo-redo button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--color-box-border);
+  border-radius: 5px;
+  background-color: white;
+  color: var(--color-menu-text);
+  cursor: pointer;
+}
+
+.undo-redo button:disabled {
+  color: var(--color-slider-track);
+  cursor: default;
+}
+
+.undo-redo svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .save-button {

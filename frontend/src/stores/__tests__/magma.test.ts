@@ -402,3 +402,84 @@ describe('magma store: grandchildren (the L3 use cases under an L1 use case)', (
     expect(ids).toContain('DOS-1-1');
   });
 });
+
+describe('magma store: undo and redo', () => {
+  let magma: MagmaStore;
+  let tactics: ReturnType<typeof tacticsStore>;
+  const l3 = (id: string) => magma.L3UseCases('enterprise-attack').find((useCase) => useCase.id === id)!;
+
+  beforeEach(async () => {
+    ({ magma, tactics } = await setUpStores());
+    magma.importUseCases(readFile(readExample('magma/example.yaml')));
+    magma.activeTab = 'L3';
+  });
+
+  it('undoes a change, with the values that depend on it, and redoes it', () => {
+    const before = { implementation: l3('DOS-1-1').implementation, weight: l3('DOS-1-1').weight };
+    magma.recordStep('Implementation % of DOS-1-1', 'DOS-1-1:implementation');
+    magma.updateUseCase(l3('DOS-1-1').uid, { implementation: '10' }, 'enterprise-attack');
+    const changed = { implementation: l3('DOS-1-1').implementation, weight: l3('DOS-1-1').weight };
+    expect(magma.undoDescription).toBe('Implementation % of DOS-1-1');
+    magma.undo();
+    expect({ implementation: l3('DOS-1-1').implementation, weight: l3('DOS-1-1').weight }).toEqual(before);
+    expect(magma.redoDescription).toBe('Implementation % of DOS-1-1');
+    magma.redo();
+    expect({ implementation: l3('DOS-1-1').implementation, weight: l3('DOS-1-1').weight }).toEqual(changed);
+  });
+
+  it('makes one step of typing in one cell, until the cell is left', () => {
+    const uid = l3('DOS-1-1').uid;
+    for (const value of ['1', '12', '123']) {
+      magma.recordStep('Name of DOS-1-1', `${uid}:name`);
+      magma.updateUseCase(uid, { name: value }, 'enterprise-attack');
+    }
+    magma.endStepGroup();
+    magma.recordStep('Name of DOS-1-1', `${uid}:name`);
+    magma.updateUseCase(uid, { name: '1234' }, 'enterprise-attack');
+    magma.undo();
+    expect(l3('DOS-1-1').name).toBe('123');
+    magma.undo();
+    expect(l3('DOS-1-1').name).toBe('L3 OUT UC DOS');
+    expect(magma.undoDescription).toBeNull();
+  });
+
+  it('undoes adding and deleting a use case', () => {
+    const count = () => magma.L3UseCases('enterprise-attack').length;
+    const start = count();
+    magma.recordStep('Delete DOS-1-1');
+    magma.removeUseCaseByUid(l3('DOS-1-1').uid);
+    magma.recordStep('Add a use case to L3');
+    magma.addNewUseCase(3, 'enterprise-attack');
+    expect(count()).toBe(start);
+    magma.undo();
+    magma.undo();
+    expect(count()).toBe(start);
+    expect(l3('DOS-1-1')).toBeDefined();
+  });
+
+  it('skips a step that changed nothing, such as a refused rename', () => {
+    magma.recordStep('Effectiveness % of DOS-1-1');
+    magma.updateUseCase(l3('DOS-1-1').uid, { effectiveness: '5' }, 'enterprise-attack');
+    magma.recordStep('ID of DOS-1-2');
+    expect(magma.renameUseCase(l3('DOS-1-2').uid, 'DOS-1-1')).not.toBeNull(); // refused: the ID exists
+    magma.undo();
+    expect(l3('DOS-1-1').effectiveness).not.toBe('5');
+  });
+
+  it('gives the sheet and domain where the change was made, so they can be shown', () => {
+    tactics.setDomain('enterprise-attack');
+    magma.activeTab = 'L2';
+    magma.recordStep('Description of DOS-1');
+    const dos1 = magma.L2UseCases('enterprise-attack').find((useCase) => useCase.id === 'DOS-1')!;
+    magma.updateUseCase(dos1.uid, { description: 'changed' }, 'enterprise-attack');
+    magma.activeTab = 'Heatmap';
+    expect(magma.undo()).toEqual({ tab: 'L2', domain: 'enterprise-attack' });
+    expect(magma.undo()).toBeNull();
+  });
+
+  it('forgets the history when a MaGMa file is loaded', () => {
+    magma.recordStep('Name of DOS-1-1');
+    magma.loadUseCases(readFile(readExample('magma/example.yaml')));
+    expect(magma.undoDescription).toBeNull();
+  });
+});
