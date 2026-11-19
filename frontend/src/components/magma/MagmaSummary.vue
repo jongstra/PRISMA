@@ -124,10 +124,11 @@ const counts = computed(() => [
 
 <style scoped>
 /* Two columns of cards, 10px apart and 5px below the tabs, together as wide as the menu bars (960px), so they end
-   where the Load and Save buttons end. The cards fill their column; the wide cards take both. */
+   where the Load and Save buttons end. The cards fill their column; the wide cards take both. In a narrower window
+   the columns get narrower, and on a phone the cards are below each other (see the end). */
 .magma-summary {
   display: grid;
-  grid-template-columns: repeat(2, 475px);
+  grid-template-columns: repeat(2, minmax(0, 475px));
   gap: 10px;
   margin-top: 5px;
 }
@@ -177,5 +178,17 @@ const counts = computed(() => [
   font-size: 11px;
   color: var(--color-text-muted);
   text-align: center;
+}
+
+/* On a phone (below 640px): one column of cards, and the counts three to a row. */
+@media (max-width: 640px) {
+  .magma-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .counts {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 8px;
+  }
 }
 </style>

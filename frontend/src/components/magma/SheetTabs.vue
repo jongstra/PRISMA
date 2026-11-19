@@ -171,7 +171,8 @@ const importYaml = async (event: Event) => {
 
 <style scoped>
 /* The tabs, and at the right undo, redo, Load and Save, which end where the menu bars of the header end (960px wide).
-   The content of every tab starts 5px below them, as the page content starts 5px below the header. */
+   The content of every tab starts 5px below them, as the page content starts 5px below the header. In a narrower
+   window the tabs get a row of their own (see the end). */
 .sheet-tabs {
   display: flex;
   align-items: center;
@@ -292,5 +293,42 @@ const importYaml = async (event: Event) => {
 .save-button:hover {
   background-color: var(--color-action-hover);
   color: rgb(255, 255, 255);
+}
+
+/* Below 940px (where the heatmap controls go in two columns) the tabs fill a row of their own, like the menu bars above
+   them, with undo, redo, Load and Save on the row below, at the right. On a phone (below 580px) the tabs are two rows
+   of three, and Load and Save share the width next to undo and redo. */
+@media (max-width: 940px) {
+  .sheet-tabs {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .tab-group {
+    width: 100%;
+  }
+}
+
+@media (max-width: 580px) {
+  .tab-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 2px;
+  }
+
+  .sheet-tab {
+    width: auto;
+  }
+
+  .sheet-tab:nth-child(4)::before {
+    display: none; /* the first tab of the second row has no line before it */
+  }
+
+  .load-button,
+  .save-button {
+    flex: 1;
+    justify-content: center;
+    padding: 0 6px;
+  }
 }
 </style>

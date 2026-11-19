@@ -245,6 +245,28 @@ test('the MaGMa tabs are a menu bar like the ones above, with the content of eve
   }
 });
 
+test('the MaGMa page fits a phone: its tabs in two rows of three, and nothing sticks out of the window', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  for (const tab of ['L1', 'L2', 'L3', 'Heatmap', 'Insights', 'Summary']) {
+    await openTab(page, tab); // a click, as a user does: it fails when a tab is squeezed out of sight
+    await expect(page.locator('.sheet-tab.active')).toHaveText(tab);
+    const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(pageWidth, `the page width on the ${tab} tab`).toBeLessThanOrEqual(375);
+  }
+  const tabTops = await page
+    .locator('.sheet-tab')
+    .evaluateAll((tabs) => tabs.map((tab) => Math.round(tab.getBoundingClientRect().top)));
+  expect(new Set(tabTops).size).toBe(2);
+  for (const button of ['.load-button', '.save-button']) {
+    const box = (await page.locator(button).boundingBox())!;
+    expect(box.x + box.width, button).toBeLessThanOrEqual(375);
+  }
+});
+
 test('the MaGMa page loads the example file and shows it on every tab', async ({ page }) => {
   await openApp(page);
   await openPage(page, 'MaGMa');
