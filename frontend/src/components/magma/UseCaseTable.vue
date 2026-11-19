@@ -817,10 +817,26 @@ th.sorted {
   background-color: #b1c4e3;
 }
 
-.sort-arrow {
+.sort-arrow,
+th.sortable:not(.sorted):hover::after {
+  position: absolute; /* right after the title, without taking room: the title stays in its place */
   margin-left: 4px;
+}
+
+.sort-arrow {
   font-size: 10px;
 }
+
+/* While the mouse is on the header of an unsorted column, a grey pair of arrows says a click sorts by it. */
+th.sortable:not(.sorted):hover::after {
+  content: '';
+  width: 7px;
+  height: 11px;
+  margin-top: 2px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 11'%3E%3Cpath d='M3.5 0 7 4.5H0zM3.5 11 0 6.5h7z' fill='%236b7280'/%3E%3C/svg%3E")
+    no-repeat center / contain;
+}
+
 button.remove-button {
   width: 100%;
   height: 100%;
