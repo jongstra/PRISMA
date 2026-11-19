@@ -1,9 +1,9 @@
 <template>
   <div class="legend-container">
     <div class="legend-items">
-      <div v-for="item in legendItems" :key="item.range" class="legend-item">
-        <button :style="item.style" v-hint="item.title" class="legend-button">
-          {{ item.range }}
+      <div v-for="item in legendItems" :key="item.label" class="legend-item">
+        <button :style="item.style" v-hint="item.hint" class="legend-button">
+          {{ item.label }}
         </button>
       </div>
     </div>
@@ -11,23 +11,22 @@
 </template>
 
 <script setup lang="ts">
-// The legend of the DeTT&CT matrix: a swatch per visibility band, in the colours of the technique buttons
-// (visibilityColour.ts), and one for techniques that cannot be detected via data sources.
+// The legend of the DeTT&CT matrix, labelled as the MaGMa heatmap's legend: techniques that cannot be detected via data
+// sources (n/a), a visibility of 0%, and the four steps of visibilityColour.ts, each named by its upper bound; the hint
+// gives the range. Every technique has a visibility (a data source that is not in the file counts as 0%), so there is
+// no 'none' as on the heatmap.
 import { NOT_DETECTABLE_STYLE, NOT_DETECTABLE_TEXT } from '../common/notDetectableStyle';
 import { vHint } from '../common/hint';
-import { visibilityColour } from './visibilityColour';
+import { VISIBILITY_STEPS, visibilityColour } from './visibilityColour';
 
-const bands: [string, number][] = [
-  ['<= 1%', 0.01],
-  ['<= 25%', 0.25],
-  ['<= 50%', 0.5],
-  ['<= 75%', 0.75],
-  ['<= 99%', 0.99],
-  ['> 99%', 1],
-];
-const legendItems: { range: string; style: Record<string, string>; title?: string }[] = [
-  { range: 'n/a', style: NOT_DETECTABLE_STYLE, title: NOT_DETECTABLE_TEXT },
-  ...bands.map(([range, ratio]) => ({ range, style: visibilityColour(ratio) })),
+const legendItems: { label: string; style: Record<string, string>; hint: string }[] = [
+  { label: 'n/a', style: NOT_DETECTABLE_STYLE, hint: NOT_DETECTABLE_TEXT },
+  { label: '0', style: visibilityColour(0), hint: 'Visibility 0%' },
+  ...VISIBILITY_STEPS.map((step, index) => ({
+    label: String(step.upTo),
+    style: visibilityColour(step.upTo / 100),
+    hint: `Visibility above ${index === 0 ? 0 : VISIBILITY_STEPS[index - 1]!.upTo}, up to ${step.upTo}%`,
+  })),
 ];
 </script>
 

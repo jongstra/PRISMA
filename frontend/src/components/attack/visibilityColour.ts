@@ -1,10 +1,17 @@
-// The colour of a technique's visibility, as in the DeTT&CT matrix and its legend: from no colour (up to 1%) through
-// five shades of purple, with white text on the three darkest. Used by the matrix buttons and the chips in their tooltip.
+// The colour of a technique's visibility, as in the DeTT&CT matrix, its legend and the chips in a technique's tooltip:
+// four steps of a warm rose-purple that match the legend (up to 25, 50, 75 and 100%), like the green steps of the MaGMa
+// heatmap (heatmapFill.ts). Even the darkest step stays light, so all text is black. A visibility of 0% has no colour.
+export const VISIBILITY_STEPS = [
+  { upTo: 25, colour: '#f1cee5' },
+  { upTo: 50, colour: '#e5a6cf' },
+  { upTo: 75, colour: '#d97db9' },
+  { upTo: 100, colour: '#cf5da7' },
+];
+
 export function visibilityColour(ratio: number): { backgroundColor: string; color: string } {
-  if (ratio <= 0.01) return { backgroundColor: '', color: 'black' };
-  if (ratio <= 0.25) return { backgroundColor: '#E1BEE7', color: 'black' };
-  if (ratio <= 0.5) return { backgroundColor: '#CE93D8', color: 'black' };
-  if (ratio <= 0.75) return { backgroundColor: '#AB47BC', color: 'white' };
-  if (ratio <= 0.99) return { backgroundColor: '#7B1FA2', color: 'white' };
-  return { backgroundColor: '#4A148C', color: 'white' };
+  if (ratio <= 0) {
+    return { backgroundColor: '', color: 'black' };
+  }
+  const step = VISIBILITY_STEPS.find((candidate) => ratio * 100 <= candidate.upTo) ?? VISIBILITY_STEPS.at(-1)!;
+  return { backgroundColor: step.colour, color: 'black' };
 }
