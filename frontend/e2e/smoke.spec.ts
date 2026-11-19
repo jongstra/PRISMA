@@ -105,7 +105,9 @@ test('the DeTT&CT controls are two rows of four equally wide boxes, with Load at
   expect(new Set(widths).size).toBe(1);
 });
 
-test('the MaGMa heatmap controls are five equally wide boxes', async ({ page }) => {
+test('the MaGMa heatmap controls are five equally wide boxes, with the legend named after its score', async ({
+  page,
+}) => {
   await openApp(page);
   await openPage(page, 'MaGMa');
   await openTab(page, 'Heatmap');
@@ -114,6 +116,8 @@ test('the MaGMa heatmap controls are five equally wide boxes', async ({ page }) 
     .evaluateAll((all) => all.map((box) => Math.round(box.getBoundingClientRect().width)));
   expect(widths).toHaveLength(5);
   expect(new Set(widths).size).toBe(1);
+  // The legend is named after the score it colours by, without a % sign (the swatches are the percentages).
+  await expect(page.locator('.legend-box .control-label span').first()).toHaveText('Legend: weight');
 });
 
 test('the groups box keeps its height while groups are selected and cleared', async ({ page }) => {

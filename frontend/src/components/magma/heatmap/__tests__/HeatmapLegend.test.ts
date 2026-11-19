@@ -3,12 +3,15 @@ import { mount } from '@vue/test-utils';
 import HeatmapLegend from '../HeatmapLegend.vue';
 
 describe('HeatmapLegend', () => {
-  it('shows n/a, 0 and the four steps, as the DeTT&CT legend; the hint on 0 also covers techniques without use cases', () => {
-    const legend = mount(HeatmapLegend);
-    const swatches = legend.findAll('.swatch');
-    expect(swatches.map((swatch) => swatch.text())).toEqual(['n/a', '0', '25', '50', '75', '100']);
-    expect(swatches[1]!.attributes('aria-description')).toBe(
-      'Score 0%, or no use cases. A technique with use cases has a thick border.',
-    );
+  it('shows n/a and a scale as the DeTT&CT legend, with hints in the words of the chosen score', () => {
+    const legend = mount(HeatmapLegend, { props: { scoreName: 'weight' } });
+    expect(legend.findAll('.tick').map((tick) => tick.text())).toEqual(['n/a', '0', '25', '50', '75', '100']);
+    expect(legend.findAll('.scale-part').map((part) => part.attributes('aria-description'))).toEqual([
+      'Weight 0%, or no use cases. A thick border means the technique has use cases.',
+      'Weight up to 25%',
+      'Weight 25 to 50%',
+      'Weight 50 to 75%',
+      'Weight 75 to 100%',
+    ]);
   });
 });

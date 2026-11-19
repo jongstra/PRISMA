@@ -18,15 +18,17 @@ const store = tacticsStore();
 useEndTagHover(() => store.currentDomain);
 const magma = magmaStore();
 
-// The legend is labelled with the score the heatmap colours by, such as 'Legend: weight %'.
-const legendLabel = computed(() => {
+// The legend is labelled with the score the heatmap colours by, such as 'Legend: weight' (its numbers are percentages);
+// its hints use the same name.
+const legendScore = computed(() => {
   const metrics = {
     visibility: magma.heatmapVisibility,
     implementation: magma.heatmapImplementation,
     effectiveness: magma.heatmapEffectiveness,
   };
-  return Object.values(metrics).some(Boolean) ? `Legend: ${scoreName(metrics).short} %` : 'Legend';
+  return Object.values(metrics).some(Boolean) ? scoreName(metrics).short : null;
 });
+const legendLabel = computed(() => (legendScore.value ? `Legend: ${legendScore.value}` : 'Legend'));
 
 // The matrix columns are keyed by domain and tactic, so switching domains creates new columns: each column and
 // technique button keeps the domain it was created for.
@@ -49,7 +51,9 @@ const legendLabel = computed(() => {
         toggle-title="Only show techniques used by selected groups."
         color="red"
       />
-      <ControlBox class="legend-box" :label="legendLabel"><HeatmapLegend /></ControlBox>
+      <ControlBox class="legend-box" :label="legendLabel"
+        ><HeatmapLegend :score-name="legendScore ?? 'score'"
+      /></ControlBox>
     </ControlPanel>
     <div class="heatmap-container">
       <div class="heatmap">

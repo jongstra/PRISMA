@@ -23,11 +23,26 @@ describe('visibilityColour', () => {
 });
 
 describe('VisibilityLegend', () => {
-  it('shows n/a, 0% and the four steps, labelled as on the MaGMa heatmap, with the range in the hint', () => {
+  it('shows n/a and a scale: 0 in the white part, then the four purple steps, each with its own hint', () => {
     const legend = mount(VisibilityLegend);
-    const swatches = legend.findAll('.legend-button');
-    expect(swatches.map((swatch) => swatch.text())).toEqual(['n/a', '0', '25', '50', '75', '100']);
-    expect(swatches[3]!.attributes('aria-description')).toBe('Visibility above 25, up to 50%');
-    expect((swatches[5]!.element as HTMLElement).style.backgroundColor).toBe('rgb(207, 93, 167)');
+    expect(legend.findAll('.tick').map((tick) => tick.text())).toEqual(['n/a', '0', '25', '50', '75', '100']);
+    const parts = legend.findAll('.scale-part');
+    expect(parts.map((part) => (part.element as HTMLElement).style.backgroundColor)).toEqual([
+      '',
+      'rgb(241, 206, 229)',
+      'rgb(229, 166, 207)',
+      'rgb(217, 125, 185)',
+      'rgb(207, 93, 167)',
+    ]);
+    expect(legend.find('.scale-na').attributes('aria-description')).toBe(
+      'Not detectable from data: ATT&CK lists no data components for this technique.',
+    );
+    expect(parts.map((part) => part.attributes('aria-description'))).toEqual([
+      'No visibility: its data sources are not in your DeTT&CT file, or score 0.',
+      'Visibility up to 25%',
+      'Visibility 25 to 50%',
+      'Visibility 50 to 75%',
+      'Visibility 75 to 100%',
+    ]);
   });
 });
