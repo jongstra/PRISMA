@@ -930,7 +930,10 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
               @mouseleave="markForDelete([])"
               style="background-color: #e73030; color: white; cursor: pointer"
             >
-              &#10806;
+              <!-- The button lets Tab and Enter reach it; its click goes on to the header cell (header-button). -->
+              <button type="button" class="header-button" aria-label="Delete all use cases of this sheet">
+                &#10806;
+              </button>
             </th>
             <th
               v-for="(column, index) in columns"
@@ -942,10 +945,12 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
               :style="{ width: `${column.width}px`, ...frozenLeft(index) }"
               @click="toggleSort(column.field)"
             >
-              {{ column.title
-              }}<span v-if="sort?.field === column.field" class="sort-arrow" aria-hidden="true">
-                {{ sort.direction === 'ascending' ? '▲' : '▼' }}</span
-              >
+              <button type="button" class="header-button">
+                {{ column.title
+                }}<span v-if="sort?.field === column.field" class="sort-arrow" aria-hidden="true">
+                  {{ sort.direction === 'ascending' ? '▲' : '▼' }}</span
+                >
+              </button>
             </th>
           </tr>
         </thead>
@@ -1387,6 +1392,26 @@ td.remove-col.not-deletable {
    shortly after the mouse comes on it, v-hint); the sorted column's header is a little darker, with an arrow. */
 th.sortable {
   cursor: pointer;
+}
+
+/* The header cells hold a button for the keyboard (Tab, then Enter or Space), which looks like the text it holds. The
+   cell handles the click, also one on its edges; a click on the button goes on to it. The ring shows on the cell. */
+.header-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: inherit;
+}
+
+.header-button:focus-visible {
+  outline: none;
+}
+
+th:has(> .header-button:focus-visible) {
+  outline: 2px solid var(--color-action);
+  outline-offset: -2px;
 }
 
 th.sorted {

@@ -445,6 +445,43 @@ test('the MaGMa page fits a phone: its tabs in two rows of three, and nothing st
   }
 });
 
+// Without a mouse: Tab reaches Load and Save, and Enter opens the file dialog, saves, sorts a sheet and deletes a sheet.
+test('Load, Save and the sheet headers work with the keyboard', async ({ page }) => {
+  await openApp(page);
+  const chooseDettectFile = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Load DeTT&CT YAML' }).focus();
+  await page.keyboard.press('Enter');
+  await chooseDettectFile;
+
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, `${EXAMPLES}/magma/example.yaml`);
+  await openTab(page, 'L3');
+  const reached = new Set<string>();
+  for (let press = 0; press < 30 && !(reached.has('Load MaGMa YAML') && reached.has('Save MaGMa YAML')); press++) {
+    await page.keyboard.press('Tab');
+    reached.add(await page.evaluate(() => document.activeElement?.textContent?.trim() ?? ''));
+  }
+  expect(reached).toContain('Load MaGMa YAML');
+  expect(reached).toContain('Save MaGMa YAML');
+
+  const chooseMagmaFile = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Load MaGMa YAML' }).focus();
+  await page.keyboard.press('Enter');
+  await chooseMagmaFile;
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save MaGMa YAML' }).focus();
+  await page.keyboard.press('Enter');
+  await download;
+
+  const weight = page.locator('thead th', { hasText: 'Weight' });
+  await weight.getByRole('button').focus();
+  await page.keyboard.press('Enter');
+  await expect(weight).toHaveClass(/sorted/);
+  await page.locator('thead th.frozen-start').getByRole('button').focus();
+  await page.keyboard.press('Enter');
+  await expect(message(page, 'You are about to delete all L3 use cases')).toBeVisible();
+});
+
 test('the MaGMa page loads the example file and shows it on every tab', async ({ page }) => {
   await openApp(page);
   await openPage(page, 'MaGMa');

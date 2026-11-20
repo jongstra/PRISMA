@@ -2,7 +2,7 @@
 // The tab bar of the MaGMa page, with the buttons to undo and redo changes to the use cases, and to load and save them as
 // a MaGMa YAML file.
 import Swal from 'sweetalert2';
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { magmaStore, type ImportResult, type UseCaseFromFile } from '@/stores/magma';
 import { vHint } from '@/components/common/hint';
 import { fieldHasOwnUndo, isMac, shortcuts, undoKey } from './undoKeys';
@@ -14,6 +14,7 @@ import { closeUndoableNotice, notifySuccess } from '@/components/common/notify';
 import { importSummaryContent } from './importSummaryContent';
 
 const magma = magmaStore();
+const fileInput = ref<HTMLInputElement | null>(null); // the hidden file field that Load opens
 const tabs = ['L1', 'L2', 'L3', 'Heatmap', 'Insights', 'Summary'];
 
 // Undo and redo (see recordStep in the store) show the sheet and domain of the change, so it can be seen.
@@ -174,9 +175,10 @@ const importYaml = async (event: Event) => {
         </svg>
       </button>
     </div>
-    <input id="importYamlFile" type="file" @change="importYaml" style="display: none" />
-    <label for="importYamlFile" class="load-button">Load MaGMa YAML</label>
-    <label class="save-button" @click="exportYaml">Save MaGMa YAML</label>
+    <!-- Real buttons, so Tab and Enter reach them; Load opens the hidden file field. -->
+    <input ref="fileInput" id="importYamlFile" type="file" @change="importYaml" style="display: none" />
+    <button type="button" class="load-button" @click="fileInput?.click()">Load MaGMa YAML</button>
+    <button type="button" class="save-button" @click="exportYaml">Save MaGMa YAML</button>
   </div>
 </template>
 
@@ -246,6 +248,7 @@ const importYaml = async (event: Event) => {
 .load-button,
 .save-button {
   display: flex;
+  font-family: inherit;
   align-items: center;
   height: 30px;
   padding: 0 10px;
@@ -304,6 +307,12 @@ const importYaml = async (event: Event) => {
 .save-button:hover {
   background-color: var(--color-action-hover);
   color: rgb(255, 255, 255);
+}
+
+.load-button:focus-visible,
+.save-button:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
 }
 
 /* Below 940px (where the heatmap controls go in two columns) the tabs fill a row of their own, like the menu bars above

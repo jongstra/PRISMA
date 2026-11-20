@@ -66,15 +66,18 @@ const onFileChange = () => {
 <template>
   <div>
     <input ref="input" id="fileInput" type="file" @change="onFileChange" style="display: none" />
-    <label for="fileInput" class="file-button" :class="{ loading: isLoading }">
+    <!-- A real button, so Tab and Enter reach it; it opens the hidden file field. -->
+    <button type="button" class="file-button" :class="{ loading: isLoading }" @click="input?.click()">
       {{ isLoading ? 'Loading file...' : 'Load DeTT&CT YAML' }}
-    </label>
+    </button>
   </div>
 </template>
 
 <style scoped>
 .file-button {
   display: flex;
+  width: 100%;
+  font-family: inherit;
   justify-content: center;
   align-items: center;
   padding: 0 8px;
@@ -94,5 +97,10 @@ const onFileChange = () => {
 .file-button:hover {
   background-color: var(--color-action-hover);
   color: rgb(255, 255, 255);
+}
+
+.file-button:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
 }
 </style>
