@@ -20,6 +20,7 @@ import {
   findUnknownParents,
   findWrongLevelParents,
   idProblem,
+  impactsTotal,
   parentProblem,
   percentageProblem,
   readAsMeant,
@@ -699,6 +700,12 @@ export const magmaStore = defineStore('magma', {
       const useCases = useCasesFromFile as UseCase[];
       useCases.forEach(readAsMeant);
       const failed: string[] = [];
+      const added: UseCase[] = [];
+      // Impacts that are not filled in yet (as in the Excel template) are not warned about; their cells are red anyway.
+      const impactsFilledIn = (useCase: UseCase) =>
+        [useCase.inImpact, useCase.thrImpact, useCase.outImpact].some(
+          (impact) => impact !== undefined && impact !== null && impact !== '',
+        );
       let imported = 0;
 
       // Use cases that are their own (indirect) parent cannot be calculated, so they are not imported.
@@ -706,8 +713,13 @@ export const magmaStore = defineStore('magma', {
 
       // Iterate over each use case and try to add it.
       useCases.forEach((useCase) => {
-        // Skip permanent use cases, since they should always be present already for all 3 domains).
+        // IN and THR are always there in every domain (a file saved by PRISMA has them too); only they are permanent.
         if (useCase.permanent) {
+          if (useCase.level !== 1 || (useCase.id !== 'IN' && useCase.id !== 'THR')) {
+            failed.push(
+              `Use case "${useCase.id}" in domain "${useCase.domain}" is marked permanent, which only IN and THR are.`,
+            );
+          }
           return;
         }
         try {
@@ -718,6 +730,7 @@ export const magmaStore = defineStore('magma', {
             );
           }
           this.addExistingUseCase(useCase, false);
+          added.push(useCase);
           imported++;
         } catch (error) {
           failed.push((error as Error).message);
@@ -727,8 +740,9 @@ export const magmaStore = defineStore('magma', {
       // Recalculate all use cases once, now that the whole file has been added.
       this.recalculateAll();
 
-      // Use cases with a parent ID that does not exist, with a parent on the wrong level, or with more than one parent, are
-      // imported, but listed as a warning (probably a typo, e.g. a comma in the parent column of the Excel file).
+      // Use cases with a parent ID that does not exist, with a parent on the wrong level, with impacts that do not add up
+      // to 100, or with more than one parent, are imported, but listed as a warning (probably a typo, e.g. a comma in the
+      // parent column of the Excel file).
       const warnings = [
         ...findUnknownParents(this.useCases).map(
           ({ useCase, parentId }) =>
@@ -739,6 +753,12 @@ export const magmaStore = defineStore('magma', {
             ? `Use case "${useCase.id}" in domain "${useCase.domain}" has parent "${parent.id}", while a level 1 use case has no parent; it does not count for "${parent.id}".`
             : `Use case "${useCase.id}" in domain "${useCase.domain}" has parent "${parent.id}" on level ${parent.level}, while its parent should be on level ${useCase.level - 1}; it does not count for "${parent.id}".`,
         ),
+        ...added
+          .filter((useCase) => useCase.level === 1 && impactsFilledIn(useCase) && impactsTotal(useCase) !== 100)
+          .map(
+            (useCase) =>
+              `Use case "${useCase.id}" in domain "${useCase.domain}" has IN, THROUGH and OUT impacts that add up to ${impactsTotal(useCase)}%, not 100%.`,
+          ),
         ...findMultipleParents(this.useCases.filter((useCase) => !useCase.permanent)).map(
           ({ useCase, parentIds }) =>
             `Use case "${useCase.id}" in domain "${useCase.domain}" has ${parentIds.length} parents (${parentIds.join(', ')}); PRISMA expects one parent per use case, and counts it under each of them.`,

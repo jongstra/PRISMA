@@ -313,6 +313,70 @@ describe('magma store: loading files written by hand', () => {
     expect(magma.getChildUseCases(magma.getUseCaseById('A', domain)!).map((useCase) => useCase.id)).toEqual(['A-1']);
   });
 
+  it('trims spaces around an ID, and refuses none and IDs with a space or comma inside, as the sheets do', async () => {
+    const { magma } = await setUpStores();
+    const message = summaryText(
+      magma.loadUseCases(
+        readFile(
+          ["' X '", 'none', "'A B'", "'A,B'"]
+            .map((id) => `- {domain: ${domain}, level: 1, id: ${id}, name: n, outImpact: 100}`)
+            .join('\n'),
+        ),
+      ),
+    );
+    expect(message).toContain('Successful imports: 1. Failed imports: 3.');
+    expect(magma.getUseCaseById('X', domain)).toBeDefined();
+    expect(message).toContain('The ID "none" is not valid: none means no parent.');
+    expect(message).toContain('The ID "A B" is not valid: an ID cannot contain spaces or commas.');
+    expect(message).toContain('The ID "A,B" is not valid: an ID cannot contain spaces or commas.');
+  });
+
+  it('reads a parent of only spaces as no parent', async () => {
+    const { magma } = await setUpStores();
+    magma.loadUseCases(readFile(`- {domain: ${domain}, level: 2, id: A-1, name: a1, parentIds: '  '}`));
+    expect(magma.getUseCaseById('A-1', domain)!.parentIds).toBeUndefined();
+  });
+
+  it('warns about impacts that are filled in but do not add up to 100', async () => {
+    const { magma } = await setUpStores();
+    const message = summaryText(
+      magma.loadUseCases(
+        readFile(
+          [
+            `- {domain: ${domain}, level: 1, id: A, name: a, inImpact: 80, thrImpact: 80, outImpact: 80}`,
+            `- {domain: ${domain}, level: 1, id: B, name: b, inImpact: 33.3, thrImpact: 33.3, outImpact: 33.4}`,
+            `- {domain: ${domain}, level: 1, id: C, name: c}`, // not filled in yet, as in the Excel template
+          ].join('\n'),
+        ),
+      ),
+    );
+    expect(message).toContain('Successful imports: 3. Failed imports: 0.');
+    expect(message).toContain(
+      'Use case "A" in domain "enterprise-attack" has IN, THROUGH and OUT impacts that add up to 240%, not 100%.',
+    );
+    expect(message).not.toContain('"B"');
+    expect(message).not.toContain('"C"');
+  });
+
+  it('refuses a use case of its own marked permanent: only IN and THR are', async () => {
+    const { magma } = await setUpStores();
+    const message = summaryText(
+      magma.loadUseCases(
+        readFile(
+          [
+            `- {domain: ${domain}, level: 1, id: IN, name: in, permanent: true}`,
+            `- {domain: ${domain}, level: 3, id: P-1, name: p, permanent: true}`,
+            `- {domain: ${domain}, level: 3, id: R-1, name: r}`,
+          ].join('\n'),
+        ),
+      ),
+    );
+    expect(message).toContain('Successful imports: 1. Failed imports: 1.');
+    expect(message).toContain(
+      'Use case "P-1" in domain "enterprise-attack" is marked permanent, which only IN and THR are.',
+    );
+  });
+
   it('leaves the use cases and their history as they were when loading fails unexpectedly', async () => {
     const { magma } = await setUpStores();
     magma.loadUseCases(readFile(readExample('magma/example.yaml')));

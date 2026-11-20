@@ -72,8 +72,8 @@ A YAML list of use cases. **Save MaGMa YAML** writes all domains. **Load MaGMa Y
 **When loading:**
 
 - First, the whole file is checked: it must be valid YAML, a list of use cases, and contain use cases for at least one supported domain. Otherwise nothing changes.
-- A use case with a problem is skipped and listed in the summary: for example a missing or duplicate ID, an unknown domain, level or technique, a percentage that is not a number from 0 to 100, or a use case that is its own (indirect) parent.
-- A parent ID that does not exist, a parent that is not on the level above (it does not count the use case in its scores), or more than one parent, is loaded with a warning.
+- A use case with a problem is skipped and listed in the summary: for example a missing or duplicate ID, an ID with a space or a comma or the ID `none` (as in the sheets; spaces around an ID are left out), an unknown domain, level or technique, a percentage that is not a plain number from 0 to 100, a use case that is its own (indirect) parent, or a use case of your own marked `permanent`.
+- A parent ID that does not exist, a parent that is not on the level above (it does not count the use case in its scores), more than one parent, or impacts that are filled in but do not add up to 100, is loaded with a warning.
 - The permanent IN and THR use cases are skipped: PRISMA always has them.
 - PRISMA calculates the scores of L1 and L2, the `weight` and the risk itself. **Save MaGMa YAML** also writes the scores and the `weight` (and `impact`, the same as `weight`), for information only; the risk is not saved.
 - An empty percentage counts as 0%. A `.nan` from an older version of PRISMA counts as empty.

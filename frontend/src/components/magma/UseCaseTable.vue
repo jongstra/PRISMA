@@ -26,6 +26,7 @@ import { frozenLefts, frozenWidth } from './frozenColumns';
 import { useCellSelection } from './useCellSelection';
 import type { Cell } from './cellSelection';
 import { letteredIds } from '@/domain/magma/letteredIds';
+import { impactsTotal } from '@/domain/magma/validation';
 import { formatCopiedCells, parseCopiedCells } from './copiedCells';
 import { readPastedValue } from './pastedValues';
 import { growDirection, keyDirection, nextCell, type FieldState } from './cellNavigation';
@@ -802,8 +803,7 @@ const idsOnLevel = computed(() => {
 
 const getBackgroundColor = (useCase: UseCase, field: string) => {
   if (['inImpact', 'thrImpact', 'outImpact'].includes(field)) {
-    const total = Number(useCase.inImpact ?? 0) + Number(useCase.thrImpact ?? 0) + Number(useCase.outImpact ?? 0);
-    return total == 100 ? 'white' : INVALID;
+    return impactsTotal(useCase) === 100 ? 'white' : INVALID;
   }
 
   if (field === 'risk') {

@@ -12,7 +12,7 @@ describe('percentageProblem', () => {
   });
 
   it('rejects text, out-of-range numbers and other types', () => {
-    for (const value of ['abc', -5, 150, 100.01, NaN, Infinity, true, [50], {}]) {
+    for (const value of ['abc', '0x5F', '1e2', '72,5', -5, 150, 100.01, NaN, Infinity, true, [50], {}]) {
       expect(percentageProblem(value), String(value)).toBe('it must be a number from 0 to 100');
     }
   });

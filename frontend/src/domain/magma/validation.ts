@@ -16,16 +16,21 @@ function parentIdsOf(useCase: UseCaseReference): string[] {
 
 /**
  * Reads what is clearly meant in a use case from a file written by hand or by another script, in place: an ID written
- * as a number (id: 123) is text, a parent written as text or a number (parentIds: DOS-1) is a list of one, and an empty
- * parent is no parent. What is still not valid is refused when the use case is added (see idProblem and parentProblem).
+ * as a number (id: 123) is text, a parent written as text or a number (parentIds: DOS-1) is a list of one, an empty
+ * parent is no parent, and spaces around an ID go, as in the sheets. What is still not valid is refused when the use case is added (see idProblem and parentProblem).
  */
 export function readAsMeant(useCase: { id?: unknown; parentIds?: unknown }): void {
-  const asText = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? String(value) : value);
-  if (typeof useCase.id === 'number') {
+  const asText = (value: unknown) =>
+    typeof value === 'number' && Number.isFinite(value)
+      ? String(value)
+      : typeof value === 'string'
+        ? value.trim()
+        : value;
+  if (typeof useCase.id === 'number' || typeof useCase.id === 'string') {
     useCase.id = asText(useCase.id);
   }
   const parents = useCase.parentIds;
-  if (parents === null || parents === '') {
+  if (parents === null || (typeof parents === 'string' && parents.trim() === '')) {
     delete useCase.parentIds;
   } else if (typeof parents === 'string' || typeof parents === 'number') {
     useCase.parentIds = [asText(parents)];
@@ -34,9 +39,21 @@ export function readAsMeant(useCase: { id?: unknown; parentIds?: unknown }): voi
   }
 }
 
-/** Why the ID of a use case from a file is not valid, or null when it is: an ID is text. */
+/**
+ * Why the ID of a use case from a file is not valid, or null when it is: an ID is text without spaces or commas (IDs are
+ * references, also in the lists of the Excel template), and not "none", which means no parent. The sheets refuse the
+ * same IDs.
+ */
 export function idProblem(id: unknown): string | null {
-  return typeof id === 'string' ? null : `The ID ${JSON.stringify(id)} is not valid: an ID is text, such as DOS-1.`;
+  const reason =
+    typeof id !== 'string'
+      ? 'an ID is text, such as DOS-1'
+      : id === 'none'
+        ? 'none means no parent'
+        : /[\s,]/.test(id)
+          ? 'an ID cannot contain spaces or commas'
+          : null;
+  return reason && `The ID ${JSON.stringify(id)} is not valid: ${reason}.`;
 }
 
 /** Why the parent of a use case from a file is not valid, or null when it is: a list of IDs, or none. */
@@ -56,8 +73,13 @@ export function percentageProblem(value: unknown): string | null {
   if (value === undefined || value === null || value === '') {
     return null;
   }
+  // Text is read as a plain number with a decimal point ("72.5"), not as hexadecimal ("0x5F") or with an exponent.
   const number =
-    typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN;
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && /^\s*(\d+(\.\d*)?|\.\d+)\s*$/.test(value)
+        ? Number(value)
+        : NaN;
   if (!Number.isFinite(number) || number < 0 || number > 100) {
     return 'it must be a number from 0 to 100';
   }
@@ -139,4 +161,13 @@ export function findWrongLevelParents<T extends UseCaseReference>(useCases: T[])
       .filter((parent) => parent.level !== (useCase.level ?? 0) - 1)
       .map((parent) => ({ useCase, parent })),
   );
+}
+
+/** The IN, THROUGH and OUT impacts of an L1 use case added up, in %; empty ones count as 0. */
+export function impactsTotal(useCase: { inImpact?: unknown; thrImpact?: unknown; outImpact?: unknown }): number {
+  const total = [useCase.inImpact, useCase.thrImpact, useCase.outImpact].reduce<number>(
+    (sum, impact) => sum + (Number(impact) || 0),
+    0,
+  );
+  return Math.round(total * 100) / 100; // 33.3 + 33.3 + 33.4 is 100
 }
