@@ -75,7 +75,7 @@ A YAML list of use cases. **Save MaGMa YAML** writes all domains. **Load MaGMa Y
 - A use case with a problem is skipped and listed in the summary: for example a missing or duplicate ID, an unknown domain, level or technique, a percentage that is not a number from 0 to 100, or a use case that is its own (indirect) parent.
 - A parent ID that does not exist, a parent that is not on the level above (it does not count the use case in its scores), or more than one parent, is loaded with a warning.
 - The permanent IN and THR use cases are skipped: PRISMA always has them.
-- PRISMA calculates the scores of L1 and L2, the `weight` and the risk itself. **Save MaGMa YAML** also writes those (and `impact`, the same as `weight`), for information only.
+- PRISMA calculates the scores of L1 and L2, the `weight` and the risk itself. **Save MaGMa YAML** also writes the scores and the `weight` (and `impact`, the same as `weight`), for information only; the risk is not saved.
 - An empty percentage counts as 0%. A `.nan` from an older version of PRISMA counts as empty.
 
 **Size:** the sheets are tested with 1,000 L3 rules: typing in them and deleting a whole sheet stay immediate (the browser smoke tests check typing).
@@ -91,7 +91,7 @@ A YAML list of use cases. **Save MaGMa YAML** writes all domains. **Load MaGMa Y
 | L3 UC | Rule Identifier, Technical Use Case Name, Use Case Description, L2 Use Case Identifier, ATT&CK techniques, Log source type, Visibility %, Implementation %, Effectiveness % |
 
 - Fractions (0.95) become percentages (95). An L3 rule with a visibility other than 0 gets `visibilityFromAttackTechniqueOverride: true`.
-- A rule with several techniques ("T1059, T1105") becomes one use case per technique, with A, B, … added to its ID and name.
+- A rule with several techniques ("T1059, T1105") becomes one use case per technique, with A, B, … added to its ID and name. Each of them counts in the average of its L2, so the rule counts once per technique, while the template counts it once ([calculations](calculations.md#2-magma-scores)).
 - Empty rows, the template's example row (text in square brackets) and the IN and THR rows of the L1 sheet are skipped. An L2 or L3 row without an ID, or with an Excel error such as `#N/A`, stops the conversion, with a list of those rows.
 
 **A list of detection rules** is converted by `tools/convert_manual_excel.py`: a CSV file (separated by `;`) or an Excel file with the columns `displayName`, `Implementation` (a fraction) and `techniques` (a list, such as `['T1059', 'T1105']`). Each rule becomes an L3 use case without a parent, with the IDs UC1, UC2, …, split per technique as above.

@@ -27,7 +27,7 @@ Example:
 
 ## 2. MaGMa scores
 
-*Used on the MaGMa page. The [Excel template](../templates/) calculates the L1, L2 and L3 scores and the risk in the same way.*
+*Used on the MaGMa page. The [Excel template](../templates/) calculates the L1, L2 and L3 scores and the risk in the same way, apart from rules with several techniques (see below).*
 
 **L3: a detection rule.** It has three scores: visibility (V), implementation (I) and effectiveness (E).
 
@@ -38,6 +38,8 @@ Example:
 Example: V 80%, I 90% and E 50% give a weight of 36% and a potential of 64%.
 
 **L2 and L1.** Each score is the **average of the level below**: an L2 averages its L3s, and an L1 averages its L2s. That applies to V, I, E and the weight: the weight is averaged too, not calculated again from the averaged V, I and E. Potential is again 100% − weight. Without anything below it, the weight is 0%.
+
+**A rule with several techniques.** In PRISMA an L3 use case has one technique, so the converter splits such a rule into one use case per technique ([data formats](data-formats.md#excel-files)). Each of them counts in the average of its L2, so the rule counts once per technique, while the Excel template counts the rule once. Example: under one L2, a rule with two techniques and a weight of 80%, and a rule of 20%, give the L2 a weight of 60% in PRISMA (80, 80 and 20) and 50% in the template (80 and 20).
 
 Example: an L2 with the rule above (weight 36%) and a rule with weight 54% gets a weight of 45% and a potential of 55%.
 

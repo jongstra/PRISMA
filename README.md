@@ -47,7 +47,7 @@ npm ci
 This performs a clean install of all dependencies, exactly as pinned in `package-lock.json` (any existing `node_modules` folder is removed automatically).
 
 **Troubleshooting `npm ci` errors:**
-- Most errors mean `package.json` and `package-lock.json` are out of sync. Run `npm install` to regenerate the lockfile and try again.
+- If it says that `package.json` and `package-lock.json` are out of sync, `package.json` was changed by hand: undo that with `git checkout -- package.json`. Don't run `npm install` to fix it: that rewrites `package-lock.json`, and with it the tested versions.
 - Make sure your Node.js version is recent enough — see the note under *Install Node.js*.
 
 ### Run Application (for Development & Testing)

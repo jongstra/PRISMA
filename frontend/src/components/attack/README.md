@@ -13,5 +13,6 @@ Components of the DeTT&CT page: the ATT&CK matrix with visibility, and its filte
 | [`TechniqueButton.vue`](TechniqueButton.vue) | One technique in the matrix, with its tooltip |
 | [`TechniqueTotalOccurrenceFilterBinned.vue`](TechniqueTotalOccurrenceFilterBinned.vue) | Filters techniques by how often they are used |
 | [`TechniqueVisibilityPercentageFilter.vue`](TechniqueVisibilityPercentageFilter.vue) | Filters techniques by visibility percentage |
+| [`visibilityExplanation.ts`](visibilityExplanation.ts) | How a visibility percentage comes about, for the hints of a technique's tooltip and of a tactic's visibility chip |
 | [`visibilityColour.ts`](visibilityColour.ts) | The purple of a visibility percentage, for the matrix buttons and their tooltip |
 | [`VisibilityLegend.vue`](VisibilityLegend.vue) | Colour legend for visibility |
