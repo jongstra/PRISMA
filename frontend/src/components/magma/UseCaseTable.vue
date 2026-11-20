@@ -424,7 +424,7 @@ const deleteUseCases = (deleted: UseCase[]) => {
     (child) => !deleted.includes(child),
   );
   magma.recordStep(deleted.length > 1 ? `Delete ${deleted.length} use cases` : `Delete ${deleted[0]!.id}`);
-  deleted.forEach((target) => magma.removeUseCaseByUid(target.uid));
+  magma.removeUseCasesByUid(deleted.map((target) => target.uid));
   clearSelection();
   markForDelete([]);
   if (takesPlace) {
@@ -783,6 +783,16 @@ const cellStyle = (useCase: UseCase, field: string) => {
   return backgroundColor === INVALID ? { backgroundColor, color: 'var(--color-invalid-text)' } : { backgroundColor };
 };
 
+// How often each ID occurs in the domain, for a duplicate ID or a parent that does not exist: counted once per redraw,
+// not once per cell, so typing stays immediate in a sheet of 1,000 rules.
+const idCounts = computed(() => {
+  const counts = new Map<string, number>();
+  for (const id of magma.getAllIds(tactics.domain)) {
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  return counts;
+});
+
 const getBackgroundColor = (useCase: UseCase, field: string) => {
   if (['inImpact', 'thrImpact', 'outImpact'].includes(field)) {
     const total = Number(useCase.inImpact ?? 0) + Number(useCase.thrImpact ?? 0) + Number(useCase.outImpact ?? 0);
@@ -806,9 +816,7 @@ const getBackgroundColor = (useCase: UseCase, field: string) => {
   }
 
   if (field === 'id') {
-    const id = useCase.id;
-    const allIds = magma.getAllIds(tactics.domain);
-    const noDuplicateId = allIds.filter((item) => item === id).length <= 1;
+    const noDuplicateId = (idCounts.value.get(useCase.id) ?? 0) <= 1;
     if (noDuplicateId) {
       return 'white';
     } else {
@@ -818,8 +826,7 @@ const getBackgroundColor = (useCase: UseCase, field: string) => {
 
   if (field === 'parentIds') {
     const parentIds = useCase.parentIds;
-    const validParentIds =
-      Array.isArray(parentIds) && parentIds.every((id) => magma.getAllIds(tactics.domain).includes(id));
+    const validParentIds = Array.isArray(parentIds) && parentIds.every((id) => idCounts.value.has(id));
     if (validParentIds) {
       return 'white';
     } else {

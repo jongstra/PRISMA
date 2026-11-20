@@ -78,6 +78,8 @@ A YAML list of use cases. **Save MaGMa YAML** writes all domains. **Load MaGMa Y
 - PRISMA calculates the scores of L1 and L2, the `weight` and the risk itself. **Save MaGMa YAML** also writes those (and `impact`, the same as `weight`), for information only.
 - An empty percentage counts as 0%. A `.nan` from an older version of PRISMA counts as empty.
 
+**Size:** the sheets are tested with 1,000 L3 rules: typing in them and deleting a whole sheet stay immediate (the browser smoke tests check typing).
+
 ## Excel files
 
 **The MaGMa template** ([`templates/`](../templates/)) is converted by `tools/convert_magma_excel.py`, which reads three sheets:

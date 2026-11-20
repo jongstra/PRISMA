@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import fs from 'node:fs';
 import { parse } from 'yaml';
@@ -321,6 +321,25 @@ describe('magma store: renaming and deleting use cases', () => {
     magma.removeUseCaseByUid(magma.getUseCaseById('DOS-1', domain)!.uid);
     expect(parentsOf('DOS-1-A')).toEqual(['DOS-1']);
     expect(magma.getUseCaseById('DOS', domain)!.weight).toBe(0);
+  });
+
+  // Recalculating once per deleted use case made deleting a whole sheet of 1,000 rules take seconds.
+  it('deletes several use cases with one recalculation, and their parents lose them', () => {
+    const recalculations = vi.spyOn(magma, 'recalculateAll');
+    magma.removeUseCasesByUid(['DOS-1-A', 'DOS-1-B'].map((id) => magma.getUseCaseById(id, domain)!.uid));
+    expect(recalculations).toHaveBeenCalledTimes(1);
+    expect(magma.getUseCaseById('DOS-1-A', domain)).toBeUndefined();
+    expect(magma.getUseCaseById('DOS-1-B', domain)).toBeUndefined();
+    expect(magma.getUseCaseById('DOS-1', domain)!.weight).toBe(0);
+  });
+
+  it('deletes all use cases of the open sheet in one domain with one recalculation, apart from IN and THR', () => {
+    magma.activeTab = 'L1';
+    const recalculations = vi.spyOn(magma, 'recalculateAll');
+    magma.removeActiveTabUseCases(domain);
+    expect(recalculations).toHaveBeenCalledTimes(1);
+    expect(magma.L1UseCases(domain).map((useCase) => useCase.id)).toEqual(['IN', 'THR']);
+    expect(parentsOf('DOS-1')).toEqual(['DOS']); // the level below is kept and loses its parent
   });
 });
 

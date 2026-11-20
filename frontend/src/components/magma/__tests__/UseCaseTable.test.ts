@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils';
 import { setActivePinia, createPinia } from 'pinia';
 import fs from 'node:fs';
 import { tacticsStore } from '@/stores/tactics';
-import { magmaStore } from '@/stores/magma';
+import { magmaStore, type UseCase } from '@/stores/magma';
 import Swal from 'sweetalert2';
 import UseCaseTable from '../UseCaseTable.vue';
 
@@ -116,6 +116,22 @@ describe('UseCaseTable', () => {
       'var(--color-invalid)',
       'var(--color-invalid-text)',
     ]);
+  });
+
+  it('marks an ID that occurs twice in the domain red, and white again once it is unique', async () => {
+    const { table, magma, cell } = await showTable('L1');
+    magma.addNewUseCase(1, domain);
+    await table.vm.$nextTick();
+    const idColour = (row: number) =>
+      (cell(row, 'ID').find('.text-field').element as HTMLElement).style.backgroundColor;
+    const [first, second] = magma.L1UseCases(domain).slice(-2) as [UseCase, UseCase];
+    expect([idColour(2), idColour(3)]).toEqual(['white', 'white']);
+    second.id = first.id;
+    await table.vm.$nextTick();
+    expect([idColour(2), idColour(3)]).toEqual(['var(--color-invalid)', 'var(--color-invalid)']);
+    second.id = 'NEW-1';
+    await table.vm.$nextTick();
+    expect([idColour(2), idColour(3)]).toEqual(['white', 'white']);
   });
 
   it('hatches the impacts and the risk of IN and THR in grey, without a value: they do not apply', async () => {

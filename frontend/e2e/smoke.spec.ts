@@ -2,7 +2,7 @@
 // nothing is broken, not every detail (the unit tests in src/ do that). Run them with npm run test-e2e.
 import { readFileSync } from 'node:fs';
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { parse } from 'yaml';
+import { parse, stringify } from 'yaml';
 
 const EXAMPLES = '../examples';
 
@@ -481,6 +481,57 @@ test('a change in a sheet can be undone and redone, with the keyboard and the bu
   await expect(name).toHaveValue('Changed name');
   await page.locator('.undo-button').click();
   await expect(name).toHaveValue(before);
+});
+
+// A MaGMa file with 20 L1 and 40 L2 use cases and this many L3 rules under them, each at 50% visibility,
+// implementation and effectiveness (a weight of 12.50).
+function bigMagmaFile(rules: number) {
+  const domain = 'enterprise-attack';
+  const useCases: object[] = [];
+  for (let i = 0; i < 20; i++) {
+    useCases.push({ domain, level: 1, id: `B${i}`, name: `Risk ${i}`, inImpact: 20, thrImpact: 30, outImpact: 50 });
+  }
+  for (let j = 0; j < 40; j++) {
+    useCases.push({ domain, level: 2, id: `B${j % 20}-${j}`, name: `Use case ${j}`, parentIds: [`B${j % 20}`] });
+  }
+  for (let k = 0; k < rules; k++) {
+    useCases.push({
+      domain,
+      level: 3,
+      id: `R-${k}`,
+      name: `Rule ${k}`,
+      parentIds: [`B${k % 20}-${k % 40}`],
+      attackTechniqueId: 'T1059',
+      visibility: 50,
+      visibilityFromAttackTechniqueOverride: true,
+      implementation: 50,
+      effectiveness: 50,
+    });
+  }
+  return { name: 'big.yaml', mimeType: 'application/yaml', buffer: Buffer.from(stringify(useCases)) };
+}
+
+// The sheets are tested with 1,000 rules: typing stays immediate. (Each ID and parent cell used to count all IDs on
+// every redraw, about 1.3 seconds per keystroke at this size.)
+test('a sheet with 1,000 rules shows a typed value and its weight straight away', async ({ page }) => {
+  await openApp(page);
+  await openPage(page, 'MaGMa');
+  await loadMagmaFile(page, bigMagmaFile(1000));
+  await openTab(page, 'L3');
+  await expect(page.locator('tbody [data-cell$=":implementation"]')).toHaveCount(1000);
+  // From the typed value to the next frame, with the new weight in the row.
+  const typed = await page.evaluate(async () => {
+    const field = document.querySelector<HTMLInputElement>('tbody [data-cell$=":implementation"] > input')!;
+    const weight = field.closest('tr')!.querySelector('[data-cell$=":weight"]')!;
+    field.focus();
+    const start = performance.now();
+    field.value = '70';
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
+    return { milliseconds: performance.now() - start, weight: weight.textContent!.trim() };
+  });
+  expect(typed.weight).toBe('17.50');
+  expect(typed.milliseconds).toBeLessThan(400);
 });
 
 test('a change in cells selected by dragging goes to all of the same kind, and can be undone', async ({ page }) => {

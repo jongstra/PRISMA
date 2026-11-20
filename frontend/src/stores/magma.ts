@@ -377,14 +377,19 @@ export const magmaStore = defineStore('magma', {
     },
 
     removeUseCaseByUid(uid: string) {
-      const useCase = this.getUseCaseByUid(uid);
-      if (!useCase) {
-        throw new Error(`No use case with uid "${uid}" exists.`);
-      }
+      this.removeUseCasesByUid([uid]);
+    },
 
-      // Remove the use case, and recalculate the values that depended on it. Its child use cases are kept and lose
-      // their parent; the editor warns about this before deleting.
-      this.useCases = this.useCases.filter((x) => x['uid'] !== uid);
+    // Removes the use cases, and recalculates the values that depended on them once, also for a whole sheet. Their
+    // child use cases are kept and lose their parent; the editor warns about this before deleting.
+    removeUseCasesByUid(uids: string[]) {
+      const known = new Set(this.useCases.map((useCase) => useCase.uid));
+      const unknown = uids.find((uid) => !known.has(uid));
+      if (unknown !== undefined) {
+        throw new Error(`No use case with uid "${unknown}" exists.`);
+      }
+      const removed = new Set(uids);
+      this.useCases = this.useCases.filter((useCase) => !removed.has(useCase.uid));
       this.recalculateAll();
     },
 
@@ -475,12 +480,13 @@ export const magmaStore = defineStore('magma', {
       this.useCases = [];
     },
 
+    // Removes the use cases of the open sheet, apart from the permanent IN and THR.
     removeActiveTabUseCases(domain?: string) {
-      this.activeTabUseCases(domain).forEach((useCase) => {
-        if (!useCase.permanent) {
-          this.removeUseCaseByUid(useCase.uid);
-        }
-      });
+      this.removeUseCasesByUid(
+        this.activeTabUseCases(domain)
+          .filter((useCase) => !useCase.permanent)
+          .map((useCase) => useCase.uid),
+      );
     },
 
     removeL1UseCases(domain?: string) {
