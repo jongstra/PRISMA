@@ -49,12 +49,9 @@ All choices in the model are in the [calculations guide](docs/calculations.md).
 
 Do not refresh the page: without the DeTT&CT file most risks show 100%.
 
-<details>
-<summary>Watch it: from two files to the answer, in 16 seconds</summary>
-
 ![Loading the DeTT&CT file turns the ATT&CK matrix purple; loading the use cases and opening the heatmap turns it green; the Summary then shows the risk score per business risk.](docs/images/answer.gif)
 
-</details>
+*From two files to the answer, in 16 seconds.*
 
 ## Using it with your own data
 
@@ -83,31 +80,14 @@ Improving detection is a loop:
 
 PRISMA calculates steps 1 to 3, so you can see what step 4 should be. Where PRISMA fits among DeTT&CT, your SIEM or EDR and MaGMa: see the [architecture guide](docs/architecture.md#where-prisma-fits).
 
-<details>
-<summary>The calculation, from business risk to detection rule</summary>
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/hierarchy-dark.svg">
   <img src="docs/images/hierarchy.svg" alt="From business risk to detection rule: L1 business risk, L2 use case, L3 detection rule, ATT&amp;CK technique; visibility × implementation × effectiveness = weight; and the risk formula.">
 </picture>
 
-</details>
+*The calculation, from business risk to detection rule.*
 
 PRISMA uses MITRE ATT&CK® v17.1 for Enterprise, Mobile and ICS. Version 18 and later are not supported yet. The MaGMa 2.0 documentation is in [`docs/`](docs/), with guides to PRISMA's [calculations](docs/calculations.md), [architecture](docs/architecture.md) and [files](docs/data-formats.md).
-
-## More of the app
-
-<p align="center"><img src="docs/images/sheet.png" alt="The L3 sheet sorted by potential, highest first: the four rules of the use case Lateral Movement come first, each with a weight of 2 to 3%. Two parts of the sheet; the columns in between are left out." width="900"></p>
-
-*Where the most room is: the detection rules, sorted by potential (how much a rule can still improve; click the header twice). Edit them like a spreadsheet, and copy and paste to and from Excel.*
-
-<p align="center"><img src="docs/images/components.png" alt="Insights: the data components that would raise visibility most, with network connection creation and logon session creation at the top." width="320"></p>
-
-*The log data that would raise visibility most, by the number of techniques and sub-techniques it would help detect: here network connections and logon sessions.*
-
-![The whole MaGMa heatmap page in a browser window, with the card of Remote Services: its scores, related use cases and the threat groups that use it.](docs/images/heatmap-page.png)
-
-*The whole heatmap: every ATT&CK technique, coloured by how well your rules cover it, with a score per tactic.*
 
 ## Security and privacy
 
