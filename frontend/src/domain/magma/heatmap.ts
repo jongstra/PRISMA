@@ -68,7 +68,10 @@ export function tacticScore(techniques: TacticTechnique[], metrics: HeatmapMetri
   };
 }
 
-/** The number of distinct L2 and L1 use cases above the given use cases (following parents within the same domain). */
+/**
+ * The number of distinct L2 and L1 use cases above the given use cases, following parents on the level above within the
+ * same domain (a parent on the wrong level does not count, as in the scores).
+ */
 export function ancestorCounts(useCases: UseCaseLike[], allUseCases: UseCaseLike[]): { l2: number; l1: number } {
   const byId = new Map<string, UseCaseLike[]>();
   for (const useCase of allUseCases) {
@@ -80,7 +83,8 @@ export function ancestorCounts(useCases: UseCaseLike[], allUseCases: UseCaseLike
   while (queue.length > 0) {
     const useCase = queue.pop()!;
     const parentIds = Array.isArray(useCase.parentIds) ? useCase.parentIds : [];
-    for (const parent of parentIds.flatMap((id) => byId.get(`${useCase.domain}|${id}`) ?? [])) {
+    const parents = parentIds.flatMap((id) => byId.get(`${useCase.domain}|${id}`) ?? []);
+    for (const parent of parents.filter((candidate) => candidate.level === useCase.level - 1)) {
       if (!ancestors.has(parent)) {
         ancestors.add(parent);
         queue.push(parent);

@@ -53,6 +53,11 @@ describe('ancestorCounts', () => {
     ).toEqual({ l2: 2, l1: 2 });
     expect(ancestorCounts([allUseCases[4]], allUseCases)).toEqual({ l2: 1, l1: 1 });
   });
+
+  it('leaves out a parent on the wrong level, as the scores do', () => {
+    const allUseCases = [{ domain: DOMAIN, level: 1, id: 'DOS' }];
+    expect(ancestorCounts([l3('A', ['DOS'], 0, 0, 0)], allUseCases)).toEqual({ l2: 0, l1: 0 });
+  });
 });
 
 describe('tacticScore', () => {

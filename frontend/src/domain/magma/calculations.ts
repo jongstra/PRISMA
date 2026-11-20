@@ -2,7 +2,7 @@
 //
 // - L3 (detection rule): weight = visibility × implementation × effectiveness (as percentages); potential = 100 − weight.
 // - L2 and L1: visibility, implementation, effectiveness and weight are the averages over their child use cases (the
-//   use cases in the same domain that list them as parent); potential = 100 − weight. Cumulative IN and THROUGH are the
+//   use cases on the level below, in the same domain, that list them as parent); potential = 100 − weight. Cumulative IN and THROUGH are the
 //   L1 use cases with uid 'IN' and 'THR'.
 // - Risk of a business L1 use case = 100% − (cumulative IN weight × IN impact + cumulative THROUGH weight × THROUGH
 //   impact + its own weight × OUT impact).
@@ -75,7 +75,8 @@ function recalculateDomain(useCases: MagmaUseCase[]): void {
       useCase.weight =
         fraction(useCase.visibility) * fraction(useCase.implementation) * fraction(useCase.effectiveness) * 100;
     } else {
-      const children = childrenByParentId.get(useCase.id) ?? [];
+      // Only the use cases on the level below count (a parent on the wrong level is warned about when loading).
+      const children = (childrenByParentId.get(useCase.id) ?? []).filter((child) => child.level === useCase.level + 1);
       children.forEach(calculate);
       const average = (field: AveragedField) =>
         children.reduce((sum, child) => sum + (Number(child[field]) || 0), 0) / children.length || 0;

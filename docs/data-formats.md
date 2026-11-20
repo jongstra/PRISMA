@@ -62,7 +62,7 @@ A YAML list of use cases. **Save MaGMa YAML** writes all domains. **Load MaGMa Y
 | `level` | All | 1, 2 or 3 (required) |
 | `id` | All | Unique within the domain (required); a number such as `123` is read as text. Put quotes around an ID such as `'007'` or `'1.10'`: YAML reads those as the numbers 7 and 1.1 |
 | `name`, `description` | All | Text |
-| `parentIds` | 2, 3 | The ID of the use case one level up, as a list. No parent: leave it out, or `[none]` |
+| `parentIds` | 2, 3 | The ID of the use case one level up, as a list (one ID without the brackets also works). No parent: leave it out, or `[none]` |
 | `inImpact`, `thrImpact`, `outImpact` | 1 | The share of an attack in the IN, THROUGH and OUT phase: 0 to 100, together 100 |
 | `attackTechniqueId` | 3 | A technique or sub-technique ID of the domain, or `none` |
 | `dataSource` | 3 | Text, such as a log source |
@@ -73,7 +73,7 @@ A YAML list of use cases. **Save MaGMa YAML** writes all domains. **Load MaGMa Y
 
 - First, the whole file is checked: it must be valid YAML, a list of use cases, and contain use cases for at least one supported domain. Otherwise nothing changes.
 - A use case with a problem is skipped and listed in the summary: for example a missing or duplicate ID, an unknown domain, level or technique, a percentage that is not a number from 0 to 100, or a use case that is its own (indirect) parent.
-- A parent ID that does not exist, or more than one parent, is loaded with a warning.
+- A parent ID that does not exist, a parent that is not on the level above (it does not count the use case in its scores), or more than one parent, is loaded with a warning.
 - The permanent IN and THR use cases are skipped: PRISMA always has them.
 - PRISMA calculates the scores of L1 and L2, the `weight` and the risk itself. **Save MaGMa YAML** also writes those (and `impact`, the same as `weight`), for information only.
 - An empty percentage counts as 0%. A `.nan` from an older version of PRISMA counts as empty.

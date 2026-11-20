@@ -188,6 +188,20 @@ describe('UseCaseTable', () => {
     expect(magma.L2UseCases(domain)[0].parentIds).toEqual(['none']);
   });
 
+  it('marks a parent on the wrong level red, like a missing one', async () => {
+    const { table, magma, cell } = await showTable('L3');
+    magma.addNewUseCase(2, domain);
+    const rule = magma.L3UseCases(domain)[0]!;
+    const colour = async (parentIds: string[]) => {
+      rule.parentIds = parentIds;
+      await table.vm.$nextTick();
+      return (cell(0, 'Parent Use Case').find('.option-picker').element as HTMLElement).style.backgroundColor;
+    };
+    expect(await colour(['IN'])).toBe('var(--color-invalid)'); // an L1 use case
+    expect(await colour([magma.L2UseCases(domain)[0]!.id])).toBe('white');
+    expect(await colour([])).toBe('var(--color-invalid)');
+  });
+
   it('explains every column, and the delete buttons, when hovering', async () => {
     for (const level of ['L1', 'L2', 'L3'] as const) {
       const { table } = await showTable(level);

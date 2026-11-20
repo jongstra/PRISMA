@@ -18,7 +18,9 @@ import {
   findMultipleParents,
   findParentCycles,
   findUnknownParents,
+  findWrongLevelParents,
   idProblem,
+  parentProblem,
   percentageProblem,
   readAsMeant,
 } from '@/domain/magma/validation';
@@ -183,7 +185,10 @@ export const magmaStore = defineStore('magma', {
         if (useCase && Array.isArray(useCase.parentIds)) {
           const parentIds = useCase.parentIds;
           const parentUseCases = state.useCases.filter(
-            (parentUseCase) => parentIds.includes(parentUseCase['id']) && parentUseCase.domain === useCase.domain,
+            (parentUseCase) =>
+              parentIds.includes(parentUseCase['id']) &&
+              parentUseCase.domain === useCase.domain &&
+              parentUseCase.level === useCase.level - 1,
           );
           return parentUseCases;
         } else {
@@ -197,10 +202,19 @@ export const magmaStore = defineStore('magma', {
           (childUseCase) =>
             Array.isArray(childUseCase['parentIds']) &&
             childUseCase['parentIds'].includes(useCase.id) &&
-            childUseCase.domain === useCase.domain,
+            childUseCase.domain === useCase.domain &&
+            childUseCase.level === useCase.level + 1,
         );
         return childUseCases;
       };
+    },
+    // The use cases in a domain that name an ID as their parent, whatever their level: a rename moves them all along,
+    // also one on the wrong level (which does not count for that parent, see getChildUseCases).
+    useCasesWithParent(state) {
+      return (id: string, domain: string) =>
+        state.useCases.filter(
+          (useCase) => useCase.domain === domain && Array.isArray(useCase.parentIds) && useCase.parentIds.includes(id),
+        );
     },
     getGrandChildUseCases() {
       return (useCase: UseCase) => {
@@ -294,7 +308,7 @@ export const magmaStore = defineStore('magma', {
       if (!useCase.id) {
         throw new Error(`The use case has no ID. Use case: ${JSON.stringify(useCase)}`);
       }
-      const problem = idProblem(useCase.id);
+      const problem = idProblem(useCase.id) ?? parentProblem(useCase);
       if (problem) {
         throw new Error(problem);
       }
@@ -444,7 +458,7 @@ export const magmaStore = defineStore('magma', {
       );
       useCase.id = id;
       if (!oldIdStillUsed) {
-        for (const child of this.getChildUseCases({ ...useCase, id: oldId })) {
+        for (const child of this.useCasesWithParent(oldId, useCase.domain)) {
           child.parentIds = child.parentIds!.map((parentId) => (parentId === oldId ? id : parentId));
         }
       }
@@ -471,7 +485,7 @@ export const magmaStore = defineStore('magma', {
       // The children are found by the old IDs, before any of them changes.
       const useCases = uids.map((uid) => this.getUseCaseByUid(uid)!);
       const newIdOf = new Map(useCases.map((useCase, index) => [useCase.id, newIds[index]!]));
-      const children = new Set(useCases.flatMap((useCase) => this.getChildUseCases(useCase)));
+      const children = new Set(useCases.flatMap((useCase) => this.useCasesWithParent(useCase.id, useCase.domain)));
       useCases.forEach((useCase, index) => {
         useCase.id = newIds[index]!;
       });
@@ -712,12 +726,17 @@ export const magmaStore = defineStore('magma', {
       // Recalculate all use cases once, now that the whole file has been added.
       this.recalculateAll();
 
-      // Use cases with a parent ID that does not exist, or with more than one parent, are imported, but listed as a warning
-      // (probably a typo, e.g. a comma in the parent column of the Excel file).
+      // Use cases with a parent ID that does not exist, with a parent on the wrong level, or with more than one parent, are
+      // imported, but listed as a warning (probably a typo, e.g. a comma in the parent column of the Excel file).
       const warnings = [
         ...findUnknownParents(this.useCases).map(
           ({ useCase, parentId }) =>
             `Use case "${useCase.id}" in domain "${useCase.domain}" has parent "${parentId}", which does not exist.`,
+        ),
+        ...findWrongLevelParents(this.useCases).map(({ useCase, parent }) =>
+          useCase.level === 1
+            ? `Use case "${useCase.id}" in domain "${useCase.domain}" has parent "${parent.id}", while a level 1 use case has no parent; it does not count for "${parent.id}".`
+            : `Use case "${useCase.id}" in domain "${useCase.domain}" has parent "${parent.id}" on level ${parent.level}, while its parent should be on level ${useCase.level - 1}; it does not count for "${parent.id}".`,
         ),
         ...findMultipleParents(this.useCases.filter((useCase) => !useCase.permanent)).map(
           ({ useCase, parentIds }) =>

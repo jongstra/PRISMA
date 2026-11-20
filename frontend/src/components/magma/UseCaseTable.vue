@@ -783,14 +783,21 @@ const cellStyle = (useCase: UseCase, field: string) => {
   return backgroundColor === INVALID ? { backgroundColor, color: 'var(--color-invalid-text)' } : { backgroundColor };
 };
 
-// How often each ID occurs in the domain, for a duplicate ID or a parent that does not exist: counted once per redraw,
-// not once per cell, so typing stays immediate in a sheet of 1,000 rules.
+// How often each ID occurs in the domain, for a duplicate ID, and the IDs on each level, for a parent that does not exist
+// on the level above: counted once per redraw, not once per cell, so typing stays immediate in a sheet of 1,000 rules.
 const idCounts = computed(() => {
   const counts = new Map<string, number>();
   for (const id of magma.getAllIds(tactics.domain)) {
     counts.set(id, (counts.get(id) ?? 0) + 1);
   }
   return counts;
+});
+const idsOnLevel = computed(() => {
+  const levels = new Map<number, Set<string>>();
+  for (const useCase of magma.useCases.filter((candidate) => candidate.domain === tactics.domain)) {
+    levels.set(useCase.level, (levels.get(useCase.level) ?? new Set()).add(useCase.id));
+  }
+  return levels;
 });
 
 const getBackgroundColor = (useCase: UseCase, field: string) => {
@@ -826,7 +833,9 @@ const getBackgroundColor = (useCase: UseCase, field: string) => {
 
   if (field === 'parentIds') {
     const parentIds = useCase.parentIds;
-    const validParentIds = Array.isArray(parentIds) && parentIds.every((id) => idCounts.value.has(id));
+    const parentLevel = idsOnLevel.value.get(useCase.level - 1);
+    const validParentIds =
+      Array.isArray(parentIds) && parentIds.length > 0 && parentIds.every((id) => parentLevel?.has(id) ?? false);
     if (validParentIds) {
       return 'white';
     } else {

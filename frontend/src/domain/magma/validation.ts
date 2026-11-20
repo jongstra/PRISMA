@@ -3,6 +3,7 @@
 export interface UseCaseReference {
   domain: string;
   id: string;
+  level?: number;
   parentIds?: unknown;
 }
 
@@ -15,17 +16,36 @@ function parentIdsOf(useCase: UseCaseReference): string[] {
 
 /**
  * Reads what is clearly meant in a use case from a file written by hand or by another script, in place: an ID written
- * as a number (id: 123) is text. What is still not valid is refused when the use case is added (see idProblem).
+ * as a number (id: 123) is text, a parent written as text or a number (parentIds: DOS-1) is a list of one, and an empty
+ * parent is no parent. What is still not valid is refused when the use case is added (see idProblem and parentProblem).
  */
-export function readAsMeant(useCase: { id?: unknown }): void {
-  if (typeof useCase.id === 'number' && Number.isFinite(useCase.id)) {
-    useCase.id = String(useCase.id);
+export function readAsMeant(useCase: { id?: unknown; parentIds?: unknown }): void {
+  const asText = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? String(value) : value);
+  if (typeof useCase.id === 'number') {
+    useCase.id = asText(useCase.id);
+  }
+  const parents = useCase.parentIds;
+  if (parents === null || parents === '') {
+    delete useCase.parentIds;
+  } else if (typeof parents === 'string' || typeof parents === 'number') {
+    useCase.parentIds = [asText(parents)];
+  } else if (Array.isArray(parents)) {
+    useCase.parentIds = parents.map(asText);
   }
 }
 
 /** Why the ID of a use case from a file is not valid, or null when it is: an ID is text. */
 export function idProblem(id: unknown): string | null {
   return typeof id === 'string' ? null : `The ID ${JSON.stringify(id)} is not valid: an ID is text, such as DOS-1.`;
+}
+
+/** Why the parent of a use case from a file is not valid, or null when it is: a list of IDs, or none. */
+export function parentProblem(useCase: { id: string; parentIds?: unknown }): string | null {
+  const parents = useCase.parentIds;
+  const wrong = Array.isArray(parents) ? parents.find((parent) => typeof parent !== 'string') : parents;
+  return wrong === undefined
+    ? null
+    : `The parent ${JSON.stringify(wrong)} of use case "${useCase.id}" is not valid: a parent is an ID, such as DOS-1.`;
 }
 
 /**
@@ -101,4 +121,22 @@ export function findMultipleParents<T extends UseCaseReference>(useCases: T[]): 
   return useCases
     .map((useCase) => ({ useCase, parentIds: parentIdsOf(useCase) }))
     .filter(({ parentIds }) => parentIds.length > 1);
+}
+
+/**
+ * Lists the parents that are not on the level above the use case: an L3 use case directly under an L1, or an L1 use case
+ * with a parent. Such a parent does not count the use case in its scores, as if the parent did not exist.
+ */
+export function findWrongLevelParents<T extends UseCaseReference>(useCases: T[]): { useCase: T; parent: T }[] {
+  const byId = new Map<string, T[]>();
+  for (const useCase of useCases) {
+    const key = `${useCase.domain}|${useCase.id}`;
+    byId.set(key, [...(byId.get(key) ?? []), useCase]);
+  }
+  return useCases.flatMap((useCase) =>
+    parentIdsOf(useCase)
+      .flatMap((parentId) => byId.get(`${useCase.domain}|${parentId}`) ?? [])
+      .filter((parent) => parent.level !== (useCase.level ?? 0) - 1)
+      .map((parent) => ({ useCase, parent })),
+  );
 }

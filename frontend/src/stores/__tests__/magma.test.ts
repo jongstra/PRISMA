@@ -244,6 +244,69 @@ describe('magma store: loading files written by hand', () => {
     expect(message).toContain('The ID ["A","B"] is not valid: an ID is text, such as DOS-1.');
   });
 
+  it('reads a parent written as text or a number as a list of one, and an empty one as no parent', async () => {
+    const { magma } = await setUpStores();
+    const message = summaryText(
+      magma.loadUseCases(
+        readFile(
+          [
+            `- {domain: ${domain}, level: 1, id: A, name: a, outImpact: 100}`,
+            `- {domain: ${domain}, level: 1, id: 7, name: b, outImpact: 100}`,
+            `- {domain: ${domain}, level: 2, id: A-1, name: a1, parentIds: A}`,
+            `- {domain: ${domain}, level: 2, id: B-1, name: b1, parentIds: [7]}`,
+            `- {domain: ${domain}, level: 3, id: R-1, name: r1, parentIds: A-1, visibility: 50, implementation: 100, effectiveness: 100}`,
+            `- {domain: ${domain}, level: 3, id: R-2, name: r2, parentIds: ''}`,
+          ].join('\n'),
+        ),
+      ),
+    );
+    expect(message).toContain('Successful imports: 6. Failed imports: 0.');
+    expect(['A-1', 'B-1', 'R-1', 'R-2'].map((id) => magma.getUseCaseById(id, domain)!.parentIds)).toEqual([
+      ['A'],
+      ['7'],
+      ['A-1'],
+      undefined,
+    ]);
+    expect(magma.getUseCaseById('A', domain)!.weight).toBeCloseTo(50);
+  });
+
+  it('refuses a parent that is not an ID or a list of IDs, with the reason', async () => {
+    const { magma } = await setUpStores();
+    const message = summaryText(
+      magma.loadUseCases(readFile(`- {domain: ${domain}, level: 2, id: A-1, name: a1, parentIds: {id: A}}`)),
+    );
+    expect(message).toContain('Successful imports: 0. Failed imports: 1.');
+    expect(message).toContain(
+      'The parent {"id":"A"} of use case "A-1" is not valid: a parent is an ID, such as DOS-1.',
+    );
+  });
+
+  it('warns about a parent on the wrong level, and leaves it out of the scores of that parent', async () => {
+    const { magma } = await setUpStores();
+    const message = summaryText(
+      magma.loadUseCases(
+        readFile(
+          [
+            `- {domain: ${domain}, level: 1, id: A, name: a, outImpact: 100}`,
+            `- {domain: ${domain}, level: 1, id: B, name: b, outImpact: 100, parentIds: [A]}`,
+            `- {domain: ${domain}, level: 2, id: A-1, name: a1, parentIds: [A]}`,
+            `- {domain: ${domain}, level: 3, id: R-1, name: r1, parentIds: [A-1], visibility: 100, implementation: 100, effectiveness: 100}`,
+            `- {domain: ${domain}, level: 3, id: R-2, name: r2, parentIds: [A], visibility: 0}`,
+          ].join('\n'),
+        ),
+      ),
+    );
+    expect(message).toContain('Successful imports: 5. Failed imports: 0.');
+    expect(message).toContain(
+      '"R-2" in domain "enterprise-attack" has parent "A" on level 1, while its parent should be on level 2; it does not count for "A".',
+    );
+    expect(message).toContain(
+      '"B" in domain "enterprise-attack" has parent "A", while a level 1 use case has no parent; it does not count for "A".',
+    );
+    expect(magma.getUseCaseById('A', domain)!.weight).toBeCloseTo(100); // only A-1 counts, not R-2 or B
+    expect(magma.getChildUseCases(magma.getUseCaseById('A', domain)!).map((useCase) => useCase.id)).toEqual(['A-1']);
+  });
+
   it('leaves the use cases and their history as they were when loading fails unexpectedly', async () => {
     const { magma } = await setUpStores();
     magma.loadUseCases(readFile(readExample('magma/example.yaml')));
@@ -359,6 +422,14 @@ describe('magma store: renaming and deleting use cases', () => {
     magma.removeUseCaseByUid(magma.getUseCaseById('DOS-1', domain)!.uid);
     expect(parentsOf('DOS-1-A')).toEqual(['DOS-1']);
     expect(magma.getUseCaseById('DOS', domain)!.weight).toBe(0);
+  });
+
+  it('moves every use case that names a renamed parent along, also one on the wrong level', () => {
+    magma.importUseCases([{ domain, level: 3, id: 'W', name: 'w', parentIds: ['DOS'] }]); // an L3 directly under an L1
+    magma.renameUseCase(magma.getUseCaseById('DOS', domain)!.uid, 'DDOS');
+    expect([parentsOf('DOS-1'), parentsOf('W')]).toEqual([['DDOS'], ['DDOS']]);
+    magma.renameUseCases([{ uid: magma.getUseCaseById('DDOS', domain)!.uid, id: 'DOS' }]);
+    expect([parentsOf('DOS-1'), parentsOf('W')]).toEqual([['DOS'], ['DOS']]);
   });
 
   // Recalculating once per deleted use case made deleting a whole sheet of 1,000 rules take seconds.

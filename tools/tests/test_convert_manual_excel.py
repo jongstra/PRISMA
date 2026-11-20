@@ -20,6 +20,8 @@ def test_one_L3_use_case_per_rule_and_technique():
         ('UC1B', 'Rule A - B', 'T1105', 50, 3),
         ('UC2', 'Rule B', '', 100, 3),
     ]
+    # Without a parent: PRISMA shows the parent cell red, so one can be chosen.
+    assert not any('parentIds' in usecase for usecase in usecases)
 
 
 def test_the_example_file_converts(tmp_path):

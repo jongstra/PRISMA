@@ -82,7 +82,6 @@ def process_data(df, domain):
                 'level': 3,
                 'name': name,
                 'id': id,
-                'parentIds': "",
                 'visibility': 0,
                 'implementation': implementation,
                 'effectiveness': 0,
