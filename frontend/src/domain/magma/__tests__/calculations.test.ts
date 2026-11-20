@@ -37,6 +37,14 @@ const find = (useCases: MagmaUseCase[], id: string, domain = DOMAIN) =>
   useCases.find((u) => u.id === id && u.domain === domain)!;
 
 describe('L3 detection rules', () => {
+  it('counts a percentage that is not a number yet (a "." while typing) as 0, not NaN', () => {
+    const rule = l3('R', ['A-1'], '.', 50, 50);
+    const useCases = [...cumulative(), l2('A-1', []), rule];
+    recalculateUseCases(useCases);
+    expect([rule.weight, rule.potential]).toEqual([0, 100]);
+    expect(useCases[2]!.weight).toBe(0);
+  });
+
   it('weight = visibility × implementation × effectiveness, potential = 100 − weight', () => {
     const useCases = [l3('A', [], 50, 80, 50)];
     recalculateUseCases(useCases);

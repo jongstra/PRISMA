@@ -30,8 +30,9 @@ export interface MagmaUseCase {
 
 type AveragedField = 'visibility' | 'implementation' | 'effectiveness' | 'weight';
 
-/** A percentage (0-100, possibly typed in as text) as a fraction (0-1). Missing values count as 0. */
-const fraction = (value: unknown) => Number(value ?? 0) / 100;
+/** A percentage (0-100, possibly typed in as text) as a fraction (0-1). Missing values, and text that is not a number
+ * yet (a "." while typing), count as 0. */
+const fraction = (value: unknown) => (Number(value) || 0) / 100;
 
 /** Recalculate the derived values (weight, potential, L1/L2 averages and L1 risk) of all use cases, in place. */
 export function recalculateUseCases(useCases: MagmaUseCase[]): void {

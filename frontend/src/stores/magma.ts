@@ -49,9 +49,6 @@ export interface UseCase {
   effectiveness?: Percentage;
   weight?: number | null;
   potential?: number | null;
-  invalidVisibility?: boolean;
-  invalidId?: boolean;
-  invalidParentIds?: boolean;
   permanent?: boolean;
   inImpact?: Percentage;
   thrImpact?: Percentage;
@@ -132,10 +129,6 @@ export const magmaStore = defineStore('magma', {
       return (uid: string, domain?: string) =>
         state.useCases.find((useCase) => useCase['uid'] === uid && (!domain || useCase.domain === domain));
     },
-    getAllUseCases(state) {
-      return (domain?: string) =>
-        state.useCases.filter((useCase) => useCase['level'] === 1 && (!domain || useCase.domain === domain));
-    },
     L1UseCases(state) {
       return (domain?: string) =>
         state.useCases.filter((useCase) => useCase['level'] === 1 && (!domain || useCase.domain === domain));
@@ -177,26 +170,6 @@ export const magmaStore = defineStore('magma', {
     getAllIds(state) {
       return (domain?: string) =>
         state.useCases.filter((useCase) => !domain || useCase.domain === domain).map((useCase) => useCase['id']);
-    },
-    getAllUids(state) {
-      return (domain?: string) =>
-        state.useCases.filter((useCase) => !domain || useCase.domain === domain).map((useCase) => useCase['uid']);
-    },
-    getParentUseCases(state) {
-      return (useCase: UseCase) => {
-        if (useCase && Array.isArray(useCase.parentIds)) {
-          const parentIds = useCase.parentIds;
-          const parentUseCases = state.useCases.filter(
-            (parentUseCase) =>
-              parentIds.includes(parentUseCase['id']) &&
-              parentUseCase.domain === useCase.domain &&
-              parentUseCase.level === useCase.level - 1,
-          );
-          return parentUseCases;
-        } else {
-          return [];
-        }
-      };
     },
     getChildUseCases(state) {
       return (useCase: UseCase) => {
@@ -279,9 +252,6 @@ export const magmaStore = defineStore('magma', {
         weight: 0,
         potential: 100,
         uid: uid,
-        invalidVisibility: false,
-        invalidId: false,
-        invalidParentIds: false,
       };
 
       // Default IN/THR/OUT impacts of 100/0/0, which add up to 100% (so the cells do not turn red). Only for level 1 use cases.
@@ -386,9 +356,6 @@ export const magmaStore = defineStore('magma', {
 
       // Add a unique ID and some organizational parameters to the use case, and add it to the store.
       useCase.uid = uuidv4();
-      useCase.invalidVisibility = false;
-      useCase.invalidId = false;
-      useCase.invalidParentIds = false;
       useCase.domain = useCase.domain;
       this.useCases.push(useCase);
 
@@ -498,10 +465,6 @@ export const magmaStore = defineStore('magma', {
       return null;
     },
 
-    removeAllUseCases() {
-      this.useCases = [];
-    },
-
     // Removes the use cases of the open sheet, apart from the permanent IN and THR.
     removeActiveTabUseCases(domain?: string) {
       this.removeUseCasesByUid(
@@ -509,30 +472,6 @@ export const magmaStore = defineStore('magma', {
           .filter((useCase) => !useCase.permanent)
           .map((useCase) => useCase.uid),
       );
-    },
-
-    removeL1UseCases(domain?: string) {
-      this.L1UseCases(domain).forEach((useCase) => {
-        if (!useCase.permanent) {
-          this.removeUseCaseByUid(useCase.uid);
-        }
-      });
-    },
-
-    removeL2UseCases(domain?: string) {
-      this.L2UseCases(domain).forEach((useCase) => {
-        if (!useCase.permanent) {
-          this.removeUseCaseByUid(useCase.uid);
-        }
-      });
-    },
-
-    removeL3UseCases(domain?: string) {
-      this.L3UseCases(domain).forEach((useCase) => {
-        if (!useCase.permanent) {
-          this.removeUseCaseByUid(useCase.uid);
-        }
-      });
     },
 
     // Recalculate the derived values (weight, potential, L1/L2 averages and L1 risks) of all use cases in all domains,
