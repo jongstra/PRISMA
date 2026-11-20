@@ -1,9 +1,10 @@
 # DeTT&CT examples
 
-DeTT&CT data source administration files. Load one with the red button on the DeTT&CT page.
+DeTT&CT data source administration files. Load one with **Load DeTT&CT YAML** on the DeTT&CT page.
 
 | Name | Description |
 |---|---|
+| [`demo.yaml`](demo.yaml) | The fictional organisation in the main README: Enterprise, 57 data sources of varying quality. Load it together with [`../magma/demo.yaml`](../magma/demo.yaml) |
 | [`enterprise.yaml`](enterprise.yaml) | Enterprise, 2 data sources |
 | [`enterprise_duplicate_data_sources.yaml`](enterprise_duplicate_data_sources.yaml) | Invalid on purpose: shows the error for duplicate data sources |
 | [`enterprise_large.yaml`](enterprise_large.yaml) | Enterprise, 10 data sources of varying quality |

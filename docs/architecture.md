@@ -2,6 +2,17 @@
 
 PRISMA is a web app that runs entirely in your browser: the files you load are read there and are not sent anywhere. A few Python tools prepare its data beforehand. How PRISMA calculates is in [calculations.md](calculations.md), and its files are described in [data-formats.md](data-formats.md).
 
+## Where PRISMA fits
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/overview-dark.png">
+  <img src="images/overview.png" alt="Outside PRISMA: data sources go into DeTT&amp;CT; DeTTeCTinator reads your SIEM or EDR and can write the DeTT&amp;CT file (not yet tested with PRISMA); your detection capability, mapped to ATT&amp;CK, becomes MaGMa's L3 use cases by hand or by script; a risk analysis gives MaGMa's L1 business risks. Inside PRISMA: the visibility per technique from the DeTT&amp;CT file, the use case performance and the risk score per business risk from the MaGMa file; visibility and use case performance together show where detection can improve.">
+</picture>
+
+PRISMA reads two files. A DeTT&CT file describes your data sources and how complete they are; you write it by hand, with the [DeTT&CT Editor](https://rabobank-cdc.github.io/dettect-editor/#/datasources), or generate it with [DeTTeCTinator](https://github.com/siriussecurity/dettectinator) from your SIEM or EDR (not yet tested with PRISMA). A MaGMa file describes your use cases on three levels, from your business risks (L1) to your detection rules (L3). DeTTeCTinator can also list your detection rules with their ATT&CK techniques; PRISMA does not read that list directly: you turn it into L3 use cases yourself, for example with `tools/convert_manual_excel.py`.
+
+From the two files PRISMA calculates the visibility per technique, the performance of your use cases and the risk score per business risk; visibility and performance together show where detection can improve. Everything outside the dashed box happens outside PRISMA: PRISMA has no connection to these systems. The original figure is [`MaGMa_2.0_overview.png`](MaGMa_2.0_overview.png).
+
 ## The big picture
 
 ```mermaid

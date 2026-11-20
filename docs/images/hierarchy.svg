@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 476" width="880" height="476" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">From business risk to detection rule</title>
+  <desc id="desc">An example chain: the business risk Ransomware (L1) has the use case Mass encryption of files (L2), which has the detection rule Bulk file renames on a file share (L3), linked to ATT&amp;CK® technique T1486, Data Encrypted for Impact. The rule's visibility comes from DeTT&amp;CT; each level averages the one below. A detection rule's weight is visibility times implementation times effectiveness: 80% times 90% times 50% is 36%, so its potential is 64%. The risk score of a business risk is 100% minus (IN weight times IN impact plus THR weight times THR impact plus own weight times OUT impact).</desc>
+  <defs>
+    <style>
+      .head { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; fill: #5b6370; }
+      .name { font-size: 16px; font-weight: 600; fill: #2b2f36; }
+      .label { font-size: 14px; font-weight: 400; fill: #5b6370; }
+      .chip { font-size: 14px; font-weight: 600; fill: #ffffff; }
+      .formula { font-size: 16px; font-weight: 400; fill: #2b2f36; }
+      .value { font-size: 16px; font-weight: 600; fill: #2b2f36; }
+      .op { font-size: 16px; font-weight: 400; fill: #5b6370; }
+      .back { font-size: 14px; font-weight: 400; fill: #39378B; }
+      .card { fill: #ffffff; stroke: #d5dae1; stroke-width: 1; }
+      .panel { fill: #f6f7f9; }
+      .score { fill: #ffffff; stroke: #d5dae1; stroke-width: 1; }
+      .track { fill: #e9ecf0; }
+      .flow { fill: none; stroke: #a7adb6; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .arc { fill: none; stroke: #39378B; stroke-opacity: 0.55; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="880" height="476" rx="16" fill="#ffffff"/>
+  <text class="head" x="32" y="44">AN EXAMPLE</text>
+
+  <g transform="translate(0 28)">
+
+  <!-- The chain: business risk, use case, detection rule, technique (a fictional example) -->
+  <rect class="card" x="32.5" y="32.5" width="182" height="107" rx="10"/>
+  <rect x="48" y="50" width="32" height="22" rx="6" fill="#39378B"/>
+  <text class="chip" x="64" y="66" text-anchor="middle">L1</text>
+  <text class="label" x="88" y="66">Business risk</text>
+  <text class="name" x="48" y="96">Ransomware</text>
+
+  <rect class="card" x="243.5" y="32.5" width="182" height="107" rx="10"/>
+  <rect x="259" y="50" width="32" height="22" rx="6" fill="#39378B"/>
+  <text class="chip" x="275" y="66" text-anchor="middle">L2</text>
+  <text class="label" x="299" y="66">Use case</text>
+  <text class="name" x="259" y="96">Mass encryption</text>
+  <text class="name" x="259" y="118">of files</text>
+
+  <rect class="card" x="454.5" y="32.5" width="182" height="107" rx="10"/>
+  <rect x="470" y="50" width="32" height="22" rx="6" fill="#39378B"/>
+  <text class="chip" x="486" y="66" text-anchor="middle">L3</text>
+  <text class="label" x="510" y="66">Detection rule</text>
+  <text class="name" x="470" y="96">Bulk file renames</text>
+  <text class="name" x="470" y="118">on a file share</text>
+
+  <rect class="card" x="665.5" y="32.5" width="182" height="107" rx="10"/>
+  <rect x="681" y="50" width="82" height="22" rx="6" fill="#eceef2"/>
+  <text class="chip" x="722" y="66" text-anchor="middle" style="fill:#2b2f36">ATT&amp;CK®</text>
+  <text class="label" x="771" y="66">T1486</text>
+  <text class="name" x="681" y="96">Data Encrypted</text>
+  <text class="name" x="681" y="118">for Impact</text>
+
+  <path class="flow" d="M221 86H236M432 86H447M643 86H658"/>
+  <path class="flow" d="M232 81L237.5 86L232 91M443 81L448.5 86L443 91M654 81L659.5 86L654 91"/>
+
+  <!-- How the numbers come back up -->
+  <path class="arc" d="M744.5 144V156Q744.5 164 736.5 164H565.5Q557.5 164 557.5 156V146"/>
+  <path class="arc" d="M552.5 149.5L557.5 144L562.5 149.5"/>
+  <text class="back" x="651" y="186" text-anchor="middle">visibility, from DeTT&amp;CT</text>
+  <path class="arc" d="M533.5 144V156Q533.5 164 525.5 164H354.5Q346.5 164 346.5 156V146"/>
+  <path class="arc" d="M341.5 149.5L346.5 144L351.5 149.5"/>
+  <text class="back" x="440" y="186" text-anchor="middle">average of its L3s</text>
+  <path class="arc" d="M322.5 144V156Q322.5 164 314.5 164H143.5Q135.5 164 135.5 156V146"/>
+  <path class="arc" d="M130.5 149.5L135.5 144L140.5 149.5"/>
+  <text class="back" x="229" y="186" text-anchor="middle">average of its L2s</text>
+
+  <!-- Risk of a business risk -->
+  <rect class="panel" x="32" y="212" width="392" height="204" rx="12"/>
+  <text class="head" x="52" y="246">RISK OF A BUSINESS RISK</text>
+  <text class="formula" x="172" y="282" text-anchor="end"><tspan font-weight="600">Risk</tspan> = 100% − (</text>
+  <text class="formula" x="180" y="282">IN weight × IN impact</text>
+  <text class="formula" x="172" y="308" text-anchor="end">+</text>
+  <text class="formula" x="180" y="308">THR weight × THR impact</text>
+  <text class="formula" x="172" y="334" text-anchor="end">+</text>
+  <text class="formula" x="180" y="334">own weight × OUT impact )</text>
+  <text class="label" x="52" y="370">The risk score: higher is worse. IN and THR are</text>
+  <text class="label" x="52" y="390">fixed L1s; the three impacts add up to 100%.</text>
+
+  <!-- Weight of a detection rule -->
+  <rect class="panel" x="444" y="212" width="404" height="204" rx="12"/>
+  <text class="head" x="464" y="246">WEIGHT OF A DETECTION RULE</text>
+
+  <rect class="score" x="464.5" y="264.5" width="59" height="47" rx="8"/>
+  <text class="value" x="494" y="286" text-anchor="middle">80%</text>
+  <rect class="track" x="476" y="295" width="36" height="4" rx="2"/>
+  <rect x="476" y="295" width="28.8" height="4" rx="2" fill="#B22222"/>
+  <text class="label" x="494" y="332" text-anchor="middle">Visibility</text>
+
+  <text class="op" x="542" y="286" text-anchor="middle">×</text>
+
+  <rect class="score" x="560.5" y="264.5" width="59" height="47" rx="8"/>
+  <text class="value" x="590" y="286" text-anchor="middle">90%</text>
+  <rect class="track" x="572" y="295" width="36" height="4" rx="2"/>
+  <rect x="572" y="295" width="32.4" height="4" rx="2" fill="#808000"/>
+  <text class="label" x="590" y="332" text-anchor="middle">Implementation</text>
+
+  <text class="op" x="645" y="286" text-anchor="middle">×</text>
+
+  <rect class="score" x="670.5" y="264.5" width="59" height="47" rx="8"/>
+  <text class="value" x="700" y="286" text-anchor="middle">50%</text>
+  <rect class="track" x="682" y="295" width="36" height="4" rx="2"/>
+  <rect x="682" y="295" width="18" height="4" rx="2" fill="#4682B4"/>
+  <text class="label" x="700" y="332" text-anchor="middle">Effectiveness</text>
+
+  <text class="op" x="744" y="286" text-anchor="middle">=</text>
+
+  <rect x="758" y="264" width="60" height="48" rx="8" fill="#39378B"/>
+  <text class="value" x="788" y="286" text-anchor="middle" style="fill:#ffffff">36%</text>
+  <rect x="770" y="295" width="36" height="4" rx="2" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="770" y="295" width="13" height="4" rx="2" fill="#ffffff"/>
+  <text class="label" x="788" y="332" text-anchor="middle">Weight</text>
+
+  <text class="label" x="464" y="370">Potential = 100% − weight = 64%,</text>
+  <text class="label" x="464" y="390">how much the rule can still improve</text>
+  </g>
+</svg>

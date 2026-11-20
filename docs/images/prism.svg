@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 332" width="960" height="332" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">What PRISMA does</title>
+  <desc id="desc">Two files go in as light: a DeTT&amp;CT file, with which log data you have and how complete it is, and MaGMa use cases, with your detection rules and how well they work. PRISMA, a prism that runs locally in your browser, splits them into three views: visibility per ATT&amp;CK® technique, a detection coverage heatmap, and the risk score per business risk.</desc>
+  <defs>
+    <pattern id="stripes" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="3" height="3" fill="#f1f2f4"/>
+      <rect width="1.2" height="3" fill="#c3c8cf"/>
+    </pattern>
+    <linearGradient id="glass" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#f4f4fb"/>
+      <stop offset="1" stop-color="#d9d9ee"/>
+    </linearGradient>
+    <linearGradient id="ray" gradientUnits="userSpaceOnUse" x1="280" y1="0" x2="391" y2="0">
+      <stop offset="0" stop-color="#8a919c" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#5b6370"/>
+    </linearGradient>
+    <!-- inside the prism the white light starts to split -->
+    <linearGradient id="split" gradientUnits="userSpaceOnUse" x1="0" y1="172.5" x2="0" y2="179.5">
+      <stop offset="0" stop-color="#cf5da7"/>
+      <stop offset="0.5" stop-color="#78c847"/>
+      <stop offset="1" stop-color="#e61a00"/>
+    </linearGradient>
+    <linearGradient id="core" gradientUnits="userSpaceOnUse" x1="391" y1="0" x2="457" y2="0">
+      <stop offset="0.3" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.15"/>
+    </linearGradient>
+    <linearGradient id="purple" gradientUnits="userSpaceOnUse" x1="457" y1="0" x2="568" y2="0">
+      <stop offset="0" stop-color="#cf5da7" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#cf5da7"/>
+    </linearGradient>
+    <linearGradient id="green" gradientUnits="userSpaceOnUse" x1="457" y1="0" x2="568" y2="0">
+      <stop offset="0" stop-color="#78c847" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#78c847"/>
+    </linearGradient>
+    <linearGradient id="red" gradientUnits="userSpaceOnUse" x1="457" y1="0" x2="568" y2="0">
+      <stop offset="0" stop-color="#e61a00" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#e61a00"/>
+    </linearGradient>
+    <linearGradient id="wash0" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cf5da7" stop-opacity="0.13"/>
+      <stop offset="0.4" stop-color="#cf5da7" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="panel0"><rect x="568" y="64" width="360" height="68" rx="4"/></clipPath>
+    <linearGradient id="wash1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#78c847" stop-opacity="0.13"/>
+      <stop offset="0.4" stop-color="#78c847" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="panel1"><rect x="568" y="142" width="360" height="68" rx="4"/></clipPath>
+    <linearGradient id="wash2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e61a00" stop-opacity="0.13"/>
+      <stop offset="0.4" stop-color="#e61a00" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="panel2"><rect x="568" y="220" width="360" height="68" rx="4"/></clipPath>
+    <!-- the light outside the prism: from the input blocks to its left face, from its right face to the output blocks -->
+    <clipPath id="before"><path d="M280 0H492.6L300.9 332H280Z"/></clipPath>
+    <clipPath id="after"><path d="M355.4 0H568V332H547.1Z"/></clipPath>
+    <style>
+      .head { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; fill: #5b6370; }
+      .title { font-size: 16px; font-weight: 600; fill: #2b2f36; }
+      .note { font-size: 14px; font-weight: 400; fill: #5b6370; }
+      .icon { fill: #f6f7f9; stroke: #8a919c; stroke-width: 1.25; stroke-linejoin: round; }
+      .blank { fill: #f9fafb; stroke: #b9bfc8; stroke-width: 0.75; }
+      .track { fill: #e9ecf0; }
+      .stub { fill: #c3c8cf; }
+      .glow { fill: none; stroke-width: 10; stroke-opacity: 0.12; stroke-linecap: round; }
+      .beam { fill: none; stroke-width: 3; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <rect width="960" height="332" rx="16" fill="#ffffff"/>
+
+  <!-- Column headings -->
+  <text class="head" x="272" text-anchor="end" y="44">YOUR FILES</text>
+  <text class="head" x="568" y="44">WHAT YOU SEE</text>
+
+  <!-- Inputs -->
+  <g transform="translate(244 95)">
+    <!-- a file with data sources and how complete each one is -->
+    <path class="icon" d="M2 0H19L28 9V34A2 2 0 0 1 26 36H2A2 2 0 0 1 0 34V2A2 2 0 0 1 2 0Z"/>
+    <path class="icon" d="M19 0V7A2 2 0 0 0 21 9H28" fill="none"/>
+    <g stroke-width="2.5" stroke-linecap="round">
+      <path d="M6 16H8M6 22H8M6 28H8" stroke="#b9bfc8"/>
+      <path d="M12 16H22M12 22H16M12 28H19" stroke="#d97db9"/>
+    </g>
+  </g>
+  <text class="title" x="232" y="96" text-anchor="end">DeTT&amp;CT file</text>
+  <text class="note" x="232" y="118" text-anchor="end">Which log data you have,</text>
+  <text class="note" x="232" y="138" text-anchor="end">and how complete it is</text>
+
+  <g transform="translate(244 221)">
+    <!-- a file with use cases in three levels -->
+    <path class="icon" d="M2 0H19L28 9V34A2 2 0 0 1 26 36H2A2 2 0 0 1 0 34V2A2 2 0 0 1 2 0Z"/>
+    <path class="icon" d="M19 0V7A2 2 0 0 0 21 9H28" fill="none"/>
+    <g stroke-width="2.5" stroke-linecap="round">
+      <path d="M6 16H18" stroke="#39378B"/>
+      <path d="M10 22H21M14 28H22" stroke="#8a919c"/>
+    </g>
+  </g>
+  <text class="title" x="232" y="222" text-anchor="end">MaGMa use cases</text>
+  <text class="note" x="232" y="244" text-anchor="end">Your detection rules,</text>
+  <text class="note" x="232" y="264" text-anchor="end">and how well they work</text>
+
+  <!-- Outputs -->
+  <g clip-path="url(#panel0)">
+    <rect x="568" y="64" width="360" height="68" fill="#f6f7f9"/>
+    <rect x="568" y="64" width="360" height="68" fill="url(#wash0)"/>
+    <rect x="568" y="64" width="3" height="68" fill="#cf5da7"/>
+  </g>
+  <g transform="translate(584 79.5)">
+    <!-- a small ATT&CK matrix in shades of purple, as on the DeTT&CT page -->
+    <path d="M0 0H11M13.67 0H24.67M27.33 0H38.33M41 0H52" stroke="#8a919c" stroke-width="2"/>
+    <rect x="0" y="4" width="11" height="5" rx="1.2" fill="url(#stripes)"/>
+    <rect x="0" y="11" width="11" height="5" rx="1.2" fill="#f1cee5" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="0.375" y="18.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="0" y="25" width="11" height="5" rx="1.2" fill="#e5a6cf" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="0.375" y="32.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="13.67" y="4" width="11" height="5" rx="1.2" fill="#d97db9" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="13.67" y="11" width="11" height="5" rx="1.2" fill="#cf5da7" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="13.67" y="18" width="11" height="5" rx="1.2" fill="#e5a6cf" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="13.67" y="25" width="11" height="5" rx="1.2" fill="#f1cee5" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="27.33" y="4" width="11" height="5" rx="1.2" fill="#cf5da7" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="27.33" y="11" width="11" height="5" rx="1.2" fill="#cf5da7" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="27.33" y="18" width="11" height="5" rx="1.2" fill="#d97db9" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="27.705" y="25.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="27.33" y="32" width="11" height="5" rx="1.2" fill="#e5a6cf" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="41" y="4" width="11" height="5" rx="1.2" fill="#e5a6cf" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="41.375" y="11.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="41" y="18" width="11" height="5" rx="1.2" fill="#d97db9" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+  </g>
+  <text class="title" x="652" y="92">Visibility per ATT&amp;CK® technique</text>
+  <text class="note" x="652" y="113">What your log data lets you see</text>
+
+  <g clip-path="url(#panel1)">
+    <rect x="568" y="142" width="360" height="68" fill="#f6f7f9"/>
+    <rect x="568" y="142" width="360" height="68" fill="url(#wash1)"/>
+    <rect x="568" y="142" width="3" height="68" fill="#78c847"/>
+  </g>
+  <g transform="translate(584 157.5)">
+    <!-- the same matrix, coloured by how well the use cases cover each technique, as on the MaGMa heatmap -->
+    <path d="M0 0H11M13.67 0H24.67M27.33 0H38.33M41 0H52" stroke="#8a919c" stroke-width="2"/>
+    <rect x="0" y="4" width="11" height="5" rx="1.2" fill="url(#stripes)"/>
+    <rect class="blank" x="0.375" y="11.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="0" y="18" width="11" height="5" rx="1.2" fill="#d6eec8" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="0.375" y="25.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="0" y="32" width="11" height="5" rx="1.2" fill="#b5e19a" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="13.67" y="4" width="11" height="5" rx="1.2" fill="#93d36c" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="14.045" y="11.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="13.67" y="18" width="11" height="5" rx="1.2" fill="#d6eec8" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="13.67" y="25" width="11" height="5" rx="1.2" fill="#b5e19a" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="27.705" y="4.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="27.33" y="11" width="11" height="5" rx="1.2" fill="#78c847" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="27.33" y="18" width="11" height="5" rx="1.2" fill="#b5e19a" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="27.705" y="25.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="27.33" y="32" width="11" height="5" rx="1.2" fill="#d6eec8" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect x="41" y="4" width="11" height="5" rx="1.2" fill="#d6eec8" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+    <rect class="blank" x="41.375" y="11.375" width="10.25" height="4.25" rx="1"/>
+    <rect x="41" y="18" width="11" height="5" rx="1.2" fill="#93d36c" stroke="#2b2f36" stroke-opacity="0.14" stroke-width="0.75"/>
+  </g>
+  <text class="title" x="652" y="170">Detection coverage heatmap</text>
+  <text class="note" x="652" y="191">Where your rules detect, and how well</text>
+
+  <g clip-path="url(#panel2)">
+    <rect x="568" y="220" width="360" height="68" fill="#f6f7f9"/>
+    <rect x="568" y="220" width="360" height="68" fill="url(#wash2)"/>
+    <rect x="568" y="220" width="3" height="68" fill="#e61a00"/>
+  </g>
+  <g transform="translate(584 235)">
+    <!-- risk bars, highest first, as on the MaGMa Summary tab -->
+    <rect class="stub" x="0" y="0" width="20" height="3" rx="1.5"/>
+    <rect class="track" x="0" y="6" width="52" height="4" rx="2"/>
+    <rect x="0" y="6" width="47" height="4" rx="2" fill="#e61a00"/>
+    <rect class="stub" x="0" y="14" width="15" height="3" rx="1.5"/>
+    <rect class="track" x="0" y="20" width="52" height="4" rx="2"/>
+    <rect x="0" y="20" width="40" height="4" rx="2" fill="#c73800"/>
+    <rect class="stub" x="0" y="28" width="23" height="3" rx="1.5"/>
+    <rect class="track" x="0" y="34" width="52" height="4" rx="2"/>
+    <rect x="0" y="34" width="33" height="4" rx="2" fill="#a85700"/>
+  </g>
+  <text class="title" x="652" y="248">Risk score per business risk</text>
+  <text class="note" x="652" y="269">Highest first</text>
+
+  <!-- Two files go in as light -->
+  <path d="M280 113L393 177.1M280 239L393 174.9" stroke="url(#ray)" stroke-width="2.5" stroke-linecap="round" clip-path="url(#before)"/>
+
+  <!-- PRISMA, a prism -->
+  <path d="M426.5 123.2L481.5 218.4Q484.0 222.8 479.0 222.8L369.0 222.8Q364.0 222.8 366.5 218.4L421.5 123.2Q424.0 118.8 426.5 123.2Z" fill="url(#glass)" stroke="#39378B" stroke-width="1.5"/>
+  <path d="M418.1 139L404.3 162.9" stroke="#ffffff" stroke-opacity="1" stroke-width="2" stroke-linecap="round"/>
+  <path d="M391.9 174.5L455 172.5L459 179.5L390.1 177.5Z" fill="url(#split)"/>
+  <path d="M391.9 174.5L455 172.5L459 179.5L390.1 177.5Z" fill="url(#core)"/>
+  <text x="424" y="251" text-anchor="middle" font-size="16" font-weight="700" letter-spacing="0.12em" fill="#39378B">PRISMA</text>
+  <text class="note" x="424" y="272" text-anchor="middle">Runs locally in your browser;</text>
+  <text class="note" x="424" y="292" text-anchor="middle">nothing is uploaded</text>
+
+  <!-- and leave as three colours, one for each view -->
+  <g clip-path="url(#after)">
+    <path class="glow" d="M451 176L574 94" stroke="#cf5da7"/>
+    <path class="beam" d="M451 176L574 94" stroke="url(#purple)"/>
+    <path class="glow" d="M451 176H574" stroke="#78c847"/>
+    <path class="beam" d="M451 176H574" stroke="url(#green)"/>
+    <path class="glow" d="M451 176L574 258" stroke="#e61a00"/>
+    <path class="beam" d="M451 176L574 258" stroke="url(#red)"/>
+  </g>
+</svg>

@@ -1,0 +1,762 @@
+- domain: enterprise-attack
+  level: 1
+  id: EXT
+  name: "Extortion / Ransomware"
+  description: "Encrypting data and destroying backups to extort a ransom. IN: initial compromise and foothold. THROUGH: discovery, credential theft and lateral movement to the file servers and backups. OUT: encryption."
+  inImpact: 15
+  thrImpact: 65
+  outImpact: 20
+- domain: enterprise-attack
+  level: 1
+  id: ESP
+  name: "Espionage / Data Theft"
+  description: "Stealing intellectual property or sensitive information. IN: initial compromise and foothold. THROUGH: lateral movement, privilege escalation, collection and staging. OUT: exfiltration."
+  inImpact: 40
+  thrImpact: 30
+  outImpact: 30
+- domain: enterprise-attack
+  level: 1
+  id: CEO
+  name: "CEO Fraud"
+  description: "Impersonating an executive to have an employee transfer money. IN: phishing for mailbox credentials. THROUGH: taking over a mailbox. OUT: the fraudulent payment request."
+  inImpact: 40
+  thrImpact: 10
+  outImpact: 50
+- domain: enterprise-attack
+  level: 1
+  id: DOS
+  name: "Denial of Service"
+  description: "Overloading the public services until they are unavailable. IN: reconnaissance and scanning. THROUGH: not applicable. OUT: the (D)DoS attack itself."
+  inImpact: 5
+  thrImpact: 0
+  outImpact: 95
+- domain: enterprise-attack
+  level: 1
+  id: SAB
+  name: "Sabotage / Destruction"
+  description: "Destroying systems or data to disrupt the business, for example by wiping disks or deleting backups. IN: initial compromise. THROUGH: privilege escalation and lateral movement. OUT: destruction or defacement."
+  inImpact: 40
+  thrImpact: 15
+  outImpact: 45
+- domain: enterprise-attack
+  level: 2
+  id: IN-DEL
+  name: "Delivery"
+  description: "Malicious files and links that reach users by mail or the web."
+  parentIds: [IN]
+- domain: enterprise-attack
+  level: 2
+  id: IN-EXP
+  name: "Exploitation"
+  description: "Exploitation of internet-facing systems and abuse of valid accounts at the edge."
+  parentIds: [IN]
+- domain: enterprise-attack
+  level: 2
+  id: IN-PER
+  name: "Persistence"
+  description: "An attacker making sure their access survives a reboot or a password reset."
+  parentIds: [IN]
+- domain: enterprise-attack
+  level: 2
+  id: IN-DEF
+  name: "Defense Evasion"
+  description: "Attempts to switch off or blind the security controls."
+  parentIds: [IN]
+- domain: enterprise-attack
+  level: 2
+  id: IN-CNC
+  name: "Command & Control"
+  description: "Communication between a compromised system and the attacker."
+  parentIds: [IN]
+- domain: enterprise-attack
+  level: 2
+  id: THR-EXE
+  name: "Execution"
+  description: "Techniques that result in execution of attacker-controlled code on a local or remote system."
+  parentIds: [THR]
+- domain: enterprise-attack
+  level: 2
+  id: THR-PRI
+  name: "Privilege Escalation"
+  description: "Techniques that give an attacker higher permissions on a system or in the domain."
+  parentIds: [THR]
+- domain: enterprise-attack
+  level: 2
+  id: THR-CRE
+  name: "Credential Access"
+  description: "Techniques resulting in the access of, or control over, system, service or domain credentials."
+  parentIds: [THR]
+- domain: enterprise-attack
+  level: 2
+  id: THR-DIS
+  name: "Discovery"
+  description: "Techniques that allow an attacker to gain knowledge about a system and its network environment."
+  parentIds: [THR]
+- domain: enterprise-attack
+  level: 2
+  id: THR-LAT
+  name: "Lateral Movement"
+  description: "Techniques that enable an adversary to access and control other systems in the network."
+  parentIds: [THR]
+- domain: enterprise-attack
+  level: 2
+  id: EXT-EXT
+  name: "Extortion attempts"
+  description: "Encrypting data and destroying backups to force the payment of a ransom."
+  parentIds: [EXT]
+- domain: enterprise-attack
+  level: 2
+  id: ESP-EXF
+  name: "Exfiltration in espionage attack"
+  description: "Exfiltration of collected information through various channels."
+  parentIds: [ESP]
+- domain: enterprise-attack
+  level: 2
+  id: CEO-BEC
+  name: "Business Email Compromise"
+  description: "Taking over or spoofing an executive mailbox for purposes of fraud."
+  parentIds: [CEO]
+- domain: enterprise-attack
+  level: 2
+  id: DOS-VOL
+  name: "Volume DDoS"
+  description: "High volumes of (spoofed) traffic directed at the organisation's network."
+  parentIds: [DOS]
+- domain: enterprise-attack
+  level: 2
+  id: SAB-ITA
+  name: "IT Asset sabotage"
+  description: "Destruction of systems, data or backups."
+  parentIds: [SAB]
+- domain: enterprise-attack
+  level: 2
+  id: SAB-WEB
+  name: "Defacement"
+  description: "Defacement of the public websites, usually by hacktivists."
+  parentIds: [SAB]
+- domain: enterprise-attack
+  level: 3
+  id: IN-DEL-A
+  name: "Attachment detonated in sandbox"
+  description: "The mail gateway sandbox marks an attachment as malicious after detonation."
+  parentIds: [IN-DEL]
+  attackTechniqueId: T1566.001
+  dataSource: "Mail gateway"
+  implementation: 95
+  effectiveness: 90
+- domain: enterprise-attack
+  level: 3
+  id: IN-DEL-B
+  name: "Click on a rewritten phishing link"
+  description: "A user opens a link from a mail that the URL filter later classifies as phishing."
+  parentIds: [IN-DEL]
+  attackTechniqueId: T1566.002
+  dataSource: "Proxy logs"
+  implementation: 95
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: IN-DEL-C
+  name: "Office application starts a script host"
+  description: "Word, Excel or Outlook starts cmd, PowerShell, wscript or mshta."
+  parentIds: [IN-DEL]
+  attackTechniqueId: T1204.002
+  dataSource: "EDR"
+  implementation: 95
+  effectiveness: 90
+- domain: enterprise-attack
+  level: 3
+  id: IN-DEL-D
+  name: "Disk image opened from Downloads"
+  description: "An ISO, IMG or VHD file from a mail or download is mounted and run."
+  parentIds: [IN-DEL]
+  attackTechniqueId: T1553.005
+  dataSource: "EDR"
+  implementation: 85
+  effectiveness: 75
+- domain: enterprise-attack
+  level: 3
+  id: IN-DEL-E
+  name: "Command pasted from a fake CAPTCHA"
+  description: "The Run dialog starts PowerShell or mshta right after a browser session (\"ClickFix\")."
+  parentIds: [IN-DEL]
+  attackTechniqueId: T1204.004
+  dataSource: "EDR"
+  implementation: 35
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: IN-EXP-A
+  name: "Web attack followed by a server error"
+  description: "A request that the WAF flags as an injection attack gets an HTTP 500 or an unusual response size."
+  parentIds: [IN-EXP]
+  attackTechniqueId: T1190
+  dataSource: "WAF logs"
+  implementation: 95
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: IN-EXP-B
+  name: "Exploit attempt against VPN gateway"
+  description: "An IDS signature for a known VPN or firewall vulnerability matches inbound traffic."
+  parentIds: [IN-EXP]
+  attackTechniqueId: T1190
+  dataSource: "IDS"
+  implementation: 95
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: IN-EXP-C
+  name: "VPN login from unusual country"
+  description: "A VPN session starts from a country the account has not used before."
+  parentIds: [IN-EXP]
+  attackTechniqueId: T1133
+  dataSource: "VPN logs"
+  implementation: 95
+  effectiveness: 75
+- domain: enterprise-attack
+  level: 3
+  id: IN-EXP-D
+  name: "Password spraying against VPN and Microsoft 365"
+  description: "Failed sign-ins for many accounts from one source within an hour."
+  parentIds: [IN-EXP]
+  attackTechniqueId: T1110.003
+  dataSource: "Sign-in logs"
+  implementation: 95
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: IN-EXP-E
+  name: "Sign-in from anonymising infrastructure"
+  description: "A successful sign-in comes from a Tor exit node, VPS provider or residential proxy."
+  parentIds: [IN-EXP]
+  attackTechniqueId: T1078.004
+  dataSource: "Sign-in logs"
+  implementation: 95
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: IN-EXP-F
+  name: "MFA fatigue"
+  description: "A user receives many MFA prompts in a short time and finally approves one."
+  parentIds: [IN-EXP]
+  attackTechniqueId: T1621
+  dataSource: "Sign-in logs"
+  implementation: 90
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: IN-PER-A
+  name: "Scheduled task created by unusual parent"
+  description: "A scheduled task is created by an Office process, a script host or a process in a user folder."
+  parentIds: [IN-PER]
+  attackTechniqueId: T1053.005
+  dataSource: "Sysmon"
+  implementation: 90
+  effectiveness: 75
+- domain: enterprise-attack
+  level: 3
+  id: IN-PER-B
+  name: "Run key pointing to user folder"
+  description: "A Run or RunOnce registry value starts a program from AppData, Temp or Public."
+  parentIds: [IN-PER]
+  attackTechniqueId: T1547.001
+  dataSource: "Sysmon"
+  implementation: 90
+  effectiveness: 70
+- domain: enterprise-attack
+  level: 3
+  id: IN-PER-C
+  name: "Web shell written to web root"
+  description: "A web server process creates a script file in a directory that is served to the internet."
+  parentIds: [IN-PER]
+  attackTechniqueId: T1505.003
+  dataSource: "EDR"
+  implementation: 85
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: IN-PER-D
+  name: "Credentials added to cloud application"
+  description: "A secret or certificate is added to an application registration by a user who does not own it."
+  parentIds: [IN-PER]
+  attackTechniqueId: T1098.001
+  dataSource: "Cloud audit logs"
+  implementation: 30
+  effectiveness: 70
+- domain: enterprise-attack
+  level: 3
+  id: IN-DEF-A
+  name: "EDR agent tampered with"
+  description: "The EDR agent is stopped, uninstalled or loses its connection while the host stays online."
+  parentIds: [IN-DEF]
+  attackTechniqueId: T1562.001
+  dataSource: "EDR"
+  implementation: 95
+  effectiveness: 90
+- domain: enterprise-attack
+  level: 3
+  id: IN-DEF-B
+  name: "Security event log cleared"
+  description: "The Security event log is cleared on a workstation or server (event 1102)."
+  parentIds: [IN-DEF]
+  attackTechniqueId: T1070.001
+  dataSource: "Windows Security events"
+  implementation: 100
+  effectiveness: 95
+- domain: enterprise-attack
+  level: 3
+  id: IN-DEF-C
+  name: "Host firewall disabled"
+  description: "The Windows firewall is switched off or a broad allow rule is added by a command line."
+  parentIds: [IN-DEF]
+  attackTechniqueId: T1562.004
+  dataSource: "EDR"
+  implementation: 90
+  effectiveness: 75
+- domain: enterprise-attack
+  level: 3
+  id: IN-CNC-A
+  name: "Beaconing to rare domain"
+  description: "A host contacts a domain that few hosts visit, at regular intervals."
+  parentIds: [IN-CNC]
+  attackTechniqueId: T1071.001
+  dataSource: "Proxy logs"
+  implementation: 90
+  effectiveness: 70
+- domain: enterprise-attack
+  level: 3
+  id: IN-CNC-B
+  name: "DNS tunnelling"
+  description: "A host sends many long or high-entropy DNS queries to one domain."
+  parentIds: [IN-CNC]
+  attackTechniqueId: T1071.004
+  dataSource: "DNS logs"
+  implementation: 90
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: IN-CNC-C
+  name: "TLS fingerprint of a known C2 framework"
+  description: "An outbound TLS session matches the JA3/JA4 fingerprint of a known C2 framework."
+  parentIds: [IN-CNC]
+  attackTechniqueId: T1573.002
+  dataSource: "IDS"
+  implementation: 95
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: IN-CNC-D
+  name: "Connection to Tor or an anonymising proxy"
+  description: "A host connects to a known Tor node or anonymising proxy service."
+  parentIds: [IN-CNC]
+  attackTechniqueId: T1090.003
+  dataSource: "Firewall"
+  implementation: 95
+  effectiveness: 90
+- domain: enterprise-attack
+  level: 3
+  id: THR-EXE-A
+  name: "Encoded PowerShell command"
+  description: "PowerShell starts with an encoded command or a download cradle."
+  parentIds: [THR-EXE]
+  attackTechniqueId: T1059.001
+  dataSource: "EDR"
+  implementation: 85
+  effectiveness: 50
+- domain: enterprise-attack
+  level: 3
+  id: THR-EXE-B
+  name: "File download with a system tool"
+  description: "certutil, bitsadmin or curl downloads a file from the internet."
+  parentIds: [THR-EXE]
+  attackTechniqueId: T1105
+  dataSource: "EDR"
+  implementation: 80
+  effectiveness: 45
+- domain: enterprise-attack
+  level: 3
+  id: THR-EXE-C
+  name: "Script host runs a script from a user folder"
+  description: "wscript or cscript runs a VBScript or JScript file from Downloads, AppData or Temp."
+  parentIds: [THR-EXE]
+  attackTechniqueId: T1059.005
+  dataSource: "EDR"
+  implementation: 75
+  effectiveness: 45
+- domain: enterprise-attack
+  level: 3
+  id: THR-EXE-D
+  name: "Rundll32 loads a DLL from a user folder"
+  description: "rundll32 or regsvr32 loads a DLL from a folder that users can write to."
+  parentIds: [THR-EXE]
+  attackTechniqueId: T1218.011
+  dataSource: "EDR"
+  implementation: 70
+  effectiveness: 45
+- domain: enterprise-attack
+  level: 3
+  id: THR-PRI-A
+  name: "Member added to Domain Admins"
+  description: "An account is added to a highly privileged group in Active Directory."
+  parentIds: [THR-PRI]
+  attackTechniqueId: T1098.007
+  dataSource: "Windows Security events"
+  implementation: 100
+  effectiveness: 90
+- domain: enterprise-attack
+  level: 3
+  id: THR-PRI-B
+  name: "UAC bypass via registry"
+  description: "A registry key used by known UAC bypasses (fodhelper, eventvwr) is changed."
+  parentIds: [THR-PRI]
+  attackTechniqueId: T1548.002
+  dataSource: "Sysmon"
+  implementation: 50
+  effectiveness: 40
+- domain: enterprise-attack
+  level: 3
+  id: THR-PRI-C
+  name: "Group Policy changed outside change window"
+  description: "A Group Policy object linked to many computers is modified."
+  parentIds: [THR-PRI]
+  attackTechniqueId: T1484.001
+  dataSource: "Windows Security events"
+  implementation: 50
+  effectiveness: 40
+- domain: enterprise-attack
+  level: 3
+  id: THR-PRI-D
+  name: "Token impersonation by a service process"
+  description: "A service process starts a program with the token of another, more privileged account."
+  parentIds: [THR-PRI]
+  attackTechniqueId: T1134.001
+  dataSource: "EDR"
+  implementation: 40
+  effectiveness: 40
+- domain: enterprise-attack
+  level: 3
+  id: THR-CRE-A
+  name: "LSASS memory access"
+  description: "A process that is not on the allow list opens LSASS with read access."
+  parentIds: [THR-CRE]
+  attackTechniqueId: T1003.001
+  dataSource: "EDR"
+  implementation: 95
+  effectiveness: 85
+- domain: enterprise-attack
+  level: 3
+  id: THR-CRE-B
+  name: "DCSync from a non-domain controller"
+  description: "Directory replication is requested by a host that is not a domain controller (event 4662)."
+  parentIds: [THR-CRE]
+  attackTechniqueId: T1003.006
+  dataSource: "Windows Security events"
+  implementation: 60
+  effectiveness: 60
+- domain: enterprise-attack
+  level: 3
+  id: THR-CRE-C
+  name: "Kerberoasting"
+  description: "One account requests service tickets with RC4 encryption for many services."
+  parentIds: [THR-CRE]
+  attackTechniqueId: T1558.003
+  dataSource: "Windows Security events"
+  implementation: 40
+  effectiveness: 50
+- domain: enterprise-attack
+  level: 3
+  id: THR-DIS-A
+  name: "Active Directory enumeration"
+  description: "One host runs a burst of LDAP queries typical of tools like SharpHound."
+  parentIds: [THR-DIS]
+  attackTechniqueId: T1087.002
+  dataSource: "Windows Security events"
+  implementation: 35
+  effectiveness: 40
+- domain: enterprise-attack
+  level: 3
+  id: THR-DIS-B
+  name: "Domain trust discovery"
+  description: "nltest or a PowerShell cmdlet lists the domain trusts."
+  parentIds: [THR-DIS]
+  attackTechniqueId: T1482
+  dataSource: "EDR"
+  implementation: 60
+  effectiveness: 45
+- domain: enterprise-attack
+  level: 3
+  id: THR-DIS-C
+  name: "Internal port scan"
+  description: "A workstation connects to many hosts or ports in a short time."
+  parentIds: [THR-DIS]
+  attackTechniqueId: T1046
+  dataSource: "Netflow"
+  implementation: 30
+  effectiveness: 45
+- domain: enterprise-attack
+  level: 3
+  id: THR-DIS-D
+  name: "Network share enumeration"
+  description: "A host lists the shares of many other hosts."
+  parentIds: [THR-DIS]
+  attackTechniqueId: T1135
+  dataSource: "EDR"
+  implementation: 30
+  effectiveness: 35
+- domain: enterprise-attack
+  level: 3
+  id: THR-LAT-A
+  name: "Remote service created over SMB"
+  description: "A service is created on a remote host through the admin shares, as PsExec does."
+  parentIds: [THR-LAT]
+  attackTechniqueId: T1021.002
+  dataSource: "Windows Security events"
+  implementation: 25
+  effectiveness: 30
+- domain: enterprise-attack
+  level: 3
+  id: THR-LAT-B
+  name: "RDP from workstation to server"
+  description: "An RDP session to a server starts from a workstation instead of a jump host."
+  parentIds: [THR-LAT]
+  attackTechniqueId: T1021.001
+  dataSource: "Windows Security events"
+  implementation: 20
+  effectiveness: 30
+- domain: enterprise-attack
+  level: 3
+  id: THR-LAT-C
+  name: "WMI process creation on remote host"
+  description: "A process is started on another host through WMI."
+  parentIds: [THR-LAT]
+  attackTechniqueId: T1047
+  dataSource: "Sysmon"
+  implementation: 25
+  effectiveness: 25
+- domain: enterprise-attack
+  level: 3
+  id: THR-LAT-D
+  name: "Pass-the-hash logon"
+  description: "An NTLM network logon with logon process seclogo, or an account logging on from a host it never uses."
+  parentIds: [THR-LAT]
+  attackTechniqueId: T1550.002
+  dataSource: "Windows Security events"
+  implementation: 20
+  effectiveness: 25
+- domain: enterprise-attack
+  level: 3
+  id: EXT-EXT-A
+  name: "Mass file encryption on file server"
+  description: "Many files on a share are rewritten with a new extension in a short time."
+  parentIds: [EXT-EXT]
+  attackTechniqueId: T1486
+  dataSource: "File server audit"
+  implementation: 90
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: EXT-EXT-B
+  name: "Shadow copies deleted"
+  description: "vssadmin, wmic or PowerShell deletes the volume shadow copies."
+  parentIds: [EXT-EXT]
+  attackTechniqueId: T1490
+  dataSource: "EDR"
+  implementation: 100
+  effectiveness: 95
+- domain: enterprise-attack
+  level: 3
+  id: EXT-EXT-C
+  name: "Backup services stopped"
+  description: "Several backup or database services are stopped on one host within minutes."
+  parentIds: [EXT-EXT]
+  attackTechniqueId: T1489
+  dataSource: "Windows System events"
+  implementation: 90
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: EXT-EXT-D
+  name: "Mass shutdown of virtual machines"
+  description: "Many virtual machines on one hypervisor are powered off by one account."
+  parentIds: [EXT-EXT]
+  attackTechniqueId: T1529
+  dataSource: "Hypervisor logs"
+  implementation: 90
+  effectiveness: 75
+- domain: enterprise-attack
+  level: 3
+  id: ESP-EXF-A
+  name: "Upload to personal cloud storage"
+  description: "A large upload to a file sharing service that the organisation does not use."
+  parentIds: [ESP-EXF]
+  attackTechniqueId: T1567.002
+  dataSource: "Proxy logs"
+  implementation: 95
+  effectiveness: 75
+- domain: enterprise-attack
+  level: 3
+  id: ESP-EXF-B
+  name: "Unusual outbound data volume"
+  description: "A host sends far more data to one external address than its baseline."
+  parentIds: [ESP-EXF]
+  attackTechniqueId: T1048
+  dataSource: "Netflow"
+  implementation: 85
+  effectiveness: 55
+- domain: enterprise-attack
+  level: 3
+  id: ESP-EXF-C
+  name: "Password-protected archive created"
+  description: "7-Zip, WinRAR or tar creates an encrypted archive in a temporary folder."
+  parentIds: [ESP-EXF]
+  attackTechniqueId: T1560.001
+  dataSource: "EDR"
+  implementation: 70
+  effectiveness: 50
+- domain: enterprise-attack
+  level: 3
+  id: ESP-EXF-D
+  name: "Mass download from SharePoint"
+  description: "One account downloads far more documents from SharePoint than usual."
+  parentIds: [ESP-EXF]
+  attackTechniqueId: T1213.002
+  dataSource: "Cloud audit logs"
+  implementation: 30
+  effectiveness: 50
+- domain: enterprise-attack
+  level: 3
+  id: CEO-BEC-A
+  name: "Inbox rule forwards to external address"
+  description: "A mailbox rule forwards or redirects mail to an address outside the organisation."
+  parentIds: [CEO-BEC]
+  attackTechniqueId: T1114.003
+  dataSource: "Cloud audit logs"
+  implementation: 95
+  effectiveness: 90
+- domain: enterprise-attack
+  level: 3
+  id: CEO-BEC-B
+  name: "Executive sign-in from new country"
+  description: "An executive account signs in from a country it has not used before."
+  parentIds: [CEO-BEC]
+  attackTechniqueId: T1078.004
+  dataSource: "Sign-in logs"
+  implementation: 95
+  effectiveness: 70
+- domain: enterprise-attack
+  level: 3
+  id: CEO-BEC-C
+  name: "MFA method added after risky sign-in"
+  description: "A new MFA method or device is registered shortly after a sign-in flagged as risky."
+  parentIds: [CEO-BEC]
+  attackTechniqueId: T1098.005
+  dataSource: "Cloud audit logs"
+  implementation: 90
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: CEO-BEC-D
+  name: "Lookalike domain impersonates executive"
+  description: "A mail from a lookalike domain uses the display name of an executive."
+  parentIds: [CEO-BEC]
+  attackTechniqueId: T1656
+  dataSource: "Mail gateway"
+  implementation: 90
+  effectiveness: 75
+  visibility: 85
+  visibilityFromAttackTechniqueOverride: true
+- domain: enterprise-attack
+  level: 3
+  id: DOS-VOL-A
+  name: "Volumetric flood reported by scrubbing service"
+  description: "The DDoS protection service starts mitigation for a public IP range."
+  parentIds: [DOS-VOL]
+  attackTechniqueId: T1498.001
+  dataSource: "DDoS scrubbing service"
+  implementation: 95
+  effectiveness: 95
+  visibility: 95
+  visibilityFromAttackTechniqueOverride: true
+- domain: enterprise-attack
+  level: 3
+  id: DOS-VOL-B
+  name: "Reflection attack reported by scrubbing service"
+  description: "The DDoS protection service sees amplified UDP traffic (DNS, NTP, memcached)."
+  parentIds: [DOS-VOL]
+  attackTechniqueId: T1498.002
+  dataSource: "DDoS scrubbing service"
+  implementation: 95
+  effectiveness: 90
+  visibility: 95
+  visibilityFromAttackTechniqueOverride: true
+- domain: enterprise-attack
+  level: 3
+  id: DOS-VOL-C
+  name: "Inbound traffic spike"
+  description: "Inbound traffic to a public IP range is far above its baseline."
+  parentIds: [DOS-VOL]
+  attackTechniqueId: T1498
+  dataSource: "Netflow"
+  implementation: 95
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: SAB-ITA-A
+  name: "Raw disk write by a wiper"
+  description: "A process writes directly to the disk or boot sector."
+  parentIds: [SAB-ITA]
+  attackTechniqueId: T1561.002
+  dataSource: "EDR"
+  implementation: 80
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: SAB-ITA-B
+  name: "Mass file deletion on file server"
+  description: "Many files on a share are deleted by one account in a short time."
+  parentIds: [SAB-ITA]
+  attackTechniqueId: T1485
+  dataSource: "File server audit"
+  implementation: 80
+  effectiveness: 70
+- domain: enterprise-attack
+  level: 3
+  id: SAB-ITA-C
+  name: "Cloud backups or snapshots deleted"
+  description: "Backup vaults or snapshots are deleted or their retention is shortened."
+  parentIds: [SAB-ITA]
+  attackTechniqueId: T1490
+  dataSource: "Cloud audit logs"
+  implementation: 70
+  effectiveness: 70
+- domain: enterprise-attack
+  level: 3
+  id: SAB-ITA-D
+  name: "Many accounts disabled or reset"
+  description: "One account disables or resets the passwords of many accounts in a short time."
+  parentIds: [SAB-ITA]
+  attackTechniqueId: T1531
+  dataSource: "Windows Security events"
+  implementation: 85
+  effectiveness: 75
+- domain: enterprise-attack
+  level: 3
+  id: SAB-WEB-A
+  name: "Website content changed outside a release"
+  description: "Files of the public website change while no release is deployed."
+  parentIds: [SAB-WEB]
+  attackTechniqueId: T1491.002
+  dataSource: "File integrity monitoring"
+  implementation: 90
+  effectiveness: 80
+- domain: enterprise-attack
+  level: 3
+  id: SAB-WEB-B
+  name: "Unexpected content on public website"
+  description: "The external website monitor finds text or images that are not in the approved content."
+  parentIds: [SAB-WEB]
+  attackTechniqueId: T1491.002
+  dataSource: "Website monitoring"
+  implementation: 90
+  effectiveness: 75

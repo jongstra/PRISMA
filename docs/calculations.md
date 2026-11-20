@@ -2,6 +2,8 @@
 
 PRISMA combines two things: **visibility** from your DeTT&CT file, and **MaGMa scores** for your detection use cases. Visibility, scores and risk are percentages from 0% to 100%. For the method behind it, see the MaGMa 2.0 documentation in this folder.
 
+The risk is a score for ranking and for tracking progress. It is not a measured probability, and not the chance that an attack succeeds.
+
 ## 1. Visibility
 
 *Used on the DeTT&CT and Insights pages.*
@@ -58,9 +60,9 @@ The risk never goes below 0%. The two examples from the MaGMa documentation (§3
 
 To lower the DDoS risk, better DDoS-specific rules help most (OUT impact 95%). For ransomware, better detection in the THROUGH phase helps most (the largest impact, 45%, with a low weight).
 
-**Heatmap.** Per technique: the selected scores (V, I and/or E) are multiplied per L3 rule, and averaged over the technique's rules, including rules on its sub-techniques. With V, I and E selected, that is the average weight: with the two example rules above, the technique shows 45%.
+**Heatmap.** Per technique: the selected scores (V, I and/or E) are multiplied per L3 rule, and averaged over the technique's rules, including rules on its sub-techniques. With V, I and E selected, that is the average weight: with the two example rules above, the technique shows 45%. A tactic's score is the average over its detectable techniques and those with a rule; a technique without a rule counts as 0%.
 
-**Summary tab.** The averages of V, I, E, weight and potential over all L1s, including IN and THR.
+**Summary tab.** The averages of V, I, E, weight, potential and risk over the business risks. IN and THR are left out: they already count in each risk.
 
 ## 3. Current choices
 
@@ -68,7 +70,7 @@ These choices may change later:
 
 - A missing score counts as 0%.
 - From a DeTT&CT file, PRISMA uses only the device completeness, and only the first entry per data source.
-- IN and THR count in the Summary averages.
+- IN and THR are left out of the Summary averages.
 
 ## 4. Where to find it in the code
 
@@ -79,3 +81,4 @@ These choices may change later:
 | How often a technique is used | [`build_attack_catalog.ipynb`](../tools/build_attack_catalog.ipynb) | its check cell |
 | MaGMa scores and risk | [`calculations.ts`](../frontend/src/domain/magma/calculations.ts) | [`calculations.test.ts`](../frontend/src/domain/magma/__tests__/calculations.test.ts) |
 | Heatmap | [`heatmap.ts`](../frontend/src/domain/magma/heatmap.ts) | [`heatmap.test.ts`](../frontend/src/domain/magma/__tests__/heatmap.test.ts) |
+| Summary tab | [`summary.ts`](../frontend/src/domain/magma/summary.ts) | [`summary.test.ts`](../frontend/src/domain/magma/__tests__/summary.test.ts) |

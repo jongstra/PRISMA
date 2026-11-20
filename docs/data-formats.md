@@ -4,7 +4,7 @@ The files you load into PRISMA, and what PRISMA does with them. Examples are in 
 
 | File | Made by | Loaded with |
 |---|---|---|
-| [DeTT&CT file](#the-dettct-file) (YAML) | The DeTT&CT editor | **Load DeTT&CT Data Sources YAML**, on the DeTT&CT page |
+| [DeTT&CT file](#the-dettct-file) (YAML) | The DeTT&CT editor | **Load DeTT&CT YAML**, on the DeTT&CT page |
 | [MaGMa file](#the-magma-file) (YAML) | **Save MaGMa YAML** on the MaGMa page, or the Excel converters | **Load MaGMa YAML**, on the MaGMa page |
 | [Excel files](#excel-files) | You: the MaGMa template, or a list of rules | `tools/convert_magma_excel.py` or `tools/convert_manual_excel.py`, which turn them into a MaGMa file |
 

@@ -1,12 +1,122 @@
-# PRISMA: Prioritized Risk Indicator for Security Monitoring & Analysis
+<h1><img src="docs/images/banner.png" alt="PRISMA (Prioritized Risk Indicator for Security Monitoring &amp; Analysis): which attacks would your SOC miss? From data sources to business risk, on MITRE ATT&amp;CK. Open source. Runs locally in your browser." width="100%"></h1>
 
-This is the repository for the PRISMA tool. The PRISMA tool supports organisations in implementing the MaGMa use case framework 2.0, and automates its calculations. Additionally, the tool acts as a visualisation and summarization layer on top of DeTT&CT. Functional documentation of the MaGMa use case framework 2.0 can be found in the folder [docs](docs/). How PRISMA calculates its numbers is explained in [docs/calculations.md](docs/calculations.md), how it is built in [docs/architecture.md](docs/architecture.md), and its files in [docs/data-formats.md](docs/data-formats.md).
+<p align="center">
+  <a href="https://github.com/jongstra/PRISMA/actions/workflows/ci.yml"><img src="https://github.com/jongstra/PRISMA/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/no_backend-runs_locally_in_your_browser-4b4ba0" alt="No backend: runs locally in your browser">
+  <a href="LICENCE"><img src="https://img.shields.io/badge/licence-AGPL--3.0-4b4ba0" alt="Licence: AGPL-3.0"></a>
+  <br>
+  <sub>Prioritized Risk Indicator for Security Monitoring &amp; Analysis</sub>
+</p>
 
-The tool provides insight and guidance to detection engineers and management. The PRISMA tool currently supports MITRE ATT&CK v17.1.
+PRISMA shows which business risks, such as ransomware, your security monitoring covers least, and where there is most room to improve. It calculates this from two things your security team maintains: the log data you collect, described with [DeTT&CT](https://github.com/rabobank-cdc/DeTTECT) (an open-source method to score log sources), and your detection rules, which you build and score in PRISMA following the [MaGMa use case framework 2.0](docs/MaGMa%202.0%20functional%20documentation%20EN.pdf) (a method that links detection rules to business risks). Both are mapped onto MITRE ATT&CK®, the standard catalogue of attack techniques. PRISMA is open source and runs locally in your browser: no backend, no account, and your files stay on your computer.
 
-The figure below shows the overview of how MaGMa 2.0 and DeTT&CT are combined to determine detection quality and improvement potential.
+![The PRISMA Summary for a fictional organisation, titled 'Business risks: chance of missing an attack (highest first)'. The risk score per business risk: Extortion / Ransomware 71.0%, Espionage / Data Theft 65.8%, Sabotage / Destruction 57.5%, CEO Fraud 50.7%, Denial of Service 30.1%.](docs/images/risk.png)
 
-![MaGMa overview](docs/MaGMa_2.0_overview.png)
+*A fictional organisation. Ransomware has the highest risk score: 71% (higher is worse). Use the score to rank risks and to track progress: it is not a measured probability, and not the chance that an attack succeeds, although the picture's title still says "chance". It is calculated from the organisation's own description of its log data and its own scoring of its detection rules. [How it is calculated](docs/calculations.md).*
+
+![Two parts of the MaGMa heatmap side by side. Initial Access, getting in, is covered for 21%; Lateral Movement, moving inside, for about 1%. The card of Remote Services shows the averages of its two rules: visibility 46% × implementation 23% × effectiveness 30% is about 3%.](docs/images/why.png)
+
+*Why: in this example the steps inside the network count for 65% in the ransomware score, and detection there is weak: about 1% of moving between machines (Lateral Movement) is covered, against 21% of getting in (Initial Access). Remote Services shows the cause: about half the needed log data is collected, and its two rules give many false alarms and are little tested. A technique without a rule counts as 0%, so a tactic's score is low unless most of its techniques have a rule.*
+
+## What you get
+
+- **The risks your monitoring covers least.** Each business risk, such as ransomware, gets a risk score from your log data and your rules.
+- **Where you are blind.** Visibility per ATT&CK technique, from the log data you collect.
+- **Where the most room is.** Each detection rule is scored on visibility, implementation and effectiveness, and PRISMA suggests the log data that would help most.
+
+## Who it is for
+
+**For security teams:** score your rules, see where coverage is thinnest, and choose the next improvement.<br>
+**For CISOs, managers and boards:** a ranked overview for a budget or board discussion. Ask: which risk scores highest, why, and what are the first three fixes? Bring the ranking and the trend to the board, not the single number.
+
+## What the numbers are, and are not
+
+- The risk score ranks risks; it does not predict how many attacks go unseen. Compare it over time; do not quote it as an absolute. (It is 100% minus a weighted average of how well your rules cover each phase of an attack.)
+- Prevention, response, and the likelihood and cost of an attack are outside it.
+- Implementation (false positives) and effectiveness (testing) are scores your team enters. PRISMA does not test rules or check your scores.
+- Visibility uses only the device completeness score of your DeTT&CT file, averaged over a technique's data components. The other data quality scores are not used, and if a data source has several entries, only the first is read.
+- A missing score counts as 0%, so a half-filled file looks worse than it is.
+
+All choices in the model are in the [calculations guide](docs/calculations.md).
+
+**Status:** pre-release. There is no tagged version, hosting guide or vulnerability contact yet. The calculations are covered by automated tests; expect rough edges in the interface.
+
+## Try it
+
+1. Start PRISMA on your computer: see the [installation instructions](#installation-instructions) (Node.js, then `npm ci` and `npm run dev` in `frontend/`).
+2. On the DeTT&CT page, load [`examples/dettect/demo.yaml`](examples/dettect/demo.yaml) with **Load DeTT&CT YAML**. Then, on the MaGMa page, load [`examples/magma/demo.yaml`](examples/magma/demo.yaml) with **Load MaGMa YAML**.
+3. Open **Summary** on the MaGMa page: you see the first picture above.
+
+Do not refresh the page: without the DeTT&CT file most risks show 100%.
+
+<details>
+<summary>Watch it: from two files to the answer, in 16 seconds</summary>
+
+![Loading the DeTT&CT file turns the ATT&CK matrix purple; loading the use cases and opening the heatmap turns it green; the Summary then shows the risk score per business risk.](docs/images/answer.gif)
+
+</details>
+
+## Using it with your own data
+
+You need two things:
+
+1. **A DeTT&CT data source file:** which log data you collect, and on how many of your systems (a score from 0 to 5 per data source). You can make it with the [DeTT&CT Editor](https://rabobank-cdc.github.io/dettect-editor/#/datasources). PRISMA reads data source files only, not technique administration files.
+2. **Your MaGMa use cases, built in PRISMA:** on the MaGMa page, the L1, L2 and L3 sheets hold your business risks, use cases and detection rules, and work like a spreadsheet. Each rule gets at most one ATT&CK technique and two scores from 0 to 100, implementation and effectiveness. Section 3.3 of the [MaGMa 2.0 documentation](docs/MaGMa%202.0%20functional%20documentation%20EN.pdf) says how to score them; implementation can be measured from your alert handling, as 100% minus the share of a rule's alerts that were false positives. For each business risk you also set how much each phase of an attack counts: getting in, moving inside and reaching the goal (together 100%). **Save MaGMa YAML** keeps it all in one file, which you load again next time.
+
+Already working in Excel? Copy and paste between Excel and the sheets, or convert the [MaGMa Excel template](templates/) or a list of rules (name, implementation, techniques) with the scripts in [`tools/`](tools/) (the columns are in [data formats](docs/data-formats.md#excel-files)). There is no Sigma or SIEM import. As an indication of size, not of time: the demo has 57 data sources (the largest example here has 110) and 62 detection rules.
+
+PRISMA keeps no history, and a reload clears what you loaded. Save your use cases with **Save MaGMa YAML** while you work, keep the file with the DeTT&CT file you loaded, and load an older pair to compare.
+
+## How it works
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/prism-dark.svg">
+  <img src="docs/images/prism.svg" alt="Your DeTT&amp;CT file and MaGMa use cases go into PRISMA; out come visibility per ATT&amp;CK technique, a detection coverage heatmap, and the risk score per business risk.">
+</picture>
+
+Improving detection is a loop:
+
+1. Collect log data. PRISMA turns it into visibility per ATT&CK technique.
+2. Build and score your detection rules. PRISMA gives each rule a weight: how well it covers its technique.
+3. See the risk score per business risk.
+4. Pick what to improve: more log data, or better rules. This is your decision; PRISMA shows where the most room is.
+
+PRISMA calculates steps 1 to 3, so you can see what step 4 should be. Where PRISMA fits among DeTT&CT, your SIEM or EDR and MaGMa: see the [architecture guide](docs/architecture.md#where-prisma-fits).
+
+<details>
+<summary>The calculation, from business risk to detection rule</summary>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hierarchy-dark.svg">
+  <img src="docs/images/hierarchy.svg" alt="From business risk to detection rule: L1 business risk, L2 use case, L3 detection rule, ATT&amp;CK technique; visibility × implementation × effectiveness = weight; and the risk formula.">
+</picture>
+
+</details>
+
+PRISMA uses MITRE ATT&CK® v17.1 for Enterprise, Mobile and ICS. Version 18 and later are not supported yet. The MaGMa 2.0 documentation is in [`docs/`](docs/), with guides to PRISMA's [calculations](docs/calculations.md), [architecture](docs/architecture.md) and [files](docs/data-formats.md).
+
+## More of the app
+
+<p align="center"><img src="docs/images/sheet.png" alt="The L3 sheet sorted by potential, highest first: the four rules of the use case Lateral Movement come first, each with a weight of 2 to 3%. Two parts of the sheet; the columns in between are left out." width="900"></p>
+
+*Where the most room is: the detection rules, sorted by potential (how much a rule can still improve; click the header twice). Edit them like a spreadsheet, and copy and paste to and from Excel.*
+
+<p align="center"><img src="docs/images/components.png" alt="Insights: the data components that would raise visibility most, with network connection creation and logon session creation at the top." width="320"></p>
+
+*The log data that would raise visibility most, by the number of techniques and sub-techniques it would help detect: here network connections and logon sessions.*
+
+![The whole MaGMa heatmap page in a browser window, with the card of Remote Services: its scores, related use cases and the threat groups that use it.](docs/images/heatmap-page.png)
+
+*The whole heatmap: every ATT&CK technique, coloured by how well your rules cover it, with a score per tactic.*
+
+## Security and privacy
+
+- PRISMA is a static web page: there is no backend, no account and no database. `npm run dev` only serves the page to your own computer.
+- The files you load are read in your browser and are not sent anywhere. The only request the app makes is to its own address, for the ATT&CK catalog.
+- The browser stores nothing: no cookies and no local storage. Reloading the page clears your work; keep it with **Save MaGMa YAML**.
+- PRISMA does not connect to your SIEM, EDR or CMDB.
+
+Your two files describe where your detection is weak. Store and share them as sensitive information.
 
 ## What's in this repository
 
@@ -57,29 +167,16 @@ npm run dev
 ```
 
 - To use the application, open the link shown in your terminal (something like `localhost:5173`) in your browser.
-- To try out the application, you can load an example DeTT&CT YAML file from [`examples/dettect/`](examples/dettect/), such as `enterprise_large.yaml`, using the big red button on the DeTT&CT page.
-- On the MaGMa page, you can load [`examples/magma/example.yaml`](examples/magma/example.yaml) with **Load MaGMa YAML**.
-- Alternatively, you can create an example DeTT&CT Data Sources YAML file using the [DeTT&CT Editor](https://rabobank-cdc.github.io/dettect-editor/#/datasources). The resulting YAML file can be saved to your computer, and loaded into the application using the big red button.
-
-## Project Status
-This project is currently in development. You may run into unusual behavior and/or bugs.
-- DeTT&CT page: works mostly as intended.
-- Insights page: works mostly as intended.
-- MaGMa page: works mostly as intended.
+- Then follow [Try it](#try-it), or [Using it with your own data](#using-it-with-your-own-data). More examples are in [`examples/`](examples/).
 
 ## Development
 - Software Development: Thomas Jongstra
 - Conceptual Guidance: Rob van Os
-- Overarching Project (Inventarisatie (inter-)departementale capaciteiten cyberweerbaarheid): Rob van Os, Raymond Bierens & Tony van der Togt
-
-## Project Goals
-- Helping organizations manage their cyber security use cases (using the MaGMa framework).
-- Visualizing the visibility organizations have on their digital infrastructure (using [DeTT&CT](https://github.com/rabobank-cdc/DeTTECT)/[dettectinator](https://github.com/siriussecurity/dettectinator)).
-- Integrating DeTT&CT visibility with MaGMa use case management.
-- Providing high-level insights and suggestions regarding visibility and use case management.
+- Overarching project (an inventory of cyber resilience capabilities across government departments): Rob van Os, Raymond Bierens & Tony van der Togt
 
 ## Technical Setup
-- Web app: Vue 3 and TypeScript (Pinia, Vite). All processing happens in the browser; there is no backend server.
+- Web app: Vue 3 and TypeScript (Pinia, Vite); see [Security and privacy](#security-and-privacy).
+- Dependencies: eight runtime packages, pinned in `package-lock.json`. Dependabot proposes updates monthly, and every change is built and tested on Node.js 22, 24 and 26.
 - Tools: a Python notebook that builds the ATT&CK catalog, and Python scripts that convert Excel files to MaGMa YAML.
 
 ## Future
