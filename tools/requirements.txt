@@ -1,7 +1,7 @@
 # The Python packages for the PRISMA tools, at the versions they were tested with.
-mitreattack-python==6.3.1
-notebook==7.6.3
+mitreattack-python==6.4.0
+notebook==7.6.5
 openpyxl==3.1.5
-pandas==3.0.6
+pandas==3.1.1
 PyYAML==6.0.3
-pytest==9.1.1
+pytest==9.2.0
