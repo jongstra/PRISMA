@@ -38,3 +38,4 @@ npm run format      # format the code
 
 - **Unit tests** (`src/**/__tests__/`, Vitest): the calculations, the file checks and the components, each on its own. They run in a few seconds and need no browser.
 - **Browser smoke tests** (`e2e/`, Playwright): the built app in your installed Chrome, without a window. They check that the pages open, that DeTT&CT and MaGMa files load, and that a saved MaGMa file keeps what was entered. They fail on any error in the browser console. After a failure, `npx playwright show-trace test-results/<test>/trace.zip` replays the test step by step.
+- **On GitHub** (`.github/workflows/ci.yml`): every push to main and every pull request, also those of Dependabot, runs the type check, lint, the format check, the unit tests and the build on Node.js 22, 24 and 26, and the tests of the Python tools. The browser smoke tests run on your own computer only.

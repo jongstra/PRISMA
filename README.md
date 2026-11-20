@@ -12,6 +12,7 @@ The figure below shows the overview of how MaGMa 2.0 and DeTT&CT are combined to
 
 | Name | Description |
 |---|---|
+| [`.github/`](.github/) | The checks GitHub runs on every push to main and every pull request (`workflows/ci.yml`), and Dependabot's settings |
 | [`docs/`](docs/) | MaGMa 2.0 functional documentation, and guides to PRISMA's calculations, structure and files |
 | [`examples/`](examples/) | Example DeTT&CT and MaGMa files to try the app |
 | [`frontend/`](frontend/) | The PRISMA web application |

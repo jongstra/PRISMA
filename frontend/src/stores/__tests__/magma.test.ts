@@ -153,7 +153,7 @@ describe('magma store performance', () => {
     magma.importUseCases(useCases);
     magma.updateAllL3UseCasesBasedOnDettectVisibility();
     expect(magma.useCases.length).toBe(1126);
-    expect(performance.now() - start).toBeLessThan(500); // Was about 3.7 seconds.
+    expect(performance.now() - start).toBeLessThan(2000); // Was about 3.7 seconds; now about 0.13, with room for GitHub's slower computers.
   });
 });
 
