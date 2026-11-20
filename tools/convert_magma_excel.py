@@ -6,6 +6,7 @@ Convert a filled-in MaGMa template (see templates/) to a MaGMa YAML file, which 
 Add --domain mobile-attack or --domain ics-attack for another ATT&CK domain (the default is enterprise-attack).
 """
 import argparse
+import sys
 import math
 
 import pandas as pd
@@ -272,4 +273,9 @@ if __name__ == '__main__':
     parser.add_argument('--domain', default='enterprise-attack', choices=['enterprise-attack', 'mobile-attack', 'ics-attack'],
                         help='the ATT&CK domain of the use cases (default: enterprise-attack)')
     arguments = parser.parse_args()
-    convert(arguments.input_file, arguments.output_file, arguments.domain)
+    try:
+        convert(arguments.input_file, arguments.output_file, arguments.domain)
+    except ValueError as error:
+        sys.exit(str(error))  # the rows that cannot be converted, without a Python traceback
+    except KeyError as error:
+        sys.exit(f'Nothing was converted: the template has no sheet or column {error}.')
