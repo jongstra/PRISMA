@@ -9,8 +9,8 @@ export function businessRisks<T extends { id: string; permanent?: boolean; risk?
 }
 
 /** Cumulative IN and THROUGH, in that order, as far as they exist. */
-export function cumulativeUseCases<T extends { uid?: string }>(l1UseCases: T[]): T[] {
-  return ['IN', 'THR'].flatMap((uid) => l1UseCases.filter((useCase) => useCase.uid === uid));
+export function cumulativeUseCases<T extends { id: string; permanent?: boolean }>(l1UseCases: T[]): T[] {
+  return ['IN', 'THR'].flatMap((id) => l1UseCases.filter((useCase) => useCase.permanent && useCase.id === id));
 }
 
 /** The average of percentages (possibly typed in as text; an empty one counts as 0), or null when there are none. */

@@ -25,6 +25,7 @@ import {
   readAsMeant,
 } from '@/domain/magma/validation';
 import { exportNumber, magmaFileDomains } from '@/io/magmaFile';
+import { SUPPORTED_DOMAINS } from '@/domain/domains';
 
 // A percentage (0-100) of a use case. What is typed in the sheet stays text (such as '45', or '' for an empty field), and
 // a visibility from the DeTT&CT file is stored as text with two decimals ('45.00'); the calculations use Number().
@@ -747,100 +748,28 @@ export const magmaStore = defineStore('magma', {
       return { imported, failed, warnings };
     },
 
+    // The permanent IN and THR use cases of every domain: the cumulative IN and THROUGH risk, which amplify the business
+    // risks. Each has its own internal ID (uid), like every other use case; they are known by their ID (IN or THR).
     initializeDefaultUseCases() {
       if (this.useCases.length === 0) {
-        this.useCases = [
-          {
-            domain: 'enterprise-attack',
-            level: 1,
-            uid: 'IN',
-            id: 'IN',
-            name: 'Cumulative IN risk',
-            description:
-              'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
-            visibility: 0,
-            implementation: 0,
-            effectiveness: 0,
-            weight: 0,
-            potential: 100,
-            permanent: true,
-          },
-          {
-            domain: 'enterprise-attack',
-            level: 1,
-            uid: 'THR',
-            id: 'THR',
-            name: 'Cumulative THROUGH risk',
-            description:
-              'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
-            visibility: 0,
-            implementation: 0,
-            effectiveness: 0,
-            weight: 0,
-            potential: 100,
-            permanent: true,
-          },
-          {
-            domain: 'mobile-attack',
-            level: 1,
-            uid: 'IN',
-            id: 'IN',
-            name: 'Cumulative IN risk',
-            description:
-              'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
-            visibility: 0,
-            implementation: 0,
-            effectiveness: 0,
-            weight: 0,
-            potential: 100,
-            permanent: true,
-          },
-          {
-            domain: 'mobile-attack',
-            level: 1,
-            uid: 'THR',
-            id: 'THR',
-            name: 'Cumulative THROUGH risk',
-            description:
-              'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
-            visibility: 0,
-            implementation: 0,
-            effectiveness: 0,
-            weight: 0,
-            potential: 100,
-            permanent: true,
-          },
-          {
-            domain: 'ics-attack',
-            level: 1,
-            uid: 'IN',
-            id: 'IN',
-            name: 'Cumulative IN risk',
-            description:
-              'Cumulative risk of IN stages and techniques, serving as a risk amplifier for the business risks.',
-            visibility: 0,
-            implementation: 0,
-            effectiveness: 0,
-            weight: 0,
-            potential: 100,
-            permanent: true,
-          },
-          {
-            domain: 'ics-attack',
-            level: 1,
-            uid: 'THR',
-            id: 'THR',
-            name: 'Cumulative THROUGH risk',
-            description:
-              'Cumulative risk of THROUGH stages and techniques, serving as a risk amplifier for the business risks.',
-            visibility: 0,
-            implementation: 0,
-            effectiveness: 0,
-            weight: 0,
-            potential: 100,
-            permanent: true,
-          },
-        ];
+        const cumulative = (domain: string, id: 'IN' | 'THR', stages: string): UseCase => ({
+          domain,
+          level: 1,
+          uid: uuidv4(),
+          id,
+          name: `Cumulative ${stages} risk`,
+          description: `Cumulative risk of ${stages} stages and techniques, serving as a risk amplifier for the business risks.`,
+          visibility: 0,
+          implementation: 0,
+          effectiveness: 0,
+          weight: 0,
+          potential: 100,
+          permanent: true,
+        });
+        this.useCases = SUPPORTED_DOMAINS.flatMap((domain) => [
+          cumulative(domain, 'IN', 'IN'),
+          cumulative(domain, 'THR', 'THROUGH'),
+        ]);
       }
     },
   },

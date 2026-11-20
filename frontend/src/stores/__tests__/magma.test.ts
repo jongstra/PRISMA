@@ -85,6 +85,12 @@ describe('magma store with the example files', () => {
 });
 
 describe('magma store with the same IDs in two domains', () => {
+  it('gives every use case its own internal ID, also IN and THR in each domain', async () => {
+    const { magma } = await setUpStores();
+    expect(magma.useCases.length).toBe(6);
+    expect(new Set(magma.useCases.map((useCase) => useCase.uid)).size).toBe(6);
+  });
+
   it('calculates each domain separately', async () => {
     const { magma } = await setUpStores();
     const useCases = (domain: string, implementation: number) => [

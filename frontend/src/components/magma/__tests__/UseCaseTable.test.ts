@@ -1008,6 +1008,17 @@ describe('UseCaseTable: copying to a spreadsheet', () => {
     table.unmount();
   });
 
+  it("copies the IN row of another domain with that domain's values, not Enterprise's", async () => {
+    const { cell, magma, table } = await showTable('L1', true);
+    const enterpriseIn = magma.L1UseCases(domain)[0]!;
+    enterpriseIn.description = 'Enterprise text';
+    tacticsStore().domain = 'mobile-attack';
+    await table.vm.$nextTick();
+    const description = cell(0, 'Description').find('textarea').element;
+    expect(copy(description).copied).toBe(`${magma.L1UseCases('mobile-attack')[0]!.description}\r\n`);
+    table.unmount();
+  });
+
   it('cuts a selection: copies it and empties the cells that can be empty, as one undo step', async () => {
     const { drag, cell, magma, useCases, table } = await showThreeL3UseCases(true);
     const [first, second] = useCases();
