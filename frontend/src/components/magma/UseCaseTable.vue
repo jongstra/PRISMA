@@ -938,7 +938,7 @@ const formatPercentage = (value: unknown) => Number(value).toFixed(2);
             <th
               v-for="(column, index) in columns"
               :key="column.field"
-              v-hint="`${column.description} Click to sort.`"
+              v-hint="`${column.description}\n\nClick to sort.`"
               class="explained sortable"
               :class="[{ sorted: sort?.field === column.field }, frozenClass(index)]"
               :aria-sort="ariaSort(column.field)"

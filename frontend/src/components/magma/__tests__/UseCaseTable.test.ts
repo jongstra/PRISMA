@@ -208,7 +208,10 @@ describe('UseCaseTable', () => {
       const [deleteAll, ...headers] = table.findAll('thead th');
       expect(deleteAll.attributes('aria-description')).toBe(`Delete all ${level} use cases`);
       for (const header of headers) {
-        expect(header.attributes('aria-description'), `${level} ${header.text()}`).toMatch(/\w{3,}/);
+        // The description, then an empty line and how to sort, as in the other hints with more than one part.
+        expect(header.attributes('aria-description'), `${level} ${header.text()}`).toMatch(
+          /\w{3,}.*\n\nClick to sort\.$/s,
+        );
       }
       expect(table.find('tbody .remove-button').attributes('aria-description')).toBe('Delete this use case');
     }
