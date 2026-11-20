@@ -18,7 +18,9 @@ import {
   findMultipleParents,
   findParentCycles,
   findUnknownParents,
+  idProblem,
   percentageProblem,
+  readAsMeant,
 } from '@/domain/magma/validation';
 import { exportNumber, magmaFileDomains } from '@/io/magmaFile';
 
@@ -288,9 +290,13 @@ export const magmaStore = defineStore('magma', {
         );
       }
 
-      // Ensure that the use case has an ID.
+      // Ensure that the use case has an ID, as text.
       if (!useCase.id) {
         throw new Error(`The use case has no ID. Use case: ${JSON.stringify(useCase)}`);
+      }
+      const problem = idProblem(useCase.id);
+      if (problem) {
+        throw new Error(problem);
       }
 
       // Catch duplicate IDs.
@@ -572,14 +578,23 @@ export const magmaStore = defineStore('magma', {
 
     // Load the use cases of a MaGMa file (see readMagmaFile in io/magmaFile.ts): they replace the current use cases of the
     // domains in the file, and the other domains stay as they are.
+    // When something unexpected goes wrong, the use cases stay as they were and the error is passed on, so the sheets
+    // can show it (SheetTabs.vue).
     loadUseCases(useCases: UseCaseFromFile[]): ImportResult {
-      const domains = magmaFileDomains(useCases);
-      this.useCases = this.useCases.filter((useCase) => useCase.permanent || !domains.includes(useCase.domain));
-      const result = this.importUseCases(useCases);
-      this.markAsSaved();
-      this.sheetSorts = {}; // a loaded file is shown in its own order
-      this.history = emptyHistory(); // a loaded file starts a new history
-      return result;
+      const before = this.useCases;
+      try {
+        const domains = magmaFileDomains(useCases);
+        this.useCases = this.useCases.filter((useCase) => useCase.permanent || !domains.includes(useCase.domain));
+        const result = this.importUseCases(useCases);
+        this.markAsSaved();
+        this.sheetSorts = {}; // a loaded file is shown in its own order
+        this.history = emptyHistory(); // a loaded file starts a new history
+        return result;
+      } catch (error) {
+        this.useCases = before;
+        this.recalculateAll();
+        throw error;
+      }
     },
 
     // Undo and redo (see undoHistory.ts). The sheets call recordStep before each change, with a description of it and, for
@@ -667,6 +682,7 @@ export const magmaStore = defineStore('magma', {
     importUseCases(useCasesFromFile: UseCaseFromFile[]): ImportResult {
       // Each use case is checked when it is added (addExistingUseCase); until then, its fields are taken as they are.
       const useCases = useCasesFromFile as UseCase[];
+      useCases.forEach(readAsMeant);
       const failed: string[] = [];
       let imported = 0;
 

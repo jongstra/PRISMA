@@ -97,3 +97,31 @@ describe('SheetTabs: undo and redo', () => {
     expect(description()).toBe('changed');
   });
 });
+
+describe('SheetTabs: loading a MaGMa file', () => {
+  // Chooses a file with the Load button's file field.
+  async function chooseFile(tabs: ReturnType<typeof showTabs>['tabs'], text: string) {
+    const input = tabs.find('#importYamlFile');
+    Object.defineProperty(input.element, 'files', { value: [new File([text], 'use-cases.yaml')], configurable: true });
+    await input.trigger('change');
+    await new Promise((resolve) => setTimeout(resolve));
+  }
+
+  it('shows a dialog, and changes nothing, when loading fails unexpectedly', async () => {
+    const { magma, tabs } = showTabs();
+    const before = JSON.stringify(magma.useCases);
+    vi.spyOn(magma, 'loadUseCases').mockImplementation(() => {
+      throw new Error('Something unexpected.');
+    });
+    vi.mocked(Swal.fire).mockClear();
+    await chooseFile(tabs, '- {domain: mobile-attack, level: 1, id: M, name: m, inImpact: 100}');
+    expect(Swal.fire).toHaveBeenCalledWith(
+      expect.objectContaining({
+        icon: 'error',
+        titleText: 'The file was not loaded',
+        text: 'Something unexpected. Nothing was changed.',
+      }),
+    );
+    expect(JSON.stringify(magma.useCases)).toBe(before);
+  });
+});

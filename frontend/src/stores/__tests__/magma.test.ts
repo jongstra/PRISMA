@@ -221,6 +221,44 @@ describe('magma store: invalid data is rejected on import, with the reason', () 
   });
 });
 
+// Files written by hand or by other scripts: what is clearly meant is read that way, the rest is refused with a reason.
+describe('magma store: loading files written by hand', () => {
+  const domain = 'enterprise-attack';
+
+  it('reads an ID written as a number as text, so the file loads and saves', async () => {
+    const { magma } = await setUpStores();
+    const message = summaryText(
+      magma.loadUseCases(readFile(`- {domain: ${domain}, level: 1, id: 123, name: b, inImpact: 100}`)),
+    );
+    expect(message).toContain('Successful imports: 1. Failed imports: 0.');
+    expect(magma.getUseCaseById('123', domain)).toBeDefined();
+    expect(parse(saveFile(magma)).find((useCase: UseCase) => useCase.name === 'b').id).toBe('123');
+  });
+
+  it('refuses an ID that is not text or a number, with the reason', async () => {
+    const { magma } = await setUpStores();
+    const message = summaryText(
+      magma.loadUseCases(readFile(`- {domain: ${domain}, level: 1, id: [A, B], name: b, inImpact: 100}`)),
+    );
+    expect(message).toContain('Successful imports: 0. Failed imports: 1.');
+    expect(message).toContain('The ID ["A","B"] is not valid: an ID is text, such as DOS-1.');
+  });
+
+  it('leaves the use cases and their history as they were when loading fails unexpectedly', async () => {
+    const { magma } = await setUpStores();
+    magma.loadUseCases(readFile(readExample('magma/example.yaml')));
+    magma.recordStep('Add a use case to L1');
+    magma.addNewUseCase(1, domain);
+    const before = JSON.stringify(magma.useCases);
+    vi.spyOn(magma, 'importUseCases').mockImplementation(() => {
+      throw new Error('Something unexpected');
+    });
+    expect(() => magma.loadUseCases(readFile(readExample('magma/template.yaml')))).toThrow('Something unexpected');
+    expect(JSON.stringify(magma.useCases)).toBe(before);
+    expect(magma.history.undo.length).toBe(1);
+  });
+});
+
 describe('magma store: saving and loading', () => {
   it('saves a new L1 use case without NaN values, and loads it back with the same risk', async () => {
     const first = await setUpStores();

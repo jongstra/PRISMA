@@ -60,7 +60,7 @@ A YAML list of use cases. **Save MaGMa YAML** writes all domains. **Load MaGMa Y
 |---|---|---|
 | `domain` | All | `enterprise-attack`, `mobile-attack` or `ics-attack` (required) |
 | `level` | All | 1, 2 or 3 (required) |
-| `id` | All | Unique within the domain (required) |
+| `id` | All | Unique within the domain (required); a number such as `123` is read as text. Put quotes around an ID such as `'007'` or `'1.10'`: YAML reads those as the numbers 7 and 1.1 |
 | `name`, `description` | All | Text |
 | `parentIds` | 2, 3 | The ID of the use case one level up, as a list. No parent: leave it out, or `[none]` |
 | `inImpact`, `thrImpact`, `outImpact` | 1 | The share of an attack in the IN, THROUGH and OUT phase: 0 to 100, together 100 |

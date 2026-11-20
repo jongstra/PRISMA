@@ -3,7 +3,7 @@
 // a MaGMa YAML file.
 import Swal from 'sweetalert2';
 import { onMounted, onUnmounted } from 'vue';
-import { magmaStore, type UseCaseFromFile } from '@/stores/magma';
+import { magmaStore, type ImportResult, type UseCaseFromFile } from '@/stores/magma';
 import { vHint } from '@/components/common/hint';
 import { fieldHasOwnUndo, isMac, shortcuts, undoKey } from './undoKeys';
 import { isYamlFile, readYamlFile } from '@/io/readYamlFile';
@@ -69,17 +69,21 @@ const importYaml = async (event: Event) => {
     return;
   }
 
+  // A file that cannot be read, or that fails to load, changes nothing.
+  const notLoaded = (error: unknown) =>
+    Swal.fire({
+      icon: 'error',
+      titleText: 'The file was not loaded',
+      text: `${(error as Error).message} Nothing was changed.`,
+    });
+
   let useCases: UseCaseFromFile[];
   let domains: string[];
   try {
     useCases = readMagmaFile(await readYamlFile(file));
     domains = magmaFileDomains(useCases);
   } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      titleText: 'The file was not loaded',
-      text: `${(error as Error).message} Nothing was changed.`,
-    });
+    notLoaded(error);
     return;
   }
 
@@ -109,7 +113,14 @@ const importYaml = async (event: Event) => {
     }
   }
 
-  const summary = importSummary(magma.loadUseCases(useCases));
+  let result: ImportResult;
+  try {
+    result = magma.loadUseCases(useCases);
+  } catch (error) {
+    notLoaded(error);
+    return;
+  }
+  const summary = importSummary(result);
   if (summary.problems) {
     Swal.fire({
       icon: 'warning',

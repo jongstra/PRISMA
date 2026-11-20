@@ -14,6 +14,21 @@ function parentIdsOf(useCase: UseCaseReference): string[] {
 }
 
 /**
+ * Reads what is clearly meant in a use case from a file written by hand or by another script, in place: an ID written
+ * as a number (id: 123) is text. What is still not valid is refused when the use case is added (see idProblem).
+ */
+export function readAsMeant(useCase: { id?: unknown }): void {
+  if (typeof useCase.id === 'number' && Number.isFinite(useCase.id)) {
+    useCase.id = String(useCase.id);
+  }
+}
+
+/** Why the ID of a use case from a file is not valid, or null when it is: an ID is text. */
+export function idProblem(id: unknown): string | null {
+  return typeof id === 'string' ? null : `The ID ${JSON.stringify(id)} is not valid: an ID is text, such as DOS-1.`;
+}
+
+/**
  * Checks a percentage (visibility, implementation, effectiveness, IN/THR/OUT impact). It may be empty, or a number from
  * 0 to 100, also when typed as text ("50"). Returns a description of the problem, or null when the value is valid.
  */
