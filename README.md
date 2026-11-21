@@ -23,17 +23,32 @@ https://github.com/user-attachments/assets/b14a9f3e-77bb-4f7e-8fd6-b3a10218e469
 **For security teams:** score your rules, see where coverage is thinnest, and choose the next improvement.<br>
 **For CISOs, managers and boards:** a ranked overview for a budget or board discussion. Ask: which risk scores highest, why, and what are the first three fixes? Bring the ranking and the trend to the board, not the single number.
 
-## What the numbers are, and are not
+**Status:** pre-release. There is no tagged version, hosting guide or vulnerability contact yet; expect rough edges in the interface.
 
-- The risk score ranks risks; it does not predict how many attacks go unseen. Compare it over time; do not quote it as an absolute. (It is 100% minus a weighted average of how well your rules cover each phase of an attack.)
-- Prevention, response, and the likelihood and cost of an attack are outside it.
-- Implementation (false positives) and effectiveness (testing) are scores your team enters. PRISMA does not test rules or check your scores.
-- Visibility uses only the device completeness score of your DeTT&CT file, averaged over a technique's data components. The other data quality scores are not used, and if a data source has several entries, only the first is read.
-- A missing score counts as 0%, so a half-filled file looks worse than it is.
+## How it works
 
-All choices in the model are in the [calculations guide](docs/calculations.md).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/prism-dark.svg">
+  <img src="docs/images/prism.svg" alt="Your DeTT&amp;CT file and MaGMa use cases go into PRISMA; out come visibility per ATT&amp;CK technique, a detection coverage heatmap, and the risk score per business risk.">
+</picture>
 
-**Status:** pre-release. There is no tagged version, hosting guide or vulnerability contact yet. The calculations are covered by automated tests; expect rough edges in the interface.
+PRISMA turns your log data into visibility per ATT&CK technique, gives each detection rule a weight (how well it covers its technique), and calculates a risk score per business risk. The score ranks risks and tracks progress; it is not a probability. You then choose what to improve, more log data or better rules, where PRISMA shows the most room.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/overview-dark.png">
+  <img src="docs/images/overview.png" alt="Outside PRISMA: data sources go into DeTT&amp;CT; DeTTeCTinator reads your SIEM or EDR and can write the DeTT&amp;CT file, and maps your detection capability to ATT&amp;CK for MaGMa's L3 (both by hand or by script); a risk analysis gives MaGMa's L1. Inside PRISMA: visibility from the DeTT&amp;CT file, use case performance from MaGMa, which together show where detection can improve, and the risk score per business risk.">
+</picture>
+
+*Where PRISMA fits, based on the [MaGMa 2.0 overview](docs/MaGMa_2.0_overview.png).*
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hierarchy-dark.svg">
+  <img src="docs/images/hierarchy.svg" alt="From business risk to detection rule: L1 business risk, L2 use case, L3 detection rule, ATT&amp;CK technique; visibility × implementation × effectiveness = weight; and the risk formula.">
+</picture>
+
+*The calculation, from business risk to detection rule. Every choice in the model is in the [calculations guide](docs/calculations.md).*
+
+PRISMA uses MITRE ATT&CK® v17.1 for Enterprise, Mobile and ICS (version 18 is not supported yet). The guides in [`docs/`](docs/) cover the [architecture](docs/architecture.md) and the [files](docs/data-formats.md).
 
 ## Try it
 
@@ -49,39 +64,12 @@ Do not refresh the page: without the DeTT&CT file most risks show 100%.
 
 ## Using it with your own data
 
-You need two things:
+1. **A DeTT&CT data source file:** which log data you collect, and on how many of your systems (0 to 5 per data source). Make it with the [DeTT&CT Editor](https://rabobank-cdc.github.io/dettect-editor/#/datasources).
+2. **Your MaGMa use cases, built in PRISMA:** the L1, L2 and L3 sheets on the MaGMa page hold your business risks, use cases and detection rules, and work like a spreadsheet. Score each rule on implementation (100% minus its share of false positives) and effectiveness (how well it is tested), as section 3.3 of the [MaGMa 2.0 documentation](docs/MaGMa%202.0%20functional%20documentation%20EN.pdf) describes. Per business risk, set how much getting in, moving inside and reaching the goal count.
 
-1. **A DeTT&CT data source file:** which log data you collect, and on how many of your systems (a score from 0 to 5 per data source). You can make it with the [DeTT&CT Editor](https://rabobank-cdc.github.io/dettect-editor/#/datasources). PRISMA reads data source files only, not technique administration files.
-2. **Your MaGMa use cases, built in PRISMA:** on the MaGMa page, the L1, L2 and L3 sheets hold your business risks, use cases and detection rules, and work like a spreadsheet. Each rule gets at most one ATT&CK technique and two scores from 0 to 100, implementation and effectiveness. Section 3.3 of the [MaGMa 2.0 documentation](docs/MaGMa%202.0%20functional%20documentation%20EN.pdf) says how to score them; implementation can be measured from your alert handling, as 100% minus the share of a rule's alerts that were false positives. For each business risk you also set how much each phase of an attack counts: getting in, moving inside and reaching the goal (together 100%). **Save MaGMa YAML** keeps it all in one file, which you load again next time.
+Coming from Excel? Copy and paste into the sheets, or convert the [MaGMa Excel template](templates/) or a list of rules with the scripts in [`tools/`](tools/). There is no Sigma or SIEM import.
 
-Already working in Excel? Copy and paste between Excel and the sheets, or convert the [MaGMa Excel template](templates/) or a list of rules (name, implementation, techniques) with the scripts in [`tools/`](tools/) (the columns are in [data formats](docs/data-formats.md#excel-files)). There is no Sigma or SIEM import. As an indication of size, not of time: the demo has 57 data sources (the largest example here has 110) and 62 detection rules.
-
-PRISMA keeps no history, and a reload clears what you loaded. Save your use cases with **Save MaGMa YAML** while you work, keep the file with the DeTT&CT file you loaded, and load an older pair to compare.
-
-## How it works
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/prism-dark.svg">
-  <img src="docs/images/prism.svg" alt="Your DeTT&amp;CT file and MaGMa use cases go into PRISMA; out come visibility per ATT&amp;CK technique, a detection coverage heatmap, and the risk score per business risk.">
-</picture>
-
-Improving detection is a loop:
-
-1. Collect log data. PRISMA turns it into visibility per ATT&CK technique.
-2. Build and score your detection rules. PRISMA gives each rule a weight: how well it covers its technique.
-3. See the risk score per business risk.
-4. Pick what to improve: more log data, or better rules. This is your decision; PRISMA shows where the most room is.
-
-PRISMA calculates steps 1 to 3, so you can see what step 4 should be. Where PRISMA fits among DeTT&CT, your SIEM or EDR and MaGMa: see the [architecture guide](docs/architecture.md#where-prisma-fits).
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hierarchy-dark.svg">
-  <img src="docs/images/hierarchy.svg" alt="From business risk to detection rule: L1 business risk, L2 use case, L3 detection rule, ATT&amp;CK technique; visibility × implementation × effectiveness = weight; and the risk formula.">
-</picture>
-
-*The calculation, from business risk to detection rule.*
-
-PRISMA uses MITRE ATT&CK® v17.1 for Enterprise, Mobile and ICS. Version 18 and later are not supported yet. The MaGMa 2.0 documentation is in [`docs/`](docs/), with guides to PRISMA's [calculations](docs/calculations.md), [architecture](docs/architecture.md) and [files](docs/data-formats.md).
+PRISMA keeps no history, and a reload clears your work: save it with **Save MaGMa YAML**, and keep it with your DeTT&CT file to compare later.
 
 ## Security and privacy
 
@@ -143,18 +131,18 @@ npm run dev
 - To use the application, open the link shown in your terminal (something like `localhost:5173`) in your browser.
 - Then follow [Try it](#try-it), or [Using it with your own data](#using-it-with-your-own-data). More examples are in [`examples/`](examples/).
 
-## Development
-- Software Development: Thomas Jongstra
-- Conceptual Guidance: Rob van Os
-- Overarching project (an inventory of cyber resilience capabilities across government departments): Rob van Os, Raymond Bierens & Tony van der Togt
+## Design philosophy
+PRISMA aims for pragmatism and simplicity for the end user. Its design is opinionated on purpose, and new features are added only when many users need them and they keep it simple.
 
 ## Technical Setup
 - Web app: Vue 3 and TypeScript (Pinia, Vite); see [Security and privacy](#security-and-privacy).
 - Dependencies: eight runtime packages, pinned in `package-lock.json`. Dependabot proposes updates monthly, and every change is built and tested on Node.js 22, 24 and 26.
 - Tools: a Python notebook that builds the ATT&CK catalog, and Python scripts that convert Excel files to MaGMa YAML.
 
-## Future
-- This project has a strong focus on pragmatism and simplicity for the benefit of the end user. Its design is sometimes strongly opinionated and limited with this goal in mind. New features may be added based on common user needs, but should not undermine this philosophy.
+## Credits
+- Software Development: Thomas Jongstra
+- Conceptual Guidance: Rob van Os
+- Overarching project (an inventory of cyber resilience capabilities across government departments): Rob van Os, Raymond Bierens & Tony van der Togt
 
 ## Thanks
 Thanks are extended to the following:
