@@ -10,13 +10,7 @@
 
 PRISMA shows which business risks, such as ransomware, your security monitoring covers least, and where there is most room to improve. It calculates this from two things your security team maintains: the log data you collect, described with [DeTT&CT](https://github.com/rabobank-cdc/DeTTECT) (an open-source method to score log sources), and your detection rules, which you build and score in PRISMA following the [MaGMa use case framework 2.0](docs/MaGMa%202.0%20functional%20documentation%20EN.pdf) (a method that links detection rules to business risks). Both are mapped onto MITRE ATT&CK®, the standard catalogue of attack techniques. PRISMA is open source and runs locally in your browser: no backend, no account, and your files stay on your computer.
 
-![The PRISMA Summary for a fictional organisation, titled 'Business risks: chance of missing an attack (highest first)'. The risk score per business risk: Extortion / Ransomware 71.0%, Espionage / Data Theft 65.8%, Sabotage / Destruction 57.5%, CEO Fraud 50.7%, Denial of Service 30.1%.](docs/images/risk.png)
-
-*A fictional organisation. Ransomware has the highest risk score: 71% (higher is worse). Use the score to rank risks and to track progress: it is not a measured probability, and not the chance that an attack succeeds, although the picture's title still says "chance". It is calculated from the organisation's own description of its log data and its own scoring of its detection rules. [How it is calculated](docs/calculations.md).*
-
-![Two parts of the MaGMa heatmap side by side. Initial Access, getting in, is covered for 21%; Lateral Movement, moving inside, for about 1%. The card of Remote Services shows the averages of its two rules: visibility 46% × implementation 23% × effectiveness 30% is about 3%.](docs/images/why.png)
-
-*Why: in this example the steps inside the network count for 65% in the ransomware score, and detection there is weak: about 1% of moving between machines (Lateral Movement) is covered, against 21% of getting in (Initial Access). Remote Services shows the cause: about half the needed log data is collected, and its two rules give many false alarms and are little tested. A technique without a rule counts as 0%, so a tactic's score is low unless most of its techniques have a rule.*
+https://github.com/user-attachments/assets/b14a9f3e-77bb-4f7e-8fd6-b3a10218e469
 
 ## What you get
 
@@ -45,7 +39,7 @@ All choices in the model are in the [calculations guide](docs/calculations.md).
 
 1. Start PRISMA on your computer: see the [installation instructions](#installation-instructions) (Node.js, then `npm ci` and `npm run dev` in `frontend/`).
 2. On the DeTT&CT page, load [`examples/dettect/demo.yaml`](examples/dettect/demo.yaml) with **Load DeTT&CT YAML**. Then, on the MaGMa page, load [`examples/magma/demo.yaml`](examples/magma/demo.yaml) with **Load MaGMa YAML**.
-3. Open **Summary** on the MaGMa page: you see the first picture above.
+3. Open **Summary** on the MaGMa page: you see the risk score per business risk, with ransomware highest at 71% (higher is worse).
 
 Do not refresh the page: without the DeTT&CT file most risks show 100%.
 
