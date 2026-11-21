@@ -1,6 +1,7 @@
 <script setup lang="ts">
-// The Summary tab of the MaGMa page: how well attacks are detected early (cumulative IN and THROUGH), the chance of
-// missing an attack per business risk, the averages over the business risks, and the counts (see domain/magma/summary.ts).
+// The Summary tab of the MaGMa page: how well attacks are detected early (cumulative IN and THROUGH), the risk score
+// per business risk (higher is worse), the averages over the business risks, and the counts
+// (see domain/magma/summary.ts).
 import { computed } from 'vue';
 import BarChart from '@/components/common/BarChart.vue';
 import ChartCard from '@/components/common/ChartCard.vue';
@@ -98,7 +99,7 @@ const counts = computed(() => [
       :max="100"
       empty="No business risks yet. Add one on the L1 tab."
     >
-      <template #title>Business risks: chance of missing an attack (highest first)</template>
+      <template #title>Business risks: risk score, higher is worse (highest first)</template>
       <template #name="{ index }">
         <span class="use-case-id">{{ risks[index]!.id }}</span> {{ risks[index]!.name }}
       </template>

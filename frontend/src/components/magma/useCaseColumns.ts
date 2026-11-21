@@ -120,7 +120,7 @@ export const USE_CASE_COLUMNS: Record<SheetLevel, UseCaseColumn[]> = {
       field: 'risk',
       title: 'Risk',
       description:
-        'The chance of missing the attack: 100% minus (IN weight × IN impact + THR weight × THR impact + own weight × OUT impact).',
+        'The risk score, higher is worse: 100% minus (IN weight × IN impact + THR weight × THR impact + own weight × OUT impact).',
       width: 63,
     },
   ],

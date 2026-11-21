@@ -1,5 +1,6 @@
 // The numbers on the MaGMa page's Summary tab. The business risks are the L1 use cases other than cumulative IN and
-// THROUGH (the permanent ones); their risk is the chance of missing an attack (see calculations.ts).
+// THROUGH (the permanent ones); their risk score is how poorly detection covers an attack, higher is worse
+// (see calculations.ts).
 
 /** The business risks, the highest risk first; equal risks in the order of their IDs. */
 export function businessRisks<T extends { id: string; permanent?: boolean; risk?: number }>(l1UseCases: T[]): T[] {
